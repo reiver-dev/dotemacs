@@ -238,7 +238,7 @@
                  (mapcar 'el-get-source-name el-get-sources)))
   (defun my:sync-packages ()
     (interactive)
-    (el-get my:packages))
+    (el-get 'sync my:packages))
   (defun my:clean-packages ()
     (interactive)
     (el-get-cleanup my:packages))
