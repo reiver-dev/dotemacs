@@ -85,9 +85,10 @@
               electric-indent-mode t)
 
 (setq-default linum-format "%4d ")
+(require 'linum)
 (let ((frc (face-attribute 'fringe :background)))
-  (set-face-attribute 'linum nil :background frc))
-(global-linum-mode)
+   (set-face-attribute 'linum nil :background frc))
+(add-hook 'prog-mode-hook 'linum-mode)
 
 ;; MISC VARIABLES ;;
 (setq-default
@@ -146,6 +147,8 @@
 (global-set-key (kbd "M-t w") 'transpose-words)
 (global-set-key (kbd "M-t s") 'transpose-sexps)
 (global-set-key (kbd "M-t p") 'transpose-params)
+
+(global-set-key (kbd "C-G") 'keyboard-escape-quit)
 
 (defun my:move-line-up ()
   "Move up the current line."
@@ -220,26 +223,47 @@
                             (add-to-list 'ac-sources 'ac-source-yasnippet t))
                           (ac-config-default)
                           (ac-linum-workaround)))
-          project-explorer
-          projectile
+          (:name projectile
+                 :after (progn
+                          (unless (boundp 'my:project-root)
+                            (setq my:project-root nil))
+                          (defun my:project-root-set ()
+                            (interactive)
+                            (setq my:project-root 
+                                  (expand-file-name (ido-read-directory-name "Set project dir: "))))
+                          (defun my:project-root-unset ()
+                            (interactive)
+                            (setq my:project-root nil))
+                          (defadvice projectile-project-root (around project-root-advice activate)
+                            (if (and my:project-root
+                                 (s-starts-with? my:project-root
+                                                 default-directory))
+                                (setq ad-return-value my:project-root)
+                              ad-do-it))))
+          (:name project-explorer
+                 :after (progn
+                          (global-set-key (kbd "<f5>") 'project-explorer-open)))
           (:name ag
                  :after (progn
                           (setq ag-highlight-search t)))
           (:name hlinum
                  :after (progn
+                          (require 'hl-line)
                           (set-face-attribute 
                            'linum-highlight-face nil 
                            :foreground (face-attribute 'linum :foreground)
-                           :background (face-attribute 'hl-line-face :background))
+                           :background (face-attribute 'hl-line :background nil t))
                           (hlinum-activate)))
-          js2-mode))
+          (:name js2-mode
+                 :after (progn
+                          (add-to-list 'auto-mode-alist '("\\.js" . js2-mode))))))
   (setq my:packages 
          (mapcar 'el-get-as-symbol 
                  (mapcar 'el-get-source-name el-get-sources)))
-  (defun my:sync-packages ()
+  (defun my:packages-sync () 
     (interactive)
     (el-get 'sync my:packages))
-  (defun my:clean-packages ()
+  (defun my:packages-clean ()
     (interactive)
     (el-get-cleanup my:packages))
   (el-get 'sync))
