@@ -46,13 +46,8 @@
 
 ;; mode line settings
 (line-number-mode t)
-(column-number-mode t)
 (size-indication-mode t)
-
-;; make the fringe (gutter) smaller
-;; the argument is a width in pixels (the default is 8)
-;; (if (fboundp 'fringe-mode)
-;;     (fringe-mode 0))
+(column-number-mode t)
 
 ;; enable y/n answers
 (fset 'yes-or-no-p 'y-or-n-p)
@@ -79,10 +74,10 @@
 (setq-default transient-mark-mode t)
 
 ;; tabs
+(electric-indent-mode t)
 (setq-default indent-tabs-mode nil
               tab-width 4
-              fill-column 120
-              electric-indent-mode t)
+              fill-column 120) 
 
 (setq-default linum-format "%4d ")
 (require 'linum)
@@ -96,8 +91,10 @@
  inhibit-startup-message t
  indicate-empty-lines nil
  color-theme-is-global t
- shift-select-mode t
+ shift-select-mode nil
  truncate-lines t)
+
+(blink-cursor-mode 0)
 
 ;; Whitespace mode
 (setq whitespace-style 
@@ -136,6 +133,21 @@
 (windmove-default-keybindings 'meta)
 (setq windmove-wrap-around t)
 
+(defun my:minibuffer-set-key (key command)
+  (dolist (m (list minibuffer-local-map
+               minibuffer-local-ns-map
+               minibuffer-local-completion-map
+               minibuffer-local-must-match-map
+               minibuffer-local-isearch-map))
+    (define-key m key command)))
+
+(defun my:move-key (keymap-from keymap-to key)
+     "Moves key binding from one keymap to another, deleting from the old location. "
+     (define-key keymap-to key (lookup-key keymap-from key))
+     (define-key keymap-from key nil))
+
+(my:minibuffer-set-key [escape] 'minibuffer-keyboard-quit)
+
 (global-set-key (kbd "C-x C-b") 'ido-switch-buffer)
 (global-set-key (kbd "C-x C-c") 'ido-switch-buffer)
 (global-set-key (kbd "C-x B") 'ibuffer)
@@ -149,6 +161,7 @@
 (global-set-key (kbd "M-t p") 'transpose-params)
 
 (global-set-key (kbd "C-G") 'keyboard-escape-quit)
+
 
 (defun my:move-line-up ()
   "Move up the current line."
@@ -165,7 +178,22 @@
   (forward-line -1)
   (indent-according-to-mode))
 
+(setq org-agenda-files 
+      (list 
+       (getenv "ORG_AGENDA_HOME")))
 
+(unless (boundp 'my:project-root)
+  (setq my:project-root nil))
+(defun my:project-root-set ()
+  (interactive)
+  (setq my:project-root 
+        (expand-file-name (ido-read-directory-name "Set project dir: "))))
+(defun my:project-root-unset ()
+  (interactive)
+  (setq my:project-root nil))
+
+;(defun my:project-root-advice (target advice-name)
+  
 ;; ### PACKAGES ### ;;
 
 (add-to-list 'load-path (concat user-emacs-directory-full "/el-get/el-get"))
@@ -197,52 +225,10 @@
                  :after (progn
                           (global-set-key (kbd "C-t") 'er/expand-region)
                           (global-set-key (kbd "C-S-t") 'er/contract-region)))
-          (:name jump-char
-                 :before (progn
-                           (global-set-key (kbd "C-c C-f") 'jump-char-forward)
-                           (global-set-key (kbd "C-c f") 'jump-char-backward)))
-          ;ido-ubiquitous
-          ;; (:name smart-mode-line
-          ;;        :after (progn
-          ;;                 (sml/setup)))
-          (:name smex
-                 :after (progn ()
-                               (global-set-key (kbd "M-x") 'smex)
-                               (global-set-key (kbd "M-X") 'smex-major-mode-commands)))
-          (:name yasnippet
-                 :after (progn ()
-                               (add-to-list 'yas-snippet-dirs my:snippets-dir)
-                               (yas-global-mode t)))
-          (:name helm
-                 :before (progn
-                           (global-set-key (kbd "C-c h") 'helm-mini)))
-          (:name auto-complete
-                 :features auto-complete-config
+          (:name sr-speedbar
                  :after (progn
-                          (defun ac-common-setup ()
-                            (add-to-list 'ac-sources 'ac-source-yasnippet t))
-                          (ac-config-default)
-                          (ac-linum-workaround)))
-          (:name projectile
-                 :after (progn
-                          (unless (boundp 'my:project-root)
-                            (setq my:project-root nil))
-                          (defun my:project-root-set ()
-                            (interactive)
-                            (setq my:project-root 
-                                  (expand-file-name (ido-read-directory-name "Set project dir: "))))
-                          (defun my:project-root-unset ()
-                            (interactive)
-                            (setq my:project-root nil))
-                          (defadvice projectile-project-root (around project-root-advice activate)
-                            (if (and my:project-root
-                                 (s-starts-with? my:project-root
-                                                 default-directory))
-                                (setq ad-return-value my:project-root)
-                              ad-do-it))))
-          (:name project-explorer
-                 :after (progn
-                          (global-set-key (kbd "<f5>") 'project-explorer-open)))
+                          (setq speedbar-use-images nil)
+                          (global-set-key (kbd "<f7>") 'sr-speedbar-toggle)))
           (:name ag
                  :after (progn
                           (setq ag-highlight-search t)))
@@ -256,7 +242,80 @@
                           (hlinum-activate)))
           (:name js2-mode
                  :after (progn
-                          (add-to-list 'auto-mode-alist '("\\.js" . js2-mode))))))
+                          (add-to-list 'auto-mode-alist '("\\.js" . js2-mode))))
+          (:name smart-mode-line
+                 :after (progn                          
+                          (sml/setup)))
+          (:name smex
+                 :after (progn ()
+                               (global-set-key (kbd "M-x") 'smex)
+                               (global-set-key (kbd "M-X") 'smex-major-mode-commands)))
+          (:name yasnippet
+                 :after (progn ()
+                               (add-to-list 'yas-snippet-dirs my:snippets-dir)
+                               (define-key yas-minor-mode-map (kbd "<tab>") nil)
+                               (define-key yas-minor-mode-map (kbd "TAB") nil)
+                               (yas-global-mode t)
+                               (add-to-list 'hippie-expand-try-functions-list
+                                            'yas-hippie-try-expand)))
+          (:name helm
+                 :before (progn
+                           (global-set-key (kbd "C-c h") 'helm-mini)
+                           (helm-mode t)))
+          (:name auto-complete
+                 :features auto-complete-config
+                 :after (progn
+                          (ac-config-default)
+                          (ac-linum-workaround)))
+          (:name projectile
+                 :after (progn
+                          (defadvice projectile-project-root (around projectile-my-root activate)
+                            (if (and my:project-root
+                                     (s-starts-with? my:project-root
+                                                     default-directory))
+                                (setq ad-return-value my:project-root)
+                              ad-do-it))))
+          (:name project-explorer
+                 :depends (es-lib es-windows)
+                 :after (progn
+                          (global-set-key (kbd "<f5>") 'project-explorer-open)
+                          (global-set-key (kbd "<f6>") 'project-explorer-helm)))
+          (:name direx
+                 :after (progn
+                          (defun my:direx-to-project-noselect ()
+                            (interactive)
+                            (let ((buffer (direx:find-directory-reuse-noselect (projectile-project-root))))
+                              (direx:maybe-goto-current-buffer-item buffer)
+                              buffer))
+                          (defun my:direx-to-project-other ()
+                            (interactive)
+                            (switch-to-buffer-other-window (my:direx-to-project-noselect)))
+                          (global-set-key (kbd "<f8>")
+                                          'my:direx-to-project-other)))
+          (:name popwin
+                 :features popwin
+                 :after (progn
+                          (push '(direx:direx-mode :position left
+                                                   :width 30
+                                                   :dedicated t)
+                                popwin:special-display-config)
+                          (global-set-key (kbd "C-c w") popwin:keymap)
+                          (popwin-mode 1)))
+          (:name evil
+                 :after (progn
+                          (setq evil-emacs-state-modes '(direx:direx-mode project-explorer-mode))
+                          (define-key evil-insert-state-map (kbd "C-SPC") 'auto-complete)
+                          (evil-define-state normal-im
+                            "Motion with input method for searching"
+                            :tag " <S> "
+                            :enable (motion)
+                            :input-method t)
+                          (defadvice evil-search-incrementally (around evil-search-f-method activate)
+                            (evil-normal-im-state) ad-do-it (evil-normal-state)) 
+                          (evil-mode 1)))
+          (:name evil-leader
+                 :after (progn
+                          (global-evil-leader-mode)))))
   (setq my:packages 
          (mapcar 'el-get-as-symbol 
                  (mapcar 'el-get-source-name el-get-sources)))
@@ -267,3 +326,5 @@
     (interactive)
     (el-get-cleanup my:packages))
   (el-get 'sync))
+
+
