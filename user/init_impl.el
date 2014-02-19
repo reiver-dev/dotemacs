@@ -161,7 +161,7 @@
 (global-set-key (kbd "M-t p") 'transpose-params)
 
 (global-set-key (kbd "C-G") 'keyboard-escape-quit)
-
+(global-set-key (kbd "M-SPC") nil)
 
 (defun my:move-line-up ()
   "Move up the current line."
@@ -232,14 +232,9 @@
           (:name ag
                  :after (progn
                           (setq ag-highlight-search t)))
-          (:name hlinum
+          (:name linum-relative
                  :after (progn
-                          (require 'hl-line)
-                          (set-face-attribute 
-                           'linum-highlight-face nil 
-                           :foreground (face-attribute 'linum :foreground)
-                           :background (face-attribute 'hl-line :background nil t))
-                          (hlinum-activate)))
+                          (linum-relative-toggle)))
           (:name js2-mode
                  :after (progn
                           (add-to-list 'auto-mode-alist '("\\.js" . js2-mode))))
