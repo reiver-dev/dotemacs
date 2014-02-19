@@ -232,9 +232,7 @@
           (:name ag
                  :after (progn
                           (setq ag-highlight-search t)))
-          (:name linum-relative
-                 :after (progn
-                          (linum-relative-toggle)))
+          (:name linum-relative)
           (:name js2-mode
                  :after (progn
                           (add-to-list 'auto-mode-alist '("\\.js" . js2-mode))))
