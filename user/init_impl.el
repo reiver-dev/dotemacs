@@ -160,7 +160,7 @@
 (global-set-key (kbd "M-t s") 'transpose-sexps)
 (global-set-key (kbd "M-t p") 'transpose-params)
 
-(global-set-key (kbd "C-G") 'keyboard-escape-quit)
+(global-set-key (kbd "C-S-g") 'keyboard-escape-quit)
 (global-set-key (kbd "M-SPC") nil)
 
 (defun my:move-line-up ()
@@ -192,8 +192,18 @@
   (interactive)
   (setq my:project-root nil))
 
-;(defun my:project-root-advice (target advice-name)
-  
+(defun my:kill-current-buffer ()
+  (interactive)
+  (kill-buffer (current-buffer))) 
+
+(defun my:kill-and-close-current ()
+  (interactive)
+  (let ((buf (current-buffer)))
+    (delete-window)
+    (kill-buffer buf)))
+
+(global-set-key (kbd "C-x C-k") 'my:kill-and-close-current)
+
 ;; ### PACKAGES ### ;;
 
 (add-to-list 'load-path (concat user-emacs-directory-full "/el-get/el-get"))
@@ -204,7 +214,7 @@
   (setq el-get-sources
         '((:name el-get
                  :branch "master")
-          smooth-scrolling
+          (:name smooth-scrolling)
           (:name undo-tree
                  :before (progn
                            (setq undo-tree-mode-lighter ""))
@@ -212,11 +222,11 @@
                           (global-undo-tree-mode)))
           (:name buffer-move
                  :after (progn
-                          (global-set-key (kbd "<M-S-up>") 'buf-move-up)
-                          (global-set-key (kbd "<M-S-down>") 'buf-move-down)
-                          (global-set-key (kbd "<M-S-left>") 'buf-move-left)
-                          (global-set-key (kbd "<M-S-right>") 'buf-move-right)))
-          (:name multiple-cursors
+                          (global-set-key (kbd "<C-S-up>") 'buf-move-up)
+                          (global-set-key (kbd "<C-S-down>") 'buf-move-down)
+                          (global-set-key (kbd "<C-S-left>") 'buf-move-left)
+                          (global-set-key (kbd "<C-S-right>") 'buf-move-right)))
+         (:name multiple-cursors
                  :after (progn
                           (global-set-key (kbd "C->") 'mc/mark-next-like-this)
                           (global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
@@ -230,27 +240,24 @@
                           (setq speedbar-use-images nil)
                           (global-set-key (kbd "<f7>") 'sr-speedbar-toggle)))
           (:name ag
-                 :after (progn
-                          (setq ag-highlight-search t)))
+                 :after (progn (setq ag-highlight-search t)))
           (:name linum-relative)
           (:name js2-mode
-                 :after (progn
-                          (add-to-list 'auto-mode-alist '("\\.js" . js2-mode))))
+                 :after (progn (add-to-list 'auto-mode-alist '("\\.js" . js2-mode))))
           (:name smart-mode-line
-                 :after (progn                          
-                          (sml/setup)))
+                 :after (progn (sml/setup)))
           (:name smex
-                 :after (progn ()
-                               (global-set-key (kbd "M-x") 'smex)
-                               (global-set-key (kbd "M-X") 'smex-major-mode-commands)))
+                 :after (progn 
+                          (global-set-key (kbd "M-x") 'smex)
+                          (global-set-key (kbd "M-X") 'smex-major-mode-commands)))
           (:name yasnippet
-                 :after (progn ()
-                               (add-to-list 'yas-snippet-dirs my:snippets-dir)
-                               (define-key yas-minor-mode-map (kbd "<tab>") nil)
-                               (define-key yas-minor-mode-map (kbd "TAB") nil)
-                               (yas-global-mode t)
-                               (add-to-list 'hippie-expand-try-functions-list
-                                            'yas-hippie-try-expand)))
+                 :after (progn 
+                          (add-to-list 'yas-snippet-dirs my:snippets-dir)
+                          (define-key yas-minor-mode-map (kbd "<tab>") nil)
+                          (define-key yas-minor-mode-map (kbd "TAB") nil)
+                          (yas-global-mode t)
+                          (add-to-list 'hippie-expand-try-functions-list
+                                       'yas-hippie-try-expand)))
           (:name helm
                  :before (progn
                            (global-set-key (kbd "C-c h") 'helm-mini)
@@ -267,12 +274,14 @@
                                      (s-starts-with? my:project-root
                                                      default-directory))
                                 (setq ad-return-value my:project-root)
-                              ad-do-it))))
+                              ad-do-it)
+                            )
+                          (global-set-key (kbd "<f6>") 'helm-projectile)
+                          (projectile-global-mode)))
           (:name project-explorer
                  :depends (es-lib es-windows)
                  :after (progn
-                          (global-set-key (kbd "<f5>") 'project-explorer-open)
-                          (global-set-key (kbd "<f6>") 'project-explorer-helm)))
+                          (global-set-key (kbd "<f5>") 'project-explorer-open)))
           (:name direx
                  :after (progn
                           (defun my:direx-to-project-noselect ()
@@ -296,7 +305,9 @@
                           (popwin-mode 1)))
           (:name evil
                  :after (progn
-                          (setq evil-emacs-state-modes '(direx:direx-mode project-explorer-mode))
+                          (setq evil-emacs-state-modes '(direx:direx-mode
+                                                         project-explorer-mode
+                                                         cider-mode))
                           (define-key evil-insert-state-map (kbd "C-SPC") 'auto-complete)
                           (evil-define-state normal-im
                             "Motion with input method for searching"
@@ -308,7 +319,9 @@
                           (evil-mode 1)))
           (:name evil-leader
                  :after (progn
-                          (global-evil-leader-mode)))))
+                          (global-evil-leader-mode)))
+          (:name clojure-mode)
+          (:name cider)))
   (setq my:packages 
          (mapcar 'el-get-as-symbol 
                  (mapcar 'el-get-source-name el-get-sources)))
@@ -317,7 +330,7 @@
     (el-get 'sync my:packages))
   (defun my:packages-clean ()
     (interactive)
-    (el-get-cleanup my:packages))
+    (el-get-cleanup my:packages)))
+
+(when (require 'el-get nil t)
   (el-get 'sync))
-
-
