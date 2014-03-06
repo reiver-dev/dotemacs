@@ -214,19 +214,23 @@
   (setq el-get-sources
         '((:name el-get
                  :branch "master")
+          ;; Navigation, editing, appearance
           (:name smooth-scrolling)
+          (:name linum-relative)
           (:name undo-tree
                  :before (progn
                            (setq undo-tree-mode-lighter ""))
                  :after (progn
                           (global-undo-tree-mode)))
+          (:name smart-mode-line
+                 :after (progn (sml/setup)))
           (:name buffer-move
                  :after (progn
                           (global-set-key (kbd "<C-S-up>") 'buf-move-up)
                           (global-set-key (kbd "<C-S-down>") 'buf-move-down)
                           (global-set-key (kbd "<C-S-left>") 'buf-move-left)
                           (global-set-key (kbd "<C-S-right>") 'buf-move-right)))
-         (:name multiple-cursors
+          (:name multiple-cursors
                  :after (progn
                           (global-set-key (kbd "C->") 'mc/mark-next-like-this)
                           (global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
@@ -235,21 +239,21 @@
                  :after (progn
                           (global-set-key (kbd "C-t") 'er/expand-region)
                           (global-set-key (kbd "C-S-t") 'er/contract-region)))
-          (:name sr-speedbar
+          (:name popwin
+                 :features popwin
                  :after (progn
-                          (setq speedbar-use-images nil)
-                          (global-set-key (kbd "<f7>") 'sr-speedbar-toggle)))
-          (:name ag
-                 :after (progn (setq ag-highlight-search t)))
-          (:name linum-relative)
-          (:name js2-mode
-                 :after (progn (add-to-list 'auto-mode-alist '("\\.js" . js2-mode))))
-          (:name smart-mode-line
-                 :after (progn (sml/setup)))
-          (:name smex
-                 :after (progn 
-                          (global-set-key (kbd "M-x") 'smex)
-                          (global-set-key (kbd "M-X") 'smex-major-mode-commands)))
+                          (push '(direx:direx-mode :position left
+                                                   :width 30
+                                                   :dedicated t)
+                                popwin:special-display-config)
+                          (global-set-key (kbd "C-c w") popwin:keymap)
+                          (popwin-mode 1)))
+          ;; Completion
+          (:name auto-complete
+                 :features auto-complete-config
+                 :after (progn
+                          (ac-config-default)
+                          (ac-linum-workaround)))
           (:name yasnippet
                  :after (progn 
                           (add-to-list 'yas-snippet-dirs my:snippets-dir)
@@ -258,15 +262,18 @@
                           (yas-global-mode t)
                           (add-to-list 'hippie-expand-try-functions-list
                                        'yas-hippie-try-expand)))
+          ;; Fast access and searching
+          (:name smex
+                 :after (progn 
+                          (global-set-key (kbd "M-x") 'smex)
+                          (global-set-key (kbd "M-X") 'smex-major-mode-commands)))
           (:name helm
                  :before (progn
                            (global-set-key (kbd "C-c h") 'helm-mini)
                            (helm-mode t)))
-          (:name auto-complete
-                 :features auto-complete-config
-                 :after (progn
-                          (ac-config-default)
-                          (ac-linum-workaround)))
+          (:name ag
+                 :after (progn (setq ag-highlight-search t)))
+          ;; Project management and project tree
           (:name projectile
                  :after (progn
                           (defadvice projectile-project-root (around projectile-my-root activate)
@@ -282,6 +289,10 @@
                  :depends (es-lib es-windows)
                  :after (progn
                           (global-set-key (kbd "<f5>") 'project-explorer-open)))
+          (:name sr-speedbar
+                 :after (progn
+                          (setq speedbar-use-images nil)
+                          (global-set-key (kbd "<f7>") 'sr-speedbar-toggle)))
           (:name direx
                  :after (progn
                           (defun my:direx-to-project-noselect ()
@@ -294,15 +305,7 @@
                             (switch-to-buffer-other-window (my:direx-to-project-noselect)))
                           (global-set-key (kbd "<f8>")
                                           'my:direx-to-project-other)))
-          (:name popwin
-                 :features popwin
-                 :after (progn
-                          (push '(direx:direx-mode :position left
-                                                   :width 30
-                                                   :dedicated t)
-                                popwin:special-display-config)
-                          (global-set-key (kbd "C-c w") popwin:keymap)
-                          (popwin-mode 1)))
+          ;; Evil mode and Co
           (:name evil
                  :after (progn
                           (setq evil-emacs-state-modes '(direx:direx-mode
@@ -320,6 +323,9 @@
           (:name evil-leader
                  :after (progn
                           (global-evil-leader-mode)))
+          ;; Language specific
+          (:name js2-mode
+                 :after (progn (add-to-list 'auto-mode-alist '("\\.js" . js2-mode))))
           (:name clojure-mode)
           (:name cider)))
   (setq my:packages 
