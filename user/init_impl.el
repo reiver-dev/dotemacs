@@ -281,12 +281,10 @@
                                      (s-starts-with? my:project-root
                                                      default-directory))
                                 (setq ad-return-value my:project-root)
-                              ad-do-it)
-                            )
+                              ad-do-it))
                           (global-set-key (kbd "<f6>") 'helm-projectile)
                           (projectile-global-mode)))
           (:name project-explorer
-                 :depends (es-lib es-windows)
                  :after (progn
                           (global-set-key (kbd "<f5>") 'project-explorer-open)))
           (:name sr-speedbar
