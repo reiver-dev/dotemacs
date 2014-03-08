@@ -262,6 +262,9 @@
                           (yas-global-mode t)
                           (add-to-list 'hippie-expand-try-functions-list
                                        'yas-hippie-try-expand)))
+          (:name smartparens
+                 :after (progn
+                          (smartparens-global-mode t)))
           ;; Fast access and searching
           (:name smex
                  :after (progn 
@@ -308,7 +311,7 @@
                  :after (progn
                           (setq evil-emacs-state-modes '(direx:direx-mode
                                                          project-explorer-mode
-                                                         cider-mode))
+                                                         cider-repl-mode))
                           (define-key evil-insert-state-map (kbd "C-SPC") 'auto-complete)
                           (evil-define-state normal-im
                             "Motion with input method for searching"
