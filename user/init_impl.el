@@ -29,6 +29,11 @@
 	  (concat (getenv "PYTHONPATH") ":" (concat my:user-dir "python-path")))
 (setenv "PYTHONPATH" python-path)
 
+;; org-mode 
+(setq org-agenda-files 
+      (list 
+       (getenv "ORG_AGENDA_HOME")))
+
 ;; backup and autosave ;;
 (setq backup-directory-alist
       `((".*" . ,my:backup-dir)))
@@ -37,11 +42,10 @@
 
 ;; toolbars
 (menu-bar-mode -1)
-(when window-system
-  (tool-bar-mode -1)
-  (scroll-bar-mode -1))
+(tool-bar-mode -1)
+(scroll-bar-mode -1)
 
-(set-default-font "Meslo LG S 10")
+(add-to-list 'default-frame-alist '(font . "Meslo LG S 10"))
 (show-paren-mode t)
 
 ;; mode line settings
@@ -55,44 +59,40 @@
 ;; highlight the current line
 ;;(global-hl-line-mode +1)
 
-;; scroll
+;; Scroll
 (setq-default mouse-wheel-scroll-amount '(3 ((shift) . 1)) ;; three line at a time
               mouse-wheel-progressive-speed nil ;; don't accelerate scrolling
               mouse-wheel-follow-mouse t) ;; scroll window under mouse
 
-;; smart pairing for all
-(electric-pair-mode t)
-(delete-selection-mode t)
-
 ;; Easily navigate sillycased words
 (global-subword-mode 1)
- 
+
 ;; Show active region
 (transient-mark-mode 1)
 (make-variable-buffer-local 'transient-mark-mode)
 (put 'transient-mark-mode 'permanent-local t)
 (setq-default transient-mark-mode t)
 
-;; tabs
+;; Indentation
 (electric-indent-mode t)
 (setq-default indent-tabs-mode nil
               tab-width 4
               fill-column 120) 
 
-(setq-default linum-format "%4d ")
+;; Line numbers
 (require 'linum)
-(let ((frc (face-attribute 'fringe :background)))
-   (set-face-attribute 'linum nil :background frc))
+;; (let ((frc (face-attribute 'fringe :background)))
+;;    (set-face-attribute 'linum nil :background frc))
 (add-hook 'prog-mode-hook 'linum-mode)
 
 ;; MISC VARIABLES ;;
-(setq-default
- visible-bell t
- inhibit-startup-message t
- indicate-empty-lines nil
- color-theme-is-global t
- shift-select-mode nil
- truncate-lines t)
+(setq-default visible-bell t
+              inhibit-startup-message t
+              indicate-empty-lines nil
+              color-theme-is-global t
+              shift-select-mode nil
+              truncate-lines t
+              word-wrap t)
 
 (blink-cursor-mode 0)
 
@@ -106,6 +106,9 @@
 ;;         ))
 
 ;; IDO mode ;;
+(require 'recentf)
+(recentf-mode)
+
 (ido-mode t)
 (setq ido-create-new-buffer 'always
       ido-default-buffer-method 'selected-window
@@ -134,23 +137,26 @@
 (setq windmove-wrap-around t)
 
 (defun my:minibuffer-set-key (key command)
+  ;; Binds key to all common minibuffer states
   (dolist (m (list minibuffer-local-map
-               minibuffer-local-ns-map
-               minibuffer-local-completion-map
-               minibuffer-local-must-match-map
-               minibuffer-local-isearch-map))
+                   minibuffer-local-ns-map
+                   minibuffer-local-completion-map
+                   minibuffer-local-must-match-map
+                   minibuffer-local-isearch-map))
     (define-key m key command)))
 
 (defun my:move-key (keymap-from keymap-to key)
-     "Moves key binding from one keymap to another, deleting from the old location. "
-     (define-key keymap-to key (lookup-key keymap-from key))
-     (define-key keymap-from key nil))
+  "Moves key binding from one keymap to another, deleting from the old location. "
+  (define-key keymap-to key (lookup-key keymap-from key))
+  (define-key keymap-from key nil))
 
 (my:minibuffer-set-key [escape] 'minibuffer-keyboard-quit)
+(global-set-key (kbd "C-S-g") 'keyboard-escape-quit)
 
 (global-set-key (kbd "C-x C-b") 'ido-switch-buffer)
 (global-set-key (kbd "C-x C-c") 'ido-switch-buffer)
 (global-set-key (kbd "C-x B") 'ibuffer)
+
 
 (global-set-key (kbd "M-/") 'hippie-expand)
 
@@ -160,8 +166,10 @@
 (global-set-key (kbd "M-t s") 'transpose-sexps)
 (global-set-key (kbd "M-t p") 'transpose-params)
 
-(global-set-key (kbd "C-S-g") 'keyboard-escape-quit)
+;; Used for system keyboard layout switch
 (global-set-key (kbd "M-SPC") nil)
+
+;; Swap lines
 
 (defun my:move-line-up ()
   "Move up the current line."
@@ -178,19 +186,21 @@
   (forward-line -1)
   (indent-according-to-mode))
 
-(setq org-agenda-files 
-      (list 
-       (getenv "ORG_AGENDA_HOME")))
+;; Project root helpers 
 
 (unless (boundp 'my:project-root)
   (setq my:project-root nil))
 (defun my:project-root-set ()
+  ;; Sets global project root to directory
   (interactive)
   (setq my:project-root 
         (expand-file-name (ido-read-directory-name "Set project dir: "))))
 (defun my:project-root-unset ()
+  ;; Resets global project root
   (interactive)
   (setq my:project-root nil))
+
+;; Buffer management
 
 (defun my:kill-current-buffer ()
   (interactive)
@@ -199,7 +209,8 @@
 (defun my:kill-and-close-current ()
   (interactive)
   (let ((buf (current-buffer)))
-    (delete-window)
+    (when (not (one-window-p))
+      (delete-window))
     (kill-buffer buf)))
 
 (global-set-key (kbd "C-x C-k") 'my:kill-and-close-current)
@@ -239,6 +250,9 @@
                  :after (progn
                           (global-set-key (kbd "C-t") 'er/expand-region)
                           (global-set-key (kbd "C-S-t") 'er/contract-region)))
+          (:name smartparens
+                 :after (progn
+                          (smartparens-global-mode t)))
           (:name popwin
                  :features popwin
                  :after (progn
@@ -262,9 +276,6 @@
                           (yas-global-mode t)
                           (add-to-list 'hippie-expand-try-functions-list
                                        'yas-hippie-try-expand)))
-          (:name smartparens
-                 :after (progn
-                          (smartparens-global-mode t)))
           ;; Fast access and searching
           (:name smex
                  :after (progn 
@@ -330,8 +341,8 @@
           (:name clojure-mode)
           (:name cider)))
   (setq my:packages 
-         (mapcar 'el-get-as-symbol 
-                 (mapcar 'el-get-source-name el-get-sources)))
+        (mapcar 'el-get-as-symbol 
+                (mapcar 'el-get-source-name el-get-sources)))
   (defun my:packages-sync () 
     (interactive)
     (el-get 'sync my:packages))
