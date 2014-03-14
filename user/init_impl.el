@@ -81,8 +81,8 @@
 
 ;; Line numbers
 (require 'linum)
-;; (let ((frc (face-attribute 'fringe :background)))
-;;    (set-face-attribute 'linum nil :background frc))
+(let ((frc (face-attribute 'fringe :background)))
+  (set-face-attribute 'linum nil :background frc))
 (add-hook 'prog-mode-hook 'linum-mode)
 
 ;; MISC VARIABLES ;;
@@ -227,13 +227,15 @@
                  :branch "master")
           ;; Navigation, editing, appearance
           (:name smooth-scrolling)
-          (:name linum-relative)
+          (:name linum-relative
+                 :after (progn (setq-default linum-relative-format "%4s ")))
           (:name undo-tree
                  :before (progn
                            (setq undo-tree-mode-lighter ""))
                  :after (progn
                           (global-undo-tree-mode)))
           (:name smart-mode-line
+                 :before (progn (setq sml/theme 'light))
                  :after (progn (sml/setup)))
           (:name buffer-move
                  :after (progn
