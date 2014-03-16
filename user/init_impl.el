@@ -15,9 +15,6 @@
   (unless (file-directory-p dir)
     (make-directory dir)))
 
-;; custom file ;;
-(setq custom-file (concat user-emacs-directory-full "custom.el"))
-(load custom-file t)
 
 ;; package dir ;;
 (let ((default-directory my:modules-dir))
@@ -262,6 +259,7 @@
                           (ac-config-default)
                           (ac-linum-workaround)))
           (:name yasnippet
+                 :features yasnippet
                  :after (progn 
                           (add-to-list 'yas-snippet-dirs my:snippets-dir)
                           (define-key yas-minor-mode-map (kbd "<tab>") nil)
@@ -313,7 +311,8 @@
           ;; Evil mode and Co
           (:name evil
                  :after (progn
-                          (setq evil-emacs-state-modes '(direx:direx-mode
+                          (setq evil-emacs-state-modes '(Custom-mode
+                                                         direx:direx-mode
                                                          project-explorer-mode
                                                          cider-repl-mode))
                           (define-key evil-insert-state-map (kbd "C-SPC") 'auto-complete)
