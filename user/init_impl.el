@@ -29,49 +29,48 @@
 	  (concat (getenv "PYTHONPATH") ":" (concat my:user-dir "python-path")))
 (setenv "PYTHONPATH" python-path)
 
-;; org-mode 
-(setq org-agenda-files 
-      (list 
-       (getenv "ORG_AGENDA_HOME")))
-
 ;; backup and autosave ;;
 (setq backup-directory-alist
       `((".*" . ,my:backup-dir)))
 (setq auto-save-file-name-transforms
       `((".*" ,my:autosave-dir t)))
 
+;; Appearance
 ;; toolbars
 (menu-bar-mode -1)
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
 
-(add-to-list 'default-frame-alist '(font . "Meslo LG S 10"))
+(add-to-list 'default-frame-alist
+             '(font . "Meslo LG S 10"))
+
 (show-paren-mode t)
 
-;; mode line settings
 (line-number-mode t)
 (size-indication-mode t)
 (column-number-mode t)
 
+(blink-cursor-mode -1)
+
+(setq-default visible-bell t
+              inhibit-startup-message t
+              color-theme-is-global t)
+
 ;; enable y/n answers
 (fset 'yes-or-no-p 'y-or-n-p)
-
-;; highlight the current line
-;;(global-hl-line-mode +1)
 
 ;; Scroll
 (setq-default mouse-wheel-scroll-amount '(3 ((shift) . 1)) ;; three line at a time
               mouse-wheel-progressive-speed nil ;; don't accelerate scrolling
               mouse-wheel-follow-mouse t) ;; scroll window under mouse
 
+;; Text behavior
+(setq-default shift-select-mode nil
+              truncate-lines t
+              word-wrap t)
+
 ;; Easily navigate sillycased words
 (global-subword-mode 1)
-
-;; Show active region
-(transient-mark-mode 1)
-(make-variable-buffer-local 'transient-mark-mode)
-(put 'transient-mark-mode 'permanent-local t)
-(setq-default transient-mark-mode t)
 
 ;; Indentation
 (electric-indent-mode t)
@@ -79,22 +78,14 @@
               tab-width 4
               fill-column 120) 
 
-;; Line numbers
+;; Line numbers and fringe
 (require 'linum)
-(let ((frc (face-attribute 'fringe :background)))
-  (set-face-attribute 'linum nil :background frc))
 (add-hook 'prog-mode-hook 'linum-mode)
 
-;; MISC VARIABLES ;;
-(setq-default visible-bell t
-              inhibit-startup-message t
-              indicate-empty-lines nil
-              color-theme-is-global t
-              shift-select-mode nil
-              truncate-lines t
-              word-wrap t)
+(setq-default indicate-empty-lines t
+              indicate-buffer-boundaries t)
 
-(blink-cursor-mode 0)
+;; MISC VARIABLES ;;
 
 ;; Whitespace mode
 (setq whitespace-style 
@@ -235,7 +226,7 @@
                  :after (progn
                           (global-undo-tree-mode)))
           (:name smart-mode-line
-                 :before (progn (setq sml/theme 'light))
+                 :before (progn (setq sml/theme 'dark))
                  :after (progn (sml/setup)))
           (:name buffer-move
                  :after (progn
