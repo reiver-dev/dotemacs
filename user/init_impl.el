@@ -241,6 +241,7 @@
           (:name smartparens
                  :after (progn
                           (setq sp-show-pair-from-inside t)
+                          (smartparens-global-mode t)
                           (show-smartparens-global-mode t)))
           (:name popwin
                  :features popwin
@@ -330,7 +331,10 @@
           (:name js2-mode
                  :after (progn (add-to-list 'auto-mode-alist '("\\.js" . js2-mode))))
           (:name clojure-mode)
-          (:name cider)))
+          (:name cider)
+          (:name ac-nrepl
+                 :after (progn
+                          (add-hook 'cider-mode-hook 'ac-nrepl-setup)))))
   (setq my:packages 
         (mapcar 'el-get-as-symbol 
                 (mapcar 'el-get-source-name el-get-sources)))
