@@ -41,8 +41,6 @@
 (add-to-list 'default-frame-alist
              '(font . "Meslo LG S 10"))
 
-(show-paren-mode t)
-
 (line-number-mode t)
 (size-indication-mode t)
 (column-number-mode t)
@@ -242,7 +240,8 @@
                           (global-set-key (kbd "C-S-t") 'er/contract-region)))
           (:name smartparens
                  :after (progn
-                          (smartparens-global-mode t)))
+                          (setq sp-show-pair-from-inside t)
+                          (show-smartparens-global-mode t)))
           (:name popwin
                  :features popwin
                  :after (progn
