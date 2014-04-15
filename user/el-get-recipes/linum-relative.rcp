@@ -1,0 +1,5 @@
+(:name linum-relative
+       :type github
+       :description "Display relative line number in the left margin"
+       :pkgname "coldnew/linum-relative"
+       :features linum-relative)

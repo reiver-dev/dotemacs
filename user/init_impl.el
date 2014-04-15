@@ -15,11 +15,11 @@
   (unless (file-directory-p dir)
     (make-directory dir)))
 
-
 ;; package dir ;;
 (let ((default-directory my:modules-dir))
   (normal-top-level-add-to-load-path '("."))
   (normal-top-level-add-subdirs-to-load-path))
+
 
 ;; python ;;
 (setq python-path
@@ -118,8 +118,8 @@
         " [Too big]"
         " [Confirm]"))
 
-;; Navigate windows with M-<arrows>
-(windmove-default-keybindings 'meta)
+;; Navigate windows with Shift-<arrows>
+(windmove-default-keybindings)
 (setq windmove-wrap-around t)
 
 (defun my:minibuffer-set-key (key command)
@@ -256,6 +256,9 @@
           (:name auto-complete
                  :features auto-complete-config
                  :after (progn
+                          (setq ac-use-menu-map t)
+                          (define-key ac-menu-map (kbd "C-p") 'ac-previous)
+                          (define-key ac-menu-map (kbd "C-n") 'ac-next)
                           (ac-config-default)
                           (ac-linum-workaround)))
           (:name yasnippet
@@ -344,6 +347,7 @@
   (defun my:packages-clean ()
     (interactive)
     (el-get-cleanup my:packages)))
+
 
 (when (require 'el-get nil t)
   (el-get 'sync))

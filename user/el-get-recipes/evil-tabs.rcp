@@ -1,0 +1,6 @@
+(:name evil-tabs
+       :depends (elscreen evil)
+       :description "Tabs for evil mode using elscreen"
+       :type github
+       :pkgname "krisajenkins/evil-tabs"
+       :features "evil-tabs")

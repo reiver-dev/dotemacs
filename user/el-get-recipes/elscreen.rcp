@@ -1,0 +1,4 @@
+(:name elscreen
+       :description "Screen Manager for Emacsen"
+       :type github
+       :pkgname "knu/elscreen")
