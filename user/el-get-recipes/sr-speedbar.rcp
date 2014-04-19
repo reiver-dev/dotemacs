@@ -1,0 +1,6 @@
+(:name sr-speedbar
+       :type github
+       :description "Same frame speedbar"
+       :pkgname "emacsmirror/sr-speedbar"
+       :post-init (require 'sr-speedbar)
+       )
