@@ -9,6 +9,7 @@
 (defconst my:backup-dir (concat user-emacs-directory-full "backup/"))
 (defconst my:autosave-dir (concat user-emacs-directory-full "autosave/"))
 (defconst my:recipes-dir (concat my:user-dir "el-get-recipes/"))
+(defconst my:el-get-dir (concat user-emacs-directory-full "/el-get/el-get/"))
 (defconst my:snippets-dir (concat my:user-dir "snippets/"))
 
 (dolist (dir (list my:backup-dir my:autosave-dir my:modules-dir my:snippets-dir))
@@ -42,8 +43,8 @@
              '(font . "Meslo LG S 10"))
 
 (line-number-mode t)
-(size-indication-mode t)
 (column-number-mode t)
+(size-indication-mode t)
 
 (blink-cursor-mode -1)
 
@@ -61,7 +62,7 @@
 
 ;; Text behavior
 (setq-default shift-select-mode nil
-              truncate-lines t
+              truncate-lines nil
               word-wrap t)
 
 ;; Easily navigate sillycased words
@@ -187,6 +188,8 @@
   (setq my:project-root nil))
 
 ;; Buffer management
+(defadvice quit-window (before quit-window-kill-buffer activate)
+  (ad-set-arg 0 t))
 
 (defun my:kill-current-buffer ()
   (interactive)
@@ -203,7 +206,14 @@
 
 ;; ### PACKAGES ### ;;
 
-(add-to-list 'load-path (concat user-emacs-directory-full "/el-get/el-get"))
+(add-to-list 'load-path my:el-get-dir)
+
+(defun my:packages-el-get ()
+  (interactive)
+  (let ((url "https://github.com/dimitri/el-get"))
+    (start-process "el-get-download"
+                   (get-buffer-create "*el-get-download*")
+                   "git" "clone" url my:el-get-dir)))
 
 (when (require 'el-get nil t)
   (setq el-get-verbose t)
@@ -243,15 +253,6 @@
                           (setq sp-show-pair-from-inside t)
                           (smartparens-global-mode t)
                           (show-smartparens-global-mode t)))
-          (:name popwin
-                 :features popwin
-                 :after (progn
-                          (push '(direx:direx-mode :position left
-                                                   :width 30
-                                                   :dedicated t)
-                                popwin:special-display-config)
-                          (global-set-key (kbd "C-c w") popwin:keymap)
-                          (popwin-mode 1)))
           ;; Completion
           (:name auto-complete
                  :features auto-complete-config
@@ -299,18 +300,6 @@
                  :after (progn
                           (setq speedbar-use-images nil)
                           (global-set-key (kbd "<f7>") 'sr-speedbar-toggle)))
-          (:name direx
-                 :after (progn
-                          (defun my:direx-to-project-noselect ()
-                            (interactive)
-                            (let ((buffer (direx:find-directory-reuse-noselect (projectile-project-root))))
-                              (direx:maybe-goto-current-buffer-item buffer)
-                              buffer))
-                          (defun my:direx-to-project-other ()
-                            (interactive)
-                            (switch-to-buffer-other-window (my:direx-to-project-noselect)))
-                          (global-set-key (kbd "<f8>")
-                                          'my:direx-to-project-other)))
           ;; Evil mode and Co
           (:name evil
                  :after (progn
@@ -344,6 +333,9 @@
   (defun my:packages-sync () 
     (interactive)
     (el-get 'sync my:packages))
+  (defun my:packages-async () 
+    (interactive)
+    (el-get nil my:packages))
   (defun my:packages-clean ()
     (interactive)
     (el-get-cleanup my:packages)))
