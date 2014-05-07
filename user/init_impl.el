@@ -99,25 +99,8 @@
 (ido-mode t)
 (setq ido-create-new-buffer 'always
       ido-default-buffer-method 'selected-window
-      ido-case-fold t
       ido-enable-last-directory-history nil
-      ido-use-filename-at-point nil
-      ido-use-url-at-point nil
-      ido-enable-flex-matching t
-      ido-max-prospects 15
-      ido-confirm-unique-completion t
-      ido-decorations
-      '("\n-> "
-        ""
-        "\n   "
-        "\n ..."
-        "["
-        "]"
-        " [No match]"
-        " [Matched]"
-        " [Not readable]"
-        " [Too big]"
-        " [Confirm]"))
+      ido-enable-flex-matching t)
 
 ;; Navigate windows with Shift-<arrows>
 (windmove-default-keybindings)
@@ -272,6 +255,8 @@
                           (add-to-list 'hippie-expand-try-functions-list
                                        'yas-hippie-try-expand)))
           ;; Fast access and searching
+          (:name ido-vertical-mode
+                 :after (ido-vertical-mode 1))
           (:name smex
                  :after (progn 
                           (global-set-key (kbd "M-x") 'smex)
