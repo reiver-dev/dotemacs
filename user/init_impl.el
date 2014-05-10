@@ -193,10 +193,14 @@
 
 (defun my:packages-el-get ()
   (interactive)
-  (let ((url "https://github.com/dimitri/el-get"))
-    (start-process "el-get-download"
-                   (get-buffer-create "*el-get-download*")
-                   "git" "clone" url my:el-get-dir)))
+  (let* ((url "https://github.com/dimitri/el-get")
+         (res (call-process "git" nil (get-buffer-create "*el-get-download*") t
+                            "clone" url my:el-get-dir)))
+    (if (zerop res)
+        (progn
+          (load-library "el-get")
+          (el-get-post-install "el-get"))
+      (message "Failed to clone el-get"))))
 
 (when (require 'el-get nil t)
   (setq el-get-verbose t)
