@@ -1,0 +1,5 @@
+(:name ido-ubiquitous
+       :type github
+       :pkgname "DarwinAwardWinner/ido-ubiquitous"
+       :description "Replaces stock emacs completion with ido completion wherever it is possible to do so without breaking things"
+       :features ido-ubiquitous)

@@ -48,8 +48,7 @@
 
 (blink-cursor-mode -1)
 
-(setq-default visible-bell t
-              inhibit-startup-message t
+(setq-default inhibit-startup-message t
               color-theme-is-global t)
 
 ;; enable y/n answers
@@ -209,7 +208,8 @@
         '((:name el-get
                  :branch "master")
           ;; Navigation, editing, appearance
-          (:name smooth-scrolling)
+          (:name smooth-scrolling
+                 :after (setq smooth-scroll-margin 4))
           (:name linum-relative
                  :after (progn (setq-default linum-relative-format "%4s ")))
           (:name undo-tree
@@ -240,6 +240,8 @@
                           (setq sp-show-pair-from-inside t)
                           (smartparens-global-mode t)
                           (show-smartparens-global-mode t)))
+          (:name ace-jump-mode
+                 :features "ace-jump-mode")
           ;; Completion
           (:name auto-complete
                  :features auto-complete-config
@@ -259,16 +261,19 @@
                           (add-to-list 'hippie-expand-try-functions-list
                                        'yas-hippie-try-expand)))
           ;; Fast access and searching
+          (:name flx
+                 :after (progn
+                          (require 'flx-ido)
+                          (flx-ido-mode 1)
+                          (setq ido-use-faces nil)))
+          (:name ido-ubiquitous
+                 :after (ido-ubiquitous))
           (:name ido-vertical-mode
                  :after (ido-vertical-mode 1))
           (:name smex
                  :after (progn 
                           (global-set-key (kbd "M-x") 'smex)
                           (global-set-key (kbd "M-X") 'smex-major-mode-commands)))
-          (:name helm
-                 :before (progn
-                           (global-set-key (kbd "C-c h") 'helm-mini)
-                           (helm-mode t)))
           (:name ag
                  :after (progn (setq ag-highlight-search t)))
           ;; Project management and project tree
@@ -280,8 +285,11 @@
                                                      default-directory))
                                 (setq ad-return-value my:project-root)
                               ad-do-it))
-                          (global-set-key (kbd "<f6>") 'helm-projectile)
                           (projectile-global-mode)))
+          ;; (:name perspective
+          ;;        :after (progn
+          ;;                 (require 'perspective)
+          ;;                 (persp-mode t)))
           (:name project-explorer
                  :after (progn
                           (global-set-key (kbd "<f5>") 'project-explorer-open)))
@@ -291,12 +299,15 @@
                           (global-set-key (kbd "<f7>") 'sr-speedbar-toggle)))
           ;; Evil mode and Co
           (:name evil
+                 :before (setq evil-want-C-u-scroll t
+                               evil-want-C-w-in-emacs-state t)
                  :after (progn
                           (setq evil-emacs-state-modes '(Custom-mode
                                                          direx:direx-mode
                                                          project-explorer-mode
                                                          cider-repl-mode))
                           (define-key evil-insert-state-map (kbd "C-SPC") 'auto-complete)
+                          (define-key evil-normal-state-map (kbd "SPC") 'evil-ace-jump-word-mode)
                           (evil-define-state normal-im
                             "Motion with input method for searching"
                             :tag " <S> "
@@ -304,11 +315,15 @@
                             :input-method t)
                           (defadvice evil-search-incrementally (around evil-search-f-method activate)
                             (evil-normal-im-state) ad-do-it (evil-normal-state)) 
+                          (setq evil-search-module 'evil-search
+                                evil-want-C-u-scroll t
+                                evil-want-C-w-in-emacs-state t)
                           (evil-mode 1)))
           (:name evil-leader
                  :after (progn
                           (global-evil-leader-mode)))
           ;; Language specific
+          (:name jedi)
           (:name js2-mode
                  :after (progn (add-to-list 'auto-mode-alist '("\\.js" . js2-mode))))
           (:name clojure-mode)
