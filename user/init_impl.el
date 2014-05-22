@@ -42,6 +42,10 @@
 (add-to-list 'default-frame-alist
              '(font . "Meslo LG S 10"))
 
+(require 'package)
+(add-to-list 'package-archives '("marmelade" . "http://marmalade-repo.org/packages/"))
+(add-to-list 'package-archives '("melpa" . "http://melpa.milkbox.net/packages/"))
+
 (line-number-mode t)
 (column-number-mode t)
 (size-indication-mode t)
@@ -347,3 +351,163 @@
 
 (when (require 'el-get nil t)
   (el-get 'sync))
+
+
+               
+(defun my:package-initialize ()
+  ;; Navigation, editing, appearance
+  (use-package smooth-scrolling
+    :ensure t
+    :config (setq smooth-scroll-margin 4))
+  (use-package linum-relative
+    :ensure t
+    :config (progn (setq-default linum-relative-format "%4s ")))
+  (use-package undo-tree
+    :ensure t
+    :pre-init (progn
+                (setq undo-tree-mode-lighter ""))
+    :config (progn
+              (global-undo-tree-mode)))
+  (use-package smart-mode-line
+    :ensure t
+    :pre-init (progn (setq sml/theme 'dark))
+    :config (progn (sml/setup)))
+  (use-package buffer-move
+    :ensure t
+    :config (progn
+              (global-set-key (kbd "<C-S-up>") 'buf-move-up)
+              (global-set-key (kbd "<C-S-down>") 'buf-move-down)
+              (global-set-key (kbd "<C-S-left>") 'buf-move-left)
+              (global-set-key (kbd "<C-S-right>") 'buf-move-right)))
+  (use-package multiple-cursors
+    :ensure t
+    :config (progn
+              (global-set-key (kbd "C->") 'mc/mark-next-like-this)
+              (global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
+              (global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)))
+  (use-package expand-region
+    :ensure t
+    :config (progn
+              (global-set-key (kbd "C-t") 'er/expand-region)
+              (global-set-key (kbd "C-S-t") 'er/contract-region)))
+  (use-package smartparens
+    :ensure t
+    :config (progn
+              (setq sp-show-pair-from-inside t)
+              (smartparens-global-mode t)
+              (show-smartparens-global-mode t)))
+  (use-package ace-jump-mode
+    :ensure t)
+  ;; Completion
+  (use-package auto-complete-config
+    :ensure auto-complete
+    :config (progn
+              (setq ac-use-menu-map t)
+              (define-key ac-menu-map (kbd "C-p") 'ac-previous)
+              (define-key ac-menu-map (kbd "C-n") 'ac-next)
+              (ac-config-default)
+              (ac-linum-workaround)))
+  (use-package yasnippet
+    :ensure t
+    :config (progn 
+              (add-to-list 'yas-snippet-dirs my:snippets-dir)
+              (define-key yas-minor-mode-map (kbd "<tab>") nil)
+              (define-key yas-minor-mode-map (kbd "TAB") nil)
+              (yas-global-mode t)
+              (add-to-list 'hippie-expand-try-functions-list
+                           'yas-hippie-try-expand)))
+  ;; Fast access and searching
+  (use-package flx-ido
+    :ensure t
+    :config (progn
+              (flx-ido-mode 1)
+              (setq ido-use-faces nil)))
+  (use-package ido-ubiquitous
+    :ensure t
+    :config (ido-ubiquitous))
+  (use-package ido-vertical-mode
+    :ensure t
+    :config (ido-vertical-mode 1))
+  (use-package smex
+    :ensure t
+    :config (progn 
+              (global-set-key (kbd "M-x") 'smex)
+              (global-set-key (kbd "M-X") 'smex-major-mode-commands)))
+  (use-package ag
+    :ensure t
+    :config (progn (setq ag-highlight-search t)))
+  ;; Project management and project tree
+  (use-package projectile
+    :ensure t
+    :config (progn
+              (defadvice projectile-project-root (around projectile-my-root activate)
+                (if (and my:project-root
+                         (s-starts-with? my:project-root
+                                         default-directory))
+                    (setq ad-return-value my:project-root)
+                  ad-do-it))
+              (projectile-global-mode)))
+  ;; (use-package perspective
+  ;; :ensure t
+  ;; :config (progn
+  ;;                 (require 'perspective)
+  ;;                 (persp-mode t)))
+  (use-package project-explorer
+    :ensure t
+    :config (progn
+              (global-set-key (kbd "<f5>") 'project-explorer-open)))
+  (use-package sr-speedbar
+    :ensure t
+    :config (progn
+              (setq speedbar-use-images nil)
+              (global-set-key (kbd "<f7>") 'sr-speedbar-toggle)))
+  ;; Evil mode and Co
+  (use-package evil
+    :ensure t
+    :pre-load (progn
+                (setq evil-want-C-u-scroll t
+                      evil-want-C-w-in-emacs-state t))
+    :config (progn
+              (setq evil-emacs-state-modes '(Custom-mode
+                                             direx:direx-mode
+                                             project-explorer-mode
+                                             cider-repl-mode))
+              (define-key evil-insert-state-map (kbd "C-SPC") 'auto-complete)
+              (define-key evil-normal-state-map (kbd "SPC") 'evil-ace-jump-word-mode)
+              (evil-define-state normal-im
+                "Motion with input method for searching"
+                :tag " <S> "
+                :enable (motion)
+                :input-method t)
+              (defadvice evil-search-incrementally (around evil-search-f-method activate)
+                (evil-normal-im-state) ad-do-it (evil-normal-state)) 
+              (setq evil-search-module 'evil-search
+                    evil-want-C-u-scroll t
+                    evil-want-C-w-in-emacs-state t)
+              (evil-mode 1)))
+  (use-package evil-leader
+    :ensure t
+    :config (progn
+              (global-evil-leader-mode)))
+  ;; Language specific
+  (use-package jedi
+    :ensure t)
+  (use-package js2-mode
+    :ensure t
+    :config (progn (add-to-list 'auto-mode-alist '("\\.js" . js2-mode))))
+  (use-package clojure-mode
+    :ensure t)
+  (use-package cider
+    :ensure t)
+  (use-package ac-nrepl
+    :ensure t
+    :config (progn
+              (add-hook 'cider-mode-hook 'ac-nrepl-setup))))
+
+
+(package-initialize)
+(when (require 'use-package nil t)
+  (my:package-initialize))
+
+
+
