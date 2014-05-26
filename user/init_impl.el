@@ -241,11 +241,11 @@
               (ac-linum-workaround)))
   (use-package yasnippet
     :ensure t
+    :idle (yas-global-mode t)
     :config (progn 
               (add-to-list 'yas-snippet-dirs my:snippets-dir)
               (define-key yas-minor-mode-map (kbd "<tab>") nil)
               (define-key yas-minor-mode-map (kbd "TAB") nil)
-              (yas-global-mode t)
               (add-to-list 'hippie-expand-try-functions-list
                            'yas-hippie-try-expand)))
   ;; Fast access and searching
