@@ -19,7 +19,6 @@
   (normal-top-level-add-to-load-path '("."))
   (normal-top-level-add-subdirs-to-load-path))
 
-
 ;; python ;;
 (setq python-path
 	  (concat (getenv "PYTHONPATH") ":" (concat my:user-dir "python-path")))
@@ -51,7 +50,9 @@
 (blink-cursor-mode -1)
 
 (setq-default inhibit-startup-message t
+              initial-scratch-message nil
               color-theme-is-global t)
+
 
 ;; enable y/n answers
 (fset 'yes-or-no-p 'y-or-n-p)
@@ -92,6 +93,16 @@
 ;;         (newline-mark 10 [182 10])
 ;;         (tab-mark 9 [9655 9] [92 9])
 ;;         ))
+
+
+;; Spell checking ;;
+(when (executable-find "hunspell")
+  (require 'ispell)
+  (add-to-list 'ispell-local-dictionary-alist
+               '("russian" "[Ё-ё]" "[^Ё-ё]" "[-]" nil ("-d" "ru_RU") nil utf-8))
+  (add-to-list 'ispell-local-dictionary-alist
+               '("english" "[A-z]" "[^A-z]" "[']" nil ("-d" "en_GB") nil iso-8859-1))
+  (setq ispell-program-name "hunspell"))
 
 ;; IDO mode ;;
 (require 'recentf)
@@ -191,9 +202,6 @@
 ;; ### PACKAGES ### ;;
 (defun my:package-initialize ()
   ;; Navigation, editing, appearance
-  (use-package smooth-scrolling
-    :ensure t
-    :config (setq smooth-scroll-margin 4))
   (use-package linum-relative
     :ensure t
     :config (progn (setq-default linum-relative-format "%4s ")))
