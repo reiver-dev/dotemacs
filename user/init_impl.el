@@ -37,7 +37,7 @@
 (scroll-bar-mode -1)
 
 (add-to-list 'default-frame-alist
-             '(font . "Meslo LG S 10"))
+             '(font . "Anka/Coder 10"))
 
 (require 'package)
 (add-to-list 'package-archives '("marmelade" . "http://marmalade-repo.org/packages/"))
@@ -132,7 +132,6 @@
   (define-key keymap-to key (lookup-key keymap-from key))
   (define-key keymap-from key nil))
 
-(my:minibuffer-set-key [escape] 'minibuffer-keyboard-quit)
 (global-set-key (kbd "C-S-g") 'keyboard-escape-quit)
 
 (global-set-key (kbd "C-x C-b") 'ido-switch-buffer)
@@ -198,6 +197,12 @@
     (kill-buffer buf)))
 
 (global-set-key (kbd "C-x C-k") 'my:kill-and-close-current)
+
+(add-hook 'python-mode-hook
+          #'(lambda ()
+              (set (make-local-variable 'electric-indent-mode) nil)
+              (local-set-key (kbd "RET") 'newline-and-indent)))
+
 
 ;; ### PACKAGES ### ;;
 (defun my:package-initialize ()
@@ -310,23 +315,20 @@
               (define-key evil-insert-state-map (kbd "C-SPC") 'auto-complete)
               (define-key evil-insert-state-map (kbd "C-@") 'auto-complete)
               (define-key evil-normal-state-map (kbd "SPC") 'evil-ace-jump-word-mode)
-              (evil-define-state normal-im
-                "Motion with input method for searching"
-                :tag " <S> "
-                :enable (motion)
-                :input-method t)
-              (defadvice evil-search-incrementally (around evil-search-f-method activate)
-                (evil-normal-im-state) ad-do-it (evil-normal-state)) 
+              ;; (defadvice evil-search-incrementally (around evil-search-f-method activate)
+              ;;   (evil-emacs-state) ad-do-it (evil-normal-state)) 
               (setq evil-search-module 'evil-search
                     evil-want-C-u-scroll t
                     evil-want-C-w-in-emacs-state t)
               (evil-mode 1)))
-  (use-package evil-leader
-    :ensure t
-    :config (progn
-              (global-evil-leader-mode)))
+  ;; (use-package evil-leader
+  ;;   :ensure t
+  ;;   :config (progn
+  ;;             (global-evil-leader-mode)))
   ;; Language specific
   (use-package jedi
+    :ensure t)
+  (use-package flycheck
     :ensure t)
   (use-package js2-mode
     :ensure t
@@ -344,6 +346,18 @@
 (package-initialize)
 (when (require 'use-package nil t)
   (my:package-initialize))
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
