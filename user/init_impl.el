@@ -36,9 +36,6 @@
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
 
-(add-to-list 'default-frame-alist
-             '(font . "Anka/Coder 10"))
-
 (require 'package)
 (add-to-list 'package-archives '("marmelade" . "http://marmalade-repo.org/packages/"))
 (add-to-list 'package-archives '("melpa" . "http://melpa.milkbox.net/packages/"))
@@ -215,7 +212,6 @@
     :config (global-undo-tree-mode))
   (use-package smart-mode-line
     :ensure t
-    :pre-init (progn (setq sml/theme 'dark))
     :config (progn (sml/setup)))
   (use-package buffer-move
     :ensure t
@@ -250,6 +246,7 @@
               (setq ac-use-menu-map t)
               (define-key ac-menu-map (kbd "C-p") 'ac-previous)
               (define-key ac-menu-map (kbd "C-n") 'ac-next)
+              (define-key ac-completing-map (kbd "<return>") nil)
               (ac-config-default)
               (ac-linum-workaround)))
   (use-package yasnippet
@@ -281,6 +278,9 @@
   (use-package ag
     :ensure t
     :config (progn (setq ag-highlight-search t)))
+  ;; External tools
+  (use-package magit
+    :ensure t)
   ;; Project management and project tree
   (use-package projectile
     :ensure t
@@ -308,10 +308,8 @@
                 (setq evil-want-C-u-scroll t
                       evil-want-C-w-in-emacs-state t))
     :config (progn
-              (setq evil-emacs-state-modes '(Custom-mode
-                                             direx:direx-mode
-                                             project-explorer-mode
-                                             cider-repl-mode))
+              (setq evil-default-state 'emacs)
+              (add-hook 'prog-mode-hook 'evil-normal-state)
               (define-key evil-insert-state-map (kbd "C-SPC") 'auto-complete)
               (define-key evil-insert-state-map (kbd "C-@") 'auto-complete)
               (define-key evil-normal-state-map (kbd "SPC") 'evil-ace-jump-word-mode)
@@ -346,18 +344,4 @@
 (package-initialize)
 (when (require 'use-package nil t)
   (my:package-initialize))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
