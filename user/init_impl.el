@@ -19,37 +19,45 @@
   (normal-top-level-add-to-load-path '("."))
   (normal-top-level-add-subdirs-to-load-path))
 
+(require 'package)
+(add-to-list 'package-archives '("marmelade" . "http://marmalade-repo.org/packages/"))
+(add-to-list 'package-archives '("melpa" . "http://melpa.milkbox.net/packages/"))
+
 ;; python ;;
 (setq python-path
 	  (concat (getenv "PYTHONPATH") ":" (concat my:user-dir "python-path")))
 (setenv "PYTHONPATH" python-path)
 
 ;; backup and autosave ;;
-(setq backup-directory-alist
-      `((".*" . ,my:backup-dir)))
-(setq auto-save-file-name-transforms
-      `((".*" ,my:autosave-dir t)))
+(setq backup-directory-alist `((".*" . ,my:backup-dir)))
+(setq auto-save-list-file-prefix my:autosave-dir)
+(setq auto-save-file-name-transforms `((".*" ,my:autosave-dir t)))
 
-;; Appearance
+;; APPEARANCE ;;
+
 ;; toolbars
 (menu-bar-mode -1)
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
 
-(require 'package)
-(add-to-list 'package-archives '("marmelade" . "http://marmalade-repo.org/packages/"))
-(add-to-list 'package-archives '("melpa" . "http://melpa.milkbox.net/packages/"))
-
+;; modeline
 (line-number-mode t)
 (column-number-mode t)
 (size-indication-mode t)
 
 (blink-cursor-mode -1)
 
-(setq-default inhibit-startup-message t
+(setq-default inhibit-startup-screen t
               initial-scratch-message nil
               color-theme-is-global t)
+(setq visible-bell t)
 
+;; Line numbers and fringe
+(require 'linum)
+(add-hook 'prog-mode-hook 'linum-mode)
+
+(setq-default indicate-empty-lines t
+              indicate-buffer-boundaries t)
 
 ;; enable y/n answers
 (fset 'yes-or-no-p 'y-or-n-p)
@@ -67,24 +75,16 @@
 ;; Easily navigate sillycased words
 (global-subword-mode 1)
 
-;; Indentation
+;; INDENTATION ;;
+
 (electric-indent-mode t)
 (setq-default indent-tabs-mode nil
               tab-width 4
               fill-column 120) 
 
-;; Line numbers and fringe
-(require 'linum)
-(add-hook 'prog-mode-hook 'linum-mode)
-
-(setq-default indicate-empty-lines t
-              indicate-buffer-boundaries t)
-
-;; MISC VARIABLES ;;
-
 ;; Whitespace mode
-(setq whitespace-style 
-      '(spaces tabs newline space-mark tab-mark newline-mark))
+;; (setq whitespace-style 
+;;       '(spaces tabs newline space-mark tab-mark newline-mark))
 ;; (setq whitespace-display-mappings
 ;;       `((space-mark 32 [183] [64])
 ;;         (newline-mark 10 [182 10])
@@ -92,7 +92,8 @@
 ;;         ))
 
 
-;; Spell checking ;;
+;; SPELL CHECK ;;
+
 (when (executable-find "hunspell")
   (require 'ispell)
   (add-to-list 'ispell-local-dictionary-alist
@@ -102,6 +103,7 @@
   (setq ispell-program-name "hunspell"))
 
 ;; IDO mode ;;
+
 (require 'recentf)
 (recentf-mode)
 
