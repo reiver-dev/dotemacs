@@ -72,11 +72,7 @@
               truncate-lines nil
               word-wrap t)
 
-;; Easily navigate sillycased words
-(global-subword-mode 1)
-
 ;; INDENTATION ;;
-
 (electric-indent-mode t)
 (setq-default indent-tabs-mode nil
               tab-width 4
@@ -147,7 +143,15 @@
 (global-set-key (kbd "M-t p") 'transpose-params)
 
 ;; Used for system keyboard layout switch
-(global-set-key (kbd "M-SPC") nil)
+;; (global-set-key (kbd "M-SPC") nil)
+
+(defun my:kill-line-to-indent ()
+  (interactive)
+  (kill-line 0)
+  (indent-according-to-mode))
+
+(global-set-key (kbd "C-<backspace>") 'my:kill-line-to-indent)
+(global-set-key (kbd "C-x C-;") 'comment-or-uncomment-region)
 
 ;; Swap lines
 
@@ -245,6 +249,7 @@
   (use-package auto-complete-config
     :ensure auto-complete
     :config (progn
+              (define-key ac-mode-map (kbd "C-<tab>") 'auto-complete)
               (setq ac-use-menu-map t)
               (define-key ac-menu-map (kbd "C-p") 'ac-previous)
               (define-key ac-menu-map (kbd "C-n") 'ac-next)
@@ -321,25 +326,28 @@
                     evil-want-C-u-scroll t
                     evil-want-C-w-in-emacs-state t)
               (evil-mode 1)))
-  ;; (use-package evil-leader
-  ;;   :ensure t
-  ;;   :config (progn
-  ;;             (global-evil-leader-mode)))
+  (use-package evil-leader
+    :disabled t
+    :ensure t
+    :config (progn
+              (global-evil-leader-mode)))
   ;; Language specific
   (use-package jedi
-    :ensure t)
+    :ensure t
+    :commands jedi:setup
+    :init (add-hook 'python-mode-hook 'jedi:setup))
   (use-package flycheck
     :ensure t)
   (use-package js2-mode
     :ensure t
-    :config (progn (add-to-list 'auto-mode-alist '("\\.js" . js2-mode))))
+    :init (progn (add-to-list 'auto-mode-alist '("\\.js" . js2-mode))))
   (use-package clojure-mode
     :ensure t)
   (use-package cider
     :ensure t)
   (use-package ac-nrepl
     :ensure t
-    :config (progn
+    :init (progn
               (add-hook 'cider-mode-hook 'ac-nrepl-setup))))
 
 
