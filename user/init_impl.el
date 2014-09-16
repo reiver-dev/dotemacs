@@ -49,8 +49,8 @@
 
 (setq-default inhibit-startup-screen t
               initial-scratch-message nil
-              color-theme-is-global t)
-(setq visible-bell t)
+              color-theme-is-global t
+              visible-bell t)
 
 ;; Line numbers and fringe
 (require 'linum)
@@ -218,7 +218,12 @@
     :config (global-undo-tree-mode))
   (use-package smart-mode-line
     :ensure t
+    :disabled t
     :config (progn (sml/setup)))
+  (use-package powerline
+    :ensure t
+    :config (progn
+              (powerline-default-theme)))
   (use-package buffer-move
     :ensure t
     :config (progn
@@ -246,16 +251,11 @@
   (use-package ace-jump-mode
     :ensure t)
   ;; Completion
-  (use-package auto-complete-config
-    :ensure auto-complete
+  (use-package company
+    :ensure t
     :config (progn
-              (define-key ac-mode-map (kbd "C-<tab>") 'auto-complete)
-              (setq ac-use-menu-map t)
-              (define-key ac-menu-map (kbd "C-p") 'ac-previous)
-              (define-key ac-menu-map (kbd "C-n") 'ac-next)
-              (define-key ac-completing-map (kbd "<return>") nil)
-              (ac-config-default)
-              (ac-linum-workaround)))
+              (global-set-key (kbd "C-<tab>") 'company-complete)
+              (global-company-mode)))
   (use-package yasnippet
     :ensure t
     :idle (yas-global-mode t)
@@ -317,11 +317,7 @@
     :config (progn
               (setq evil-default-state 'emacs)
               (add-hook 'prog-mode-hook 'evil-normal-state)
-              (define-key evil-insert-state-map (kbd "C-SPC") 'auto-complete)
-              (define-key evil-insert-state-map (kbd "C-@") 'auto-complete)
               (define-key evil-normal-state-map (kbd "SPC") 'evil-ace-jump-word-mode)
-              ;; (defadvice evil-search-incrementally (around evil-search-f-method activate)
-              ;;   (evil-emacs-state) ad-do-it (evil-normal-state)) 
               (setq evil-search-module 'evil-search
                     evil-want-C-u-scroll t
                     evil-want-C-w-in-emacs-state t)
@@ -332,10 +328,12 @@
     :config (progn
               (global-evil-leader-mode)))
   ;; Language specific
-  (use-package jedi
+  (use-package anaconda-mode
     :ensure t
-    :commands jedi:setup
-    :init (add-hook 'python-mode-hook 'jedi:setup))
+    :init (add-hook 'python-mode-hook 'anaconda-mode))
+  (use-package company-anaconda
+    :ensure t
+    :init (add-to-list 'company-backends 'company-anaconda))
   (use-package flycheck
     :ensure t)
   (use-package js2-mode
@@ -344,11 +342,7 @@
   (use-package clojure-mode
     :ensure t)
   (use-package cider
-    :ensure t)
-  (use-package ac-nrepl
-    :ensure t
-    :init (progn
-              (add-hook 'cider-mode-hook 'ac-nrepl-setup))))
+    :ensure t))
 
 
 (package-initialize)
