@@ -24,14 +24,15 @@
 (add-to-list 'package-archives '("melpa" . "http://melpa.milkbox.net/packages/"))
 
 ;; python ;;
-(setq python-path
-	  (concat (getenv "PYTHONPATH") ":" (concat my:user-dir "python-path")))
-(setenv "PYTHONPATH" python-path)
+(defconst my:python-path
+  (concat (getenv "PYTHONPATH") ":" (concat my:user-dir "python-path")))
+(setenv "PYTHONPATH" my:python-path)
 
 ;; backup and autosave ;;
-(setq backup-directory-alist `((".*" . ,my:backup-dir)))
-(setq auto-save-list-file-prefix my:autosave-dir)
-(setq auto-save-file-name-transforms `((".*" ,my:autosave-dir t)))
+(setq
+ backup-directory-alist `((".*" . ,my:backup-dir))
+ auto-save-list-file-prefix my:autosave-dir
+ auto-save-file-name-transforms `((".*" ,my:autosave-dir t)))
 
 ;; APPEARANCE ;;
 
@@ -104,14 +105,19 @@
 (recentf-mode)
 
 (ido-mode t)
-(setq ido-create-new-buffer 'always
-      ido-default-buffer-method 'selected-window
-      ido-enable-last-directory-history nil
-      ido-enable-flex-matching t)
+(setq-default ido-create-new-buffer 'always
+              ido-default-buffer-method 'selected-window
+              ido-enable-last-directory-history nil
+              ido-enable-flex-matching t)
 
 ;; Navigate windows with Shift-<arrows>
 (windmove-default-keybindings)
-(setq windmove-wrap-around t)
+(setq-default windmove-wrap-around t)
+
+;; Comint
+(setq-default comint-prompt-read-only t
+              comint-scroll-to-bottom-on-input t)
+
 
 (defun my:minibuffer-set-key (key command)
   ;; Binds key to all common minibuffer states
