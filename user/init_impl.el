@@ -223,7 +223,7 @@
   (use-package powerline
     :ensure t
     :config (progn
-              (powerline-default-theme)))
+              (powerline-center-evil-theme)))
   (use-package buffer-move
     :ensure t
     :config (progn
@@ -315,7 +315,8 @@
     :ensure t
     :pre-load (progn
                 (setq evil-want-C-u-scroll t
-                      evil-want-C-w-in-emacs-state t))
+                      evil-want-C-w-in-emacs-state t)
+                (global-set-key (kbd "C-S-w") 'kill-region))
     :config (progn
               (setq evil-default-state 'emacs)
               (add-hook 'prog-mode-hook 'evil-normal-state)
