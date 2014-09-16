@@ -254,7 +254,9 @@
   (use-package company
     :ensure t
     :config (progn
-              (global-set-key (kbd "C-<tab>") 'company-complete)
+              (define-key company-mode-map (kbd "C-<tab>") 'company-complete)
+              (define-key company-active-map (kbd "C-n") 'company-select-next)
+              (define-key company-active-map (kbd "C-p") 'company-select-previous)
               (global-company-mode)))
   (use-package yasnippet
     :ensure t
@@ -348,4 +350,3 @@
 (package-initialize)
 (when (require 'use-package nil t)
   (my:package-initialize))
-
