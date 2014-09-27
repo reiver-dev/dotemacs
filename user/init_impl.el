@@ -41,10 +41,20 @@
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
 
+;; enable y/n answers
+(fset 'yes-or-no-p 'y-or-n-p)
+(setq use-dialog-box nil)
+
 ;; modeline
 (line-number-mode t)
 (column-number-mode t)
 (size-indication-mode t)
+
+(set-face-attribute 'mode-line nil :box nil)
+(set-face-attribute 'mode-line-inactive nil :box nil)
+(set-face-attribute 'mode-line-highlight nil
+                    :box nil
+                    :inverse-video t)
 
 (blink-cursor-mode -1)
 
@@ -60,9 +70,6 @@
 (setq-default indicate-empty-lines t
               indicate-buffer-boundaries t)
 
-;; enable y/n answers
-(fset 'yes-or-no-p 'y-or-n-p)
-
 ;; Scroll
 (setq-default mouse-wheel-scroll-amount '(3 ((shift) . 1)) ;; three line at a time
               mouse-wheel-progressive-speed nil ;; don't accelerate scrolling
@@ -73,24 +80,14 @@
               truncate-lines nil
               word-wrap t)
 
-;; INDENTATION ;;
+;; Indentation ;;
 (electric-indent-mode t)
 (setq-default indent-tabs-mode nil
               tab-width 4
               fill-column 120) 
 
-;; Whitespace mode
-;; (setq whitespace-style 
-;;       '(spaces tabs newline space-mark tab-mark newline-mark))
-;; (setq whitespace-display-mappings
-;;       `((space-mark 32 [183] [64])
-;;         (newline-mark 10 [182 10])
-;;         (tab-mark 9 [9655 9] [92 9])
-;;         ))
 
-
-;; SPELL CHECK ;;
-
+;; Spell Check ;;
 (when (executable-find "hunspell")
   (require 'ispell)
   (add-to-list 'ispell-local-dictionary-alist
@@ -100,27 +97,26 @@
   (setq ispell-program-name "hunspell"))
 
 ;; IDO mode ;;
-
-(require 'recentf)
-(recentf-mode)
-
 (ido-mode t)
+(recentf-mode t)
+
 (setq-default ido-create-new-buffer 'always
               ido-default-buffer-method 'selected-window
               ido-enable-last-directory-history nil
               ido-enable-flex-matching t)
 
-;; Navigate windows with Shift-<arrows>
+;; Navigate windows with Shift-<arrows> ;;
 (windmove-default-keybindings)
 (setq-default windmove-wrap-around t)
 
-;; Comint
+;; Comint ;;
 (setq-default comint-prompt-read-only t
               comint-scroll-to-bottom-on-input t)
 
+;; Util ;;
 
 (defun my:minibuffer-set-key (key command)
-  ;; Binds key to all common minibuffer states
+  "Binds key to all common minibuffer states"
   (dolist (m (list minibuffer-local-map
                    minibuffer-local-ns-map
                    minibuffer-local-completion-map
@@ -129,70 +125,74 @@
     (define-key m key command)))
 
 (defun my:move-key (keymap-from keymap-to key)
-  "Moves key binding from one keymap to another, deleting from the old location. "
+  "Moves key binding from one keymap to another, deleting from the old location."
   (define-key keymap-to key (lookup-key keymap-from key))
   (define-key keymap-from key nil))
 
-(global-set-key (kbd "C-S-g") 'keyboard-escape-quit)
+;; Interactive ;;
 
-(global-set-key (kbd "C-x C-b") 'ido-switch-buffer)
-(global-set-key (kbd "C-x C-c") 'ido-switch-buffer)
-(global-set-key (kbd "C-x B") 'ibuffer)
+(defun my:push-mark-no-activate ()
+  "Pushes `point' to `mark-ring' and does not activate the region
+Equivalent to \\[set-mark-command] when \\[transient-mark-mode] is disabled"
+  (interactive)
+  (push-mark (point) t nil)
+  (message "Pushed mark to ring"))
 
+(defun my:jump-to-mark ()
+  "Jumps to the local mark, respecting the `mark-ring' order.
+This is the same as using \\[set-mark-command] with the prefix argument."
+  (interactive)
+  (set-mark-command 1))
 
-(global-set-key (kbd "M-/") 'hippie-expand)
-
-(global-unset-key (kbd "M-t")) ;; which used to be transpose-words
-(global-set-key (kbd "M-t l") 'transpose-lines)
-(global-set-key (kbd "M-t w") 'transpose-words)
-(global-set-key (kbd "M-t s") 'transpose-sexps)
-(global-set-key (kbd "M-t p") 'transpose-params)
-
-;; Used for system keyboard layout switch
-;; (global-set-key (kbd "M-SPC") nil)
+(defadvice exchange-point-and-mark (before exchange-pnm-no-activate activate)
+  (ad-set-arg 0 t))
 
 (defun my:kill-line-to-indent ()
   (interactive)
   (kill-line 0)
   (indent-according-to-mode))
 
-(global-set-key (kbd "C-<backspace>") 'my:kill-line-to-indent)
-(global-set-key (kbd "C-x C-;") 'comment-or-uncomment-region)
-
 ;; Swap lines
-
 (defun my:move-line-up ()
   "Move up the current line."
   (interactive)
   (transpose-lines 1)
-  (forward-line -2)
+  (previous-line 2)
   (indent-according-to-mode))
 
 (defun my:move-line-down ()
   "Move down the current line."
   (interactive)
   (forward-line 1)
+  (previous-line 1)
   (transpose-lines 1)
-  (forward-line -1)
   (indent-according-to-mode))
 
 ;; Project root helpers 
-
-(unless (boundp 'my:project-root)
-  (setq my:project-root nil))
+(defvar my:project-root nil)
 (defun my:project-root-set ()
-  ;; Sets global project root to directory
+  "Sets global project root to directory"
   (interactive)
   (setq my:project-root 
         (expand-file-name (ido-read-directory-name "Set project dir: "))))
 (defun my:project-root-unset ()
-  ;; Resets global project root
+  "Resets global project root"
   (interactive)
   (setq my:project-root nil))
 
 ;; Buffer management
 (defadvice quit-window (before quit-window-kill-buffer activate)
   (ad-set-arg 0 t))
+
+(defun my:minibuffer-keyboard-quit ()
+  "Abort recursive edit. In Delete Selection mode, if the mark is active, just deactivate it;
+then it takes a second \\[keyboard-quit] to abort the minibuffer."
+  (interactive)
+  (if (and delete-selection-mode transient-mark-mode mark-active)
+      (setq deactivate-mark  t)
+    (when (get-buffer "*Completions*")
+      (delete-windows-on "*Completions*"))
+    (abort-recursive-edit)))
 
 (defun my:kill-current-buffer ()
   (interactive)
@@ -205,13 +205,31 @@
       (delete-window))
     (kill-buffer buf)))
 
+
+;; Bindings ;;
+(global-unset-key (kbd "ESC ESC ESC"))
+(global-set-key (kbd "C-S-g") 'keyboard-escape-quit)
+(global-set-key (kbd "<escape>") 'keyboard-quit)
+(my:minibuffer-set-key (kbd "<escape>") 'my:minibuffer-keyboard-quit)
+
+(global-set-key (kbd "M-/") 'hippie-expand)
+(global-set-key (kbd "C-x C-b") 'ido-switch-buffer)
+(global-set-key (kbd "C-x C-c") 'ido-switch-buffer)
+(global-set-key (kbd "C-x B") 'ibuffer)
+(global-set-key (kbd "C-c o") 'ff-find-other-file)
+
+(global-unset-key (kbd "M-t")) ;; which used to be transpose-words
+(global-set-key (kbd "M-t w") 'transpose-words)
+(global-set-key (kbd "M-t s") 'transpose-sexps)
+(global-set-key (kbd "C-;") 'my:move-line-up)
+(global-set-key (kbd "M-;") 'my:move-line-down)
+
+(global-set-key (kbd "C-'") 'my:push-mark-no-activate)
+(global-set-key (kbd "M-'") 'my:jump-to-mark)
+
+(global-set-key (kbd "C-x C-;") 'comment-or-uncomment-region)
+(global-set-key (kbd "C-<backspace>") 'my:kill-line-to-indent)
 (global-set-key (kbd "C-x C-k") 'my:kill-and-close-current)
-
-(add-hook 'python-mode-hook
-          #'(lambda ()
-              (set (make-local-variable 'electric-indent-mode) nil)
-              (local-set-key (kbd "RET") 'newline-and-indent)))
-
 
 ;; ### PACKAGES ### ;;
 (defun my:package-initialize ()
@@ -297,9 +315,30 @@
   (use-package magit
     :ensure t)
   ;; Project management and project tree
+  (use-package neotree
+    :ensure t
+    :init (progn
+            (global-set-key (kbd "<f5>") 'neotree-toggle)
+            (global-set-key (kbd "<f6>") 'neotree-find)
+            (define-key neotree-mode-map (kbd "r") 'neotree-refresh) 
+            (define-key neotree-mode-map (kbd "h") 'neotree-hidden-file-toggle) 
+            (define-key neotree-mode-map (kbd "a") 'neotree-stretch-toggle) 
+            (define-key neotree-mode-map (kbd "p") 'neotree-previous-node)
+            (define-key neotree-mode-map (kbd "n") 'neotree-next-node)
+            (define-key neotree-mode-map (kbd "k") 'neotree-previous-node)
+            (define-key neotree-mode-map (kbd "j") 'neotree-next-node)
+            (defadvice neotree-enter (after my:nt-jump-to-button activate)
+              (unless (button-at (point))
+                (neotree-next-node)))))
   (use-package projectile
     :ensure t
     :config (progn
+              (defun my:neotree-project-root ()
+                "Jump neotree to current project root (if exists)"
+                (interactive)
+                (let ((root (projectile-project-root)))
+                      (neotree-dir root)))
+              (global-set-key (kbd "<f7>") 'my:neotree-project-root)
               (defadvice projectile-project-root (around projectile-my-root activate)
                 (if (and my:project-root
                          (s-starts-with? my:project-root
@@ -307,29 +346,25 @@
                     (setq ad-return-value my:project-root)
                   ad-do-it))
               (projectile-global-mode)))
-  (use-package project-explorer
-    :ensure t
-    :config (progn
-              (global-set-key (kbd "<f5>") 'project-explorer-open)))
-  (use-package sr-speedbar
-    :ensure t
-    :config (progn
-              (setq speedbar-use-images nil)
-              (global-set-key (kbd "<f7>") 'sr-speedbar-toggle)))
   ;; Evil mode and Co
   (use-package evil
     :ensure t
     :pre-load (progn
                 (setq evil-want-C-u-scroll t
-                      evil-want-C-w-in-emacs-state t)
+                      evil-want-C-w-in-emacs-state t
+                      evil-want-visual-char-semi-exclusive t)
                 (global-set-key (kbd "C-S-w") 'kill-region))
     :config (progn
               (setq evil-default-state 'emacs)
+              (evil-set-initial-state 'neotree-mode 'motion)
               (add-hook 'prog-mode-hook 'evil-normal-state)
               (define-key evil-normal-state-map (kbd "SPC") 'evil-ace-jump-word-mode)
-              (setq evil-search-module 'evil-search
-                    evil-want-C-u-scroll t
-                    evil-want-C-w-in-emacs-state t)
+              (add-hook 'neotree-mode-hook
+                        (lambda ()
+                          (define-key evil-motion-state-local-map (kbd "TAB") 'neotree-enter)
+                          (define-key evil-motion-state-local-map (kbd "SPC") 'neotree-enter)
+                          (define-key evil-motion-state-local-map (kbd "RET") 'neotree-enter)
+                          (define-key evil-motion-state-local-map (kbd "q") 'neotree-hide)))
               (evil-mode 1)))
   (use-package evil-leader
     :disabled t
@@ -352,7 +387,6 @@
     :ensure t)
   (use-package cider
     :ensure t))
-
 
 (package-initialize)
 (when (require 'use-package nil t)
