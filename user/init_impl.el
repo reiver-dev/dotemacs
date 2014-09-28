@@ -233,6 +233,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 (global-set-key (kbd "M-/") 'hippie-expand)
 (global-set-key (kbd "C-x C-c") 'switch-to-buffer)
+(global-set-key (kbd "C-x B") 'ibuffer)
 (global-set-key (kbd "C-c o") 'ff-find-other-file)
 
 (global-unset-key (kbd "M-t")) ;; which used to be transpose-words
@@ -304,13 +305,10 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
               (global-company-mode)))
   (use-package yasnippet
     :ensure t
-    :idle (yas-global-mode t)
     :config (progn
+              (setq yas-prompt-functions '(yas-ido-prompt yas-completing-prompt yas-no-prompt))
               (add-to-list 'yas-snippet-dirs my:snippets-dir)
-              (define-key yas-minor-mode-map (kbd "<tab>") nil)
-              (define-key yas-minor-mode-map (kbd "TAB") nil)
-              (add-to-list 'hippie-expand-try-functions-list
-                           'yas-hippie-try-expand)))
+              (yas-global-mode t)))
   ;; Fast access and searching
   (use-package helm-config
     :ensure helm

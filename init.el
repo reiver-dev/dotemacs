@@ -5,4 +5,4 @@
 (load custom-file t)
 
 ;; load additional config
-(load (concat user-emacs-directory-full "user/init_impl.el"))
+(load (concat user-emacs-directory-full "user/init_impl"))
