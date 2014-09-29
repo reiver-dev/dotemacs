@@ -93,9 +93,9 @@
 (when (executable-find "hunspell")
   (require 'ispell)
   (add-to-list 'ispell-local-dictionary-alist
-               '("russian" "[Ё-ё]" "[^Ё-ё]" "[-]" nil ("-d" "ru_RU") nil utf-8))
+               '("russian-hunspell" "[Ё-ё]" "[^Ё-ё]" "[-]" nil ("-d" "ru_RU") nil utf-8))
   (add-to-list 'ispell-local-dictionary-alist
-               '("english" "[A-z]" "[^A-z]" "[']" nil ("-d" "en_GB") nil iso-8859-1))
+               '("english-hunspell" "[A-z]" "[^A-z]" "[']" nil ("-d" "en_GB") nil iso-8859-1))
   (setq ispell-program-name "hunspell"))
 
 (setq flyspell-issue-message-flag nil)
@@ -410,6 +410,9 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
                 (global-set-key (kbd "C-S-w") 'kill-region))
     :config (progn
               (setq evil-default-state 'emacs)
+              (mapc (lambda (mode)
+                      (evil-set-initial-state mode 'normal))
+                    '(nxml-mode))
               (evil-set-initial-state 'neotree-mode 'motion)
               (add-hook 'prog-mode-hook 'evil-normal-state)
               (define-key evil-normal-state-map (kbd "SPC") 'evil-ace-jump-word-mode)
