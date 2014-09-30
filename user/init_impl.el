@@ -308,6 +308,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     :config (progn
               (setq yas-prompt-functions '(yas-ido-prompt yas-completing-prompt yas-no-prompt))
               (add-to-list 'yas-snippet-dirs my:snippets-dir)
+              (defadvice yas-expand (before advice-for-yas-expand activate)
+                (sp-remove-active-pair-overlay))
               (yas-global-mode t)))
   ;; Fast access and searching
   (use-package helm-config
