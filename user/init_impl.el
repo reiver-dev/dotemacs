@@ -57,8 +57,6 @@
                     :box nil
                     :inverse-video t)
 
-(blink-cursor-mode -1)
-
 (setq-default inhibit-startup-screen t
               initial-scratch-message nil
               color-theme-is-global t
@@ -333,7 +331,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
               (global-set-key (kbd "C-x C-b") 'helm-buffers-list)
               (global-set-key (kbd "C-x C-f") 'helm-find-files)
               (global-set-key (kbd "M-x") 'helm-M-x)
-              (global-set-key (kbd "M-y") 'helm-show-kill-ring)
               (global-set-key (kbd "M-y") 'helm-show-kill-ring)
               (define-key helm-map (kbd "C-i") 'helm-execute-persistent-action)
               (define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action)
