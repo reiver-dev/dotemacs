@@ -310,19 +310,34 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
                 (sp-remove-active-pair-overlay))
               (yas-global-mode t)))
   ;; Fast access and searching
+  (use-package ido-vertical-mode
+    :ensure t
+    :config (ido-vertical-mode 1))
+  (use-package flx-ido
+    :ensure t
+    :config (progn
+              (flx-ido-mode 1)
+              (setq ido-use-faces nil)))
+  (use-package ido-ubiquitous
+    :ensure t
+    :config (ido-ubiquitous t))
+  (use-package smex
+    :ensure t
+    :disabled t
+    :config (progn
+              (global-set-key (kbd "M-x") 'smex)
+              (global-set-key (kbd "M-X") 'smex-major-mode-commands)))
+  (use-package ag
+    :ensure t
+    :config (progn (setq ag-highlight-search t)))
   (use-package helm-config
     :ensure helm
+    :defer t
     :config (progn
-              (helm-mode 1)
-              (defun my:helm-completion (engine actions)
-                (mapc
-                 (lambda (action)
-                   (add-to-list 'helm-completing-read-handlers-alist `(,action . ,engine)))
-                 actions))
-              (my:helm-completion nil '(switch-to-buffer kill-buffer))
-              (set-face-attribute 'helm-selection nil :underline nil)
-              (set-face-attribute 'helm-selection-line nil :underline nil)
-              (set-face-attribute 'helm-ff-directory nil :background nil)
+              (custom-set-faces
+               '(helm-selection      ((t (:unserline nil))))
+               '(helm-selection-line ((t (:underline nil))))
+               '(helm-ff-directory   ((t (:background nil)))))
               (my:kmap "t" 'helm-etags-select)
               (my:kmap "i" 'helm-semantic-or-imenu)
               (my:kmap "e" 'helm-list-emacs-process)
@@ -337,27 +352,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
               (define-key helm-map (kbd "C-z") 'helm-select-action)))
   (use-package helm-swoop
     :ensure t)
-  (use-package ido-vertical-mode
-    :ensure t
-    :config (ido-vertical-mode 1))
-  (use-package flx-ido
-    :ensure t
-    :config (progn
-              (flx-ido-mode 1)
-              (setq ido-use-faces nil)))
-  (use-package ido-ubiquitous
-    :ensure t
-    :disabled t
-    :config (ido-ubiquitous))
-  (use-package smex
-    :ensure t
-    :disabled t
-    :config (progn
-              (global-set-key (kbd "M-x") 'smex)
-              (global-set-key (kbd "M-X") 'smex-major-mode-commands)))
-  (use-package ag
-    :ensure t
-    :config (progn (setq ag-highlight-search t)))
   ;; External tools
   (use-package magit
     :defer t
