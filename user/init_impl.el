@@ -1,4 +1,6 @@
-;;  MAIN  ;;
+;;;;;;;;;;
+;; MAIN ;;
+;;;;;;;;;;
 
 ;; my folders ;;
 (defconst user-emacs-directory-full (expand-file-name user-emacs-directory))
@@ -34,7 +36,10 @@
  auto-save-list-file-prefix my:autosave-dir
  auto-save-file-name-transforms `((".*" ,my:autosave-dir t)))
 
-;; APPEARANCE ;;
+
+;;;;;;;;;;;;;;;;;
+;; Appearance  ;;
+;;;;;;;;;;;;;;;;;
 
 ;; toolbars
 (menu-bar-mode -1)
@@ -57,17 +62,15 @@
                     :box nil
                     :inverse-video t)
 
+;; basic
 (setq-default inhibit-startup-screen t
               initial-scratch-message nil
               color-theme-is-global t
               visible-bell t)
 
 ;; Line numbers and fringe
-(require 'linum)
 (add-hook 'prog-mode-hook 'linum-mode)
-
-(setq-default indicate-empty-lines t
-              indicate-buffer-boundaries t)
+(setq-default indicate-buffer-boundaries t)
 
 ;; Scroll
 (setq-default mouse-wheel-scroll-amount '(3 ((shift) . 1)) ;; three line at a time
@@ -86,38 +89,15 @@
               tab-width 4
               fill-column 120)
 
+(add-hook 'prog-mode-hook
+          #'(lambda ()
+              (setq show-trailing-whitespace t)))
 
-;; Spell Check ;;
-(when (executable-find "hunspell")
-  (require 'ispell)
-  (add-to-list 'ispell-local-dictionary-alist
-               '("russian-hunspell" "[Ё-ё]" "[^Ё-ё]" "[-]" nil ("-d" "ru_RU") nil utf-8))
-  (add-to-list 'ispell-local-dictionary-alist
-               '("english-hunspell" "[A-z]" "[^A-z]" "[']" nil ("-d" "en_GB") nil iso-8859-1))
-  (setq ispell-program-name "hunspell"))
 
-(setq flyspell-issue-message-flag nil)
-
-;; IDO mode ;;
-(ido-mode t)
-(recentf-mode t)
-
-(setq-default ido-create-new-buffer 'always
-              ido-default-buffer-method 'selected-window
-              ido-enable-last-directory-history nil
-              ido-enable-flex-matching t)
-(add-to-list 'ido-ignore-buffers "^\\*helm")
-
-;; Navigate windows with Shift-<arrows> ;;
-(windmove-default-keybindings)
-(setq-default windmove-wrap-around t)
-(winner-mode 1)
-
-;; Comint ;;
-(setq-default comint-prompt-read-only t
-              comint-scroll-to-bottom-on-input t)
-
+;;;;;;;;;;
 ;; Util ;;
+;;;;;;;;;;
+
 (setq my:bindings-mode-map (make-sparse-keymap))
 
 (define-minor-mode my:bindings-mode
@@ -145,7 +125,15 @@
   (define-key keymap-to key (lookup-key keymap-from key))
   (define-key keymap-from key nil))
 
+
+(defun my:add-hooks (fun hooks)
+  (mapc (lambda (hook) (add-hook hook fun))
+        hooks))
+
+
+;;;;;;;;;;;;;;;;;
 ;; Interactive ;;
+;;;;;;;;;;;;;;;;;
 
 (defun my:push-mark-no-activate ()
   "Pushes `point' to `mark-ring' and does not activate the region
@@ -222,7 +210,11 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
       (delete-window))
     (kill-buffer buf)))
 
-;; Bindings ;;
+
+;;;;;;;;;;;;;;;;;;;;;
+;; Global bindings ;;
+;;;;;;;;;;;;;;;;;;;;;
+
 (global-unset-key (kbd "ESC ESC ESC"))
 (global-set-key (kbd "C-S-g") 'keyboard-escape-quit)
 (global-set-key (kbd "C-x C-g") 'keyboard-escape-quit)
@@ -253,7 +245,66 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (global-set-key (kbd "M-<delete>") 'kill-word)
 
 
-;; ### PACKAGES ### ;;
+;;;;;;;;;;;;;;;;;;;
+;; Mode Settings ;;
+;;;;;;;;;;;;;;;;;;;
+
+;; Spell Check
+(when (executable-find "hunspell")
+  (require 'ispell)
+  (add-to-list 'ispell-local-dictionary-alist
+               '("russian-hunspell" "[Ё-ё]" "[^Ё-ё]" "[-]" nil ("-d" "ru_RU") nil utf-8))
+  (add-to-list 'ispell-local-dictionary-alist
+               '("english-hunspell" "[A-z]" "[^A-z]" "[']" nil ("-d" "en_GB") nil iso-8859-1))
+  (setq ispell-program-name "hunspell"))
+
+(setq flyspell-issue-message-flag nil)
+
+;; ido mode 
+(recentf-mode t)
+(ido-mode t)
+
+(setq-default ido-create-new-buffer 'always
+              ido-default-buffer-method 'selected-window
+              ido-enable-last-directory-history nil
+              ido-enable-flex-matching t)
+(add-to-list 'ido-ignore-buffers "^\\*helm")
+
+;; Navigate windows with Shift-<arrows> 
+(windmove-default-keybindings)
+(setq-default windmove-wrap-around t)
+(winner-mode 1)
+
+;; Comint 
+(setq-default comint-prompt-read-only t
+              comint-scroll-to-bottom-on-input t)
+
+;; Disable python indentation
+(add-hook 'python-mode-hook
+          #'(lambda ()
+              (set (make-local-variable 'electric-indent-mode) nil)
+              (local-set-key (kbd "RET") 'newline-and-indent)))
+
+;; Cedet
+(require 'semantic)
+(global-semanticdb-minor-mode 1)
+(global-semantic-idle-scheduler-mode 1)
+(semantic-mode 1)
+
+(defun my:cedet-hook ()
+  (local-set-key (kbd "C-c C-j") 'semantic-ia-fast-jump)
+  (local-set-key (kbd "C-c C-s") 'semantic-ia-show-summary))
+
+(my:add-hooks 'my:cedet-hook
+              '(c-mode-common-hook
+                c-mode-hook
+                c++-mode-hook))
+
+
+;;;;;;;;;;;;;;
+;; Packages ;;
+;;;;;;;;;;;;;;
+
 (defun my:package-initialize ()
   ;; Navigation, editing, appearance
   (use-package linum-relative
@@ -293,22 +344,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
               (show-smartparens-global-mode t)))
   (use-package ace-jump-mode
     :ensure t)
-  ;; Completion
-  (use-package company
-    :ensure t
-    :config (progn
-              (define-key company-mode-map (kbd "C-<tab>") 'company-complete)
-              (define-key company-active-map (kbd "C-n") 'company-select-next)
-              (define-key company-active-map (kbd "C-p") 'company-select-previous)
-              (global-company-mode)))
-  (use-package yasnippet
-    :ensure t
-    :config (progn
-              (setq yas-prompt-functions '(yas-ido-prompt yas-completing-prompt yas-no-prompt))
-              (add-to-list 'yas-snippet-dirs my:snippets-dir)
-              (defadvice yas-expand (before advice-for-yas-expand activate)
-                (sp-remove-active-pair-overlay))
-              (yas-global-mode t)))
   ;; Fast access and searching
   (use-package ido-vertical-mode
     :ensure t
@@ -333,6 +368,12 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (use-package helm-config
     :ensure helm
     :defer t
+    :pre-load (setq
+               helm-command-prefix-key (kbd "C-c h")
+               helm-quick-update t
+               helm-split-window-in-side-p t
+               helm-move-to-line-cycle-in-source t
+               helm-candidate-number-limit 500)
     :config (progn
               (custom-set-faces
                '(helm-selection      ((t (:unserline nil))))
@@ -352,7 +393,40 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
               (define-key helm-map (kbd "C-z") 'helm-select-action)))
   (use-package helm-swoop
     :ensure t)
-  ;; External tools
+  (use-package helm-gtags
+    :ensure t
+    :config (progn
+              (my:add-hooks helm-gtags-mode
+                            '(dired-mode-hook
+                              eshell-mode-hook
+                              c-mode-hook
+                              c++-mode-hook))
+              (setq
+               helm-gtags-ignore-case t
+               helm-gtags-auto-update t
+               helm-gtags-use-input-at-cursor t
+               helm-gtags-pulse-at-cursor t
+               helm-gtags-prefix-key (kbd "C-c g")
+               helm-gtags-suggested-key-mapping t)))
+   ;; Completion
+  (use-package company
+    :ensure t
+    :config (progn
+              (define-key company-mode-map (kbd "C-<tab>") 'company-complete)
+              (define-key company-active-map (kbd "C-n") 'company-select-next)
+              (define-key company-active-map (kbd "C-p") 'company-select-previous)
+              (global-company-mode)))
+  (use-package yasnippet
+    :ensure t
+    :config (progn
+              (setq yas-prompt-functions '(yas-ido-prompt yas-completing-prompt yas-no-prompt))
+              (add-to-list 'yas-snippet-dirs my:snippets-dir)
+              (defadvice yas-expand (before advice-for-yas-expand activate)
+                (sp-remove-active-pair-overlay))
+              (yas-global-mode t)))
+  (use-package function-args
+    :ensure t)
+ ;; External tools
   (use-package magit
     :defer t
     :ensure t)
