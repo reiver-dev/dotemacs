@@ -37,9 +37,9 @@
  auto-save-file-name-transforms `((".*" ,my:autosave-dir t)))
 
 
-;;;;;;;;;;;;;;;;;
-;; Appearance  ;;
-;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;
+;; Appearance ;;
+;;;;;;;;;;;;;;;;
 
 ;; toolbars
 (menu-bar-mode -1)
@@ -244,6 +244,12 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (global-set-key (kbd "M-<backspace>") 'backward-kill-word)
 (global-set-key (kbd "M-<delete>") 'kill-word)
 
+;; Navigate windows 
+(global-set-key (kbd "C-c w h") 'windmove-left)
+(global-set-key (kbd "C-c w j") 'windmove-down)
+(global-set-key (kbd "C-c w k") 'windmove-up)
+(global-set-key (kbd "C-c w l") 'windmove-right)
+
 
 ;;;;;;;;;;;;;;;;;;;
 ;; Mode Settings ;;
@@ -260,22 +266,22 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 (setq flyspell-issue-message-flag nil)
 
-;; ido mode 
+;; ido mode
 (recentf-mode t)
 (ido-mode t)
 
 (setq-default ido-create-new-buffer 'always
               ido-default-buffer-method 'selected-window
               ido-enable-last-directory-history nil
-              ido-enable-flex-matching t)
+              ido-enable-flex-matching t
+              ido-everywhere t)
 (add-to-list 'ido-ignore-buffers "^\\*helm")
 
-;; Navigate windows with Shift-<arrows> 
-(windmove-default-keybindings)
+;; Window management
 (setq-default windmove-wrap-around t)
 (winner-mode 1)
 
-;; Comint 
+;; Comint
 (setq-default comint-prompt-read-only t
               comint-scroll-to-bottom-on-input t)
 
@@ -322,10 +328,10 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (use-package buffer-move
     :ensure t
     :config (progn
-              (global-set-key (kbd "<C-S-up>") 'buf-move-up)
-              (global-set-key (kbd "<C-S-down>") 'buf-move-down)
-              (global-set-key (kbd "<C-S-left>") 'buf-move-left)
-              (global-set-key (kbd "<C-S-right>") 'buf-move-right)))
+              (global-set-key (kbd "C-c C-w h") 'buf-move-left)
+              (global-set-key (kbd "C-c C-w j") 'buf-move-down)
+              (global-set-key (kbd "C-c C-w k") 'buf-move-up)
+              (global-set-key (kbd "C-c C-w l") 'buf-move-right)))
   (use-package multiple-cursors
     :ensure t
     :config (progn
@@ -355,6 +361,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
               (setq ido-use-faces nil)))
   (use-package ido-ubiquitous
     :ensure t
+    :disabled t
     :config (ido-ubiquitous t))
   (use-package smex
     :ensure t
@@ -372,9 +379,15 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
                helm-command-prefix-key (kbd "C-c h")
                helm-quick-update t
                helm-split-window-in-side-p t
-               helm-move-to-line-cycle-in-source t
                helm-candidate-number-limit 500)
     :config (progn
+              (helm-mode t)
+              (defun my:helm-completion (engine actions)
+                (mapc
+                 (lambda (action)
+                   (add-to-list 'helm-completing-read-handlers-alist `(,action . ,engine)))
+                 actions))
+              (my:helm-completion nil '(switch-to-buffer kill-buffer multi-occur))
               (custom-set-faces
                '(helm-selection      ((t (:unserline nil))))
                '(helm-selection-line ((t (:underline nil))))
