@@ -68,8 +68,9 @@
               color-theme-is-global t
               visible-bell t)
 
-;; Line numbers and fringe
-(add-hook 'prog-mode-hook 'linum-mode)
+(global-hl-line-mode)
+
+;; Fringe
 (setq-default indicate-buffer-boundaries t)
 
 ;; Scroll
@@ -92,7 +93,6 @@
 (add-hook 'prog-mode-hook
           #'(lambda ()
               (setq show-trailing-whitespace t)))
-
 
 ;;;;;;;;;;
 ;; Util ;;
@@ -129,6 +129,34 @@
 (defun my:add-hooks (fun hooks)
   (mapc (lambda (hook) (add-hook hook fun))
         hooks))
+
+(defun my:zip-val (val lst)
+  (let (res)
+    (dolist (item lst res)
+      (setq res (append res (list item val))))
+    res))
+
+;; custom set face helpers
+(defmacro my:custom-face-prepare-list (face attributes)
+  `(list ,face (list (list t ,attributes))))
+
+(defmacro my:custom-face-prepare (face &rest attributes)
+  (my:custom-face-prepare-list face attributes))
+
+(defun my:custom-set-faces-attr-value (value faces &rest attributes)
+  (let ((attrs (my:zip-val value attributes))
+        (faces (if (listp faces)
+                   faces
+                 (list faces))))
+    (apply 'custom-set-faces
+           (mapcar (lambda (item) (my:custom-face-prepare-list item attrs))
+                   faces))))
+
+(defmacro my:custom-set-faces (&rest fsettings)
+  `(apply 'custom-set-faces
+          (mapcar
+           (lambda (item) (my:custom-face-prepare-list (car item) (cdr item)))
+           ',fsettings)))
 
 
 ;;;;;;;;;;;;;;;;;
@@ -244,7 +272,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (global-set-key (kbd "M-<backspace>") 'backward-kill-word)
 (global-set-key (kbd "M-<delete>") 'kill-word)
 
-;; Navigate windows 
+;; Navigate windows
 (global-set-key (kbd "C-c w h") 'windmove-left)
 (global-set-key (kbd "C-c w j") 'windmove-down)
 (global-set-key (kbd "C-c w k") 'windmove-up)
@@ -293,18 +321,13 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 ;; Cedet
 (require 'semantic)
-(global-semanticdb-minor-mode 1)
-(global-semantic-idle-scheduler-mode 1)
+
+(add-to-list 'semantic-default-submodes 'global-semanticdb-minor-mode)
+(add-to-list 'semantic-default-submodes 'global-semantic-mru-bookmark-mode)
+(add-to-list 'semantic-default-submodes 'global-semantic-idle-scheduler-mode)
+(add-to-list 'semantic-default-submodes 'global-semantic-highlight-func-mode)
+
 (semantic-mode 1)
-
-(defun my:cedet-hook ()
-  (local-set-key (kbd "C-c C-j") 'semantic-ia-fast-jump)
-  (local-set-key (kbd "C-c C-s") 'semantic-ia-show-summary))
-
-(my:add-hooks 'my:cedet-hook
-              '(c-mode-common-hook
-                c-mode-hook
-                c++-mode-hook))
 
 
 ;;;;;;;;;;;;;;
@@ -313,18 +336,22 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 (defun my:package-initialize ()
   ;; Navigation, editing, appearance
-  (use-package linum-relative
+  (use-package relative-line-numbers
     :ensure t
-    :init (progn (setq-default linum-relative-format "%4s ")))
+    :config (progn
+              (defun my:relative-ln-format (number)
+                "Relative line numbers format function"
+                (if (= number 0)
+                    " => "
+                  (format " %2d " (abs number))))
+              (setq relative-line-numbers-format 'my:relative-ln-format)
+              (add-hook 'prog-mode-hook 'relative-line-numbers-mode)))
   (use-package undo-tree
     :ensure t
     :config (progn
             (global-undo-tree-mode)
             (setq undo-tree-visualizer-timestamps t
                   undo-tree-visualizer-diff t)))
-  (use-package powerline
-    :ensure t
-    :config (powerline-center-evil-theme))
   (use-package buffer-move
     :ensure t
     :config (progn
@@ -387,11 +414,11 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
                  (lambda (action)
                    (add-to-list 'helm-completing-read-handlers-alist `(,action . ,engine)))
                  actions))
-              (my:helm-completion nil '(switch-to-buffer kill-buffer multi-occur))
-              (custom-set-faces
-               '(helm-selection      ((t (:unserline nil))))
-               '(helm-selection-line ((t (:underline nil))))
-               '(helm-ff-directory   ((t (:background nil)))))
+              (my:helm-completion nil '(switch-to-buffer kill-buffer multi-occur load-library))
+              (my:custom-set-faces
+               (helm-selection :underline nil)
+               (helm-selection-line :underline nil)
+               (helm-ff-directory :background nil))
               (my:kmap "t" 'helm-etags-select)
               (my:kmap "i" 'helm-semantic-or-imenu)
               (my:kmap "e" 'helm-list-emacs-process)
@@ -399,6 +426,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
               (global-set-key (kbd "C-x b") 'helm-mini)
               (global-set-key (kbd "C-x C-b") 'helm-buffers-list)
               (global-set-key (kbd "C-x C-f") 'helm-find-files)
+              (global-set-key (kbd "C-h f") 'helm-apropos)
               (global-set-key (kbd "M-x") 'helm-M-x)
               (global-set-key (kbd "M-y") 'helm-show-kill-ring)
               (define-key helm-map (kbd "C-i") 'helm-execute-persistent-action)
@@ -408,20 +436,20 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     :ensure t)
   (use-package helm-gtags
     :ensure t
-    :config (progn
-              (my:add-hooks helm-gtags-mode
-                            '(dired-mode-hook
-                              eshell-mode-hook
-                              c-mode-hook
-                              c++-mode-hook))
-              (setq
+    :pre-load (setq
                helm-gtags-ignore-case t
                helm-gtags-auto-update t
                helm-gtags-use-input-at-cursor t
                helm-gtags-pulse-at-cursor t
                helm-gtags-prefix-key (kbd "C-c g")
-               helm-gtags-suggested-key-mapping t)))
-   ;; Completion
+               helm-gtags-suggested-key-mapping t)
+    :config (progn
+              (my:add-hooks 'helm-gtags-mode
+                            '(dired-mode-hook
+                              eshell-mode-hook
+                              c-mode-hook
+                              c++-mode-hook))))
+  ;; Completion
   (use-package company
     :ensure t
     :config (progn
@@ -438,7 +466,15 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
                 (sp-remove-active-pair-overlay))
               (yas-global-mode t)))
   (use-package function-args
-    :ensure t)
+    :ensure t
+    :config (progn
+              (my:custom-set-faces
+               (fa-face-hint :inherit hl-line)
+               (fa-face-hint-bold :bold t :inherit fa-face-hint)
+               (fa-face-semi :inherit (hl-line font-lock-keyword-face))
+               (fa-face-type :inherit (hl-line font-lock-type-face))
+               (fa-face-type-bold :bold t :inherit fa-face-type))
+              (fa-config-default)))
  ;; External tools
   (use-package magit
     :defer t
@@ -479,6 +515,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (use-package helm-projectile
     :ensure t
     :config (progn
+              (helm-projectile-on)
               (my:kmap "p" 'helm-projectile)))
   ;; Evil mode and Co
   (use-package evil
