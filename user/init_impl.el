@@ -125,7 +125,6 @@
   (define-key keymap-to key (lookup-key keymap-from key))
   (define-key keymap-from key nil))
 
-
 (defun my:add-hooks (fun hooks)
   (mapc (lambda (hook) (add-hook hook fun))
         hooks))
@@ -269,8 +268,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 (global-set-key (kbd "C-<backspace>") 'my:kill-line-to-indent)
 (global-set-key (kbd "C-<delete>") 'kill-line)
-(global-set-key (kbd "M-<backspace>") 'backward-kill-word)
 (global-set-key (kbd "M-<delete>") 'kill-word)
+(global-set-key (kbd "M-k") 'kill-whole-line)
 
 ;; Navigate windows
 (global-set-key (kbd "C-c w h") 'windmove-left)
@@ -278,6 +277,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (global-set-key (kbd "C-c w k") 'windmove-up)
 (global-set-key (kbd "C-c w l") 'windmove-right)
 
+(global-set-key (kbd "<f8>") 'compile)
 
 ;;;;;;;;;;;;;;;;;;;
 ;; Mode Settings ;;
@@ -328,6 +328,23 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (add-to-list 'semantic-default-submodes 'global-semantic-highlight-func-mode)
 
 (semantic-mode 1)
+
+(require 'semantic/bovine/c)
+(require 'cedet-files)
+
+(defun my:cedet-hook ()
+  (local-set-key [(control return)] 'semantic-ia-complete-symbol-menu)
+  (local-set-key (kbd "C-c ?") 'semantic-ia-complete-symbol)
+  ;;
+  (local-set-key (kbd "C-c >") 'semantic-complete-analyze-inline)
+  (local-set-key (kbd "C-c =") 'semantic-decoration-include-visit)
+  (local-set-key (kbd "C-c j") 'semantic-ia-fast-jump)
+  (local-set-key (kbd "C-c q") 'semantic-ia-show-doc)
+  (local-set-key (kbd "C-c s") 'semantic-ia-show-summary)
+  (local-set-key (kbd "C-c p") 'semantic-analyze-proto-impl-toggle)
+  (local-set-key (kbd "C-c C-r") 'semantic-symref))
+
+(add-hook 'c-mode-common-hook 'my:cedet-hook)
 
 
 ;;;;;;;;;;;;;;
@@ -445,17 +462,13 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
                helm-gtags-suggested-key-mapping t)
     :config (progn
               (my:add-hooks 'helm-gtags-mode
-                            '(dired-mode-hook
-                              eshell-mode-hook
-                              c-mode-hook
-                              c++-mode-hook))))
+                            '(c-mode-hook c++-mode-hook))))
   ;; Completion
   (use-package company
     :ensure t
     :config (progn
               (define-key company-mode-map (kbd "C-<tab>") 'company-complete)
-              (define-key company-active-map (kbd "C-n") 'company-select-next)
-              (define-key company-active-map (kbd "C-p") 'company-select-previous)
+              (setq company-tooltip-limit 20)
               (global-company-mode)))
   (use-package yasnippet
     :ensure t
@@ -511,6 +524,11 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
                                          default-directory))
                     (setq ad-return-value my:project-root)
                   ad-do-it))
+              (defun my:compile-from-project ()
+                (interactive)
+                (let ((default-directory (projectile-project-root)))
+                  (call-interactively 'compile)))
+              (global-set-key (kbd "<f9>") 'my:compile-from-project)
               (projectile-global-mode)))
   (use-package helm-projectile
     :ensure t
