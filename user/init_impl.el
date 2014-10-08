@@ -166,8 +166,7 @@
   "Pushes `point' to `mark-ring' and does not activate the region
 Equivalent to \\[set-mark-command] when \\[transient-mark-mode] is disabled"
   (interactive)
-  (push-mark (point) t nil)
-  (message "Pushed mark to ring"))
+  (push-mark))
 
 (defun my:jump-to-mark ()
   "Jumps to the local mark, respecting the `mark-ring' order.
@@ -285,12 +284,13 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 ;; Spell Check
 (when (executable-find "hunspell")
-  (require 'ispell)
-  (add-to-list 'ispell-local-dictionary-alist
+  (eval-after-load "ispell"
+    #'(progn
+        (add-to-list 'ispell-local-dictionary-alist
                '("russian-hunspell" "[Ё-ё]" "[^Ё-ё]" "[-]" nil ("-d" "ru_RU") nil utf-8))
-  (add-to-list 'ispell-local-dictionary-alist
-               '("english-hunspell" "[A-z]" "[^A-z]" "[']" nil ("-d" "en_GB") nil iso-8859-1))
-  (setq ispell-program-name "hunspell"))
+        (add-to-list 'ispell-local-dictionary-alist
+                     '("english-hunspell" "[A-z]" "[^A-z]" "[']" nil ("-d" "en_GB") nil iso-8859-1))
+        (setq ispell-program-name "hunspell"))))
 
 (setq flyspell-issue-message-flag nil)
 
@@ -316,26 +316,21 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 ;; Disable python indentation
 (add-hook 'python-mode-hook
           #'(lambda ()
-              (set (make-local-variable 'electric-indent-mode) nil)
+              (setq-local electric-indent-mode nil)
               (local-set-key (kbd "RET") 'newline-and-indent)))
 
 ;; Cedet
-(require 'semantic)
+(eval-after-load "semantic"
+  #'(progn
+      (add-to-list 'semantic-default-submodes 'global-semanticdb-minor-mode)
+      (add-to-list 'semantic-default-submodes 'global-semantic-mru-bookmark-mode)
+      (add-to-list 'semantic-default-submodes 'global-semantic-idle-scheduler-mode)
+      (add-to-list 'semantic-default-submodes 'global-semantic-highlight-func-mode)))
 
-(add-to-list 'semantic-default-submodes 'global-semanticdb-minor-mode)
-(add-to-list 'semantic-default-submodes 'global-semantic-mru-bookmark-mode)
-(add-to-list 'semantic-default-submodes 'global-semantic-idle-scheduler-mode)
-(add-to-list 'semantic-default-submodes 'global-semantic-highlight-func-mode)
-
-(semantic-mode 1)
-
-(require 'semantic/bovine/c)
-(require 'cedet-files)
+(add-hook 'c-mode-common-hook 'semantic-mode)
 
 (defun my:cedet-hook ()
-  (local-set-key [(control return)] 'semantic-ia-complete-symbol-menu)
   (local-set-key (kbd "C-c ?") 'semantic-ia-complete-symbol)
-  ;;
   (local-set-key (kbd "C-c >") 'semantic-complete-analyze-inline)
   (local-set-key (kbd "C-c =") 'semantic-decoration-include-visit)
   (local-set-key (kbd "C-c j") 'semantic-ia-fast-jump)
@@ -389,7 +384,16 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (use-package smartparens
     :ensure t
     :config (progn
-              (setq sp-show-pair-from-inside t)
+              (setq sp-highlight-pair-overlay nil
+                    sp-highlight-wrap-overlay nil
+                    sp-highlight-wrap-tag-overlay nil
+                    sp-navigate-consider-sgml-tags '(html-mode nxml-mode)
+                    sp-autoskip-opening-pair t
+                    sp-autoskip-closing-pair 'always
+                    sp-show-pair-from-inside t)
+              (sp-with-modes sp--lisp-modes
+                (sp-local-pair "'" nil :actions nil)
+                (sp-local-pair "`" "'" :when '(sp-in-string-p)))
               (smartparens-global-mode t)
               (show-smartparens-global-mode t)))
   (use-package ace-jump-mode
@@ -476,7 +480,10 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
               (setq yas-prompt-functions '(yas-ido-prompt yas-completing-prompt yas-no-prompt))
               (add-to-list 'yas-snippet-dirs my:snippets-dir)
               (defadvice yas-expand (before advice-for-yas-expand activate)
-                (sp-remove-active-pair-overlay))
+                (while (sp--get-active-overlay)
+                  (sp-remove-active-pair-overlay)))
+              (add-hook 'python-mode-hook
+                        #'(lambda () (setq-local yas-indent-line 'fixed)))
               (yas-global-mode t)))
   (use-package function-args
     :ensure t
