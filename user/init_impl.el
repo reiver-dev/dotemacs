@@ -33,8 +33,8 @@
 ;; backup and autosave ;;
 (setq
  backup-directory-alist `((".*" . ,my:backup-dir))
- auto-save-list-file-prefix my:autosave-dir
- auto-save-file-name-transforms `((".*" ,my:autosave-dir t)))
+ auto-save-file-name-transforms `((".*" ,my:autosave-dir t))
+ auto-save-list-file-prefix (concat my:autosave-dir "saves-"))
 
 
 ;;;;;;;;;;;;;;;;
@@ -94,11 +94,12 @@
           #'(lambda ()
               (setq show-trailing-whitespace t)))
 
+
 ;;;;;;;;;;
 ;; Util ;;
 ;;;;;;;;;;
 
-(setq my:bindings-mode-map (make-sparse-keymap))
+(defvar my:bindings-mode-map (make-sparse-keymap))
 
 (define-minor-mode my:bindings-mode
   "My settings"
@@ -330,14 +331,12 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (add-hook 'c-mode-common-hook 'semantic-mode)
 
 (defun my:cedet-hook ()
-  (local-set-key (kbd "C-c ?") 'semantic-ia-complete-symbol)
-  (local-set-key (kbd "C-c >") 'semantic-complete-analyze-inline)
-  (local-set-key (kbd "C-c =") 'semantic-decoration-include-visit)
+  (local-set-key (kbd "C-<return>") 'semantic-complete-analyze-inline)
+  (local-set-key (kbd "C-c i") 'semantic-decoration-include-visit)
   (local-set-key (kbd "C-c j") 'semantic-ia-fast-jump)
   (local-set-key (kbd "C-c q") 'semantic-ia-show-doc)
   (local-set-key (kbd "C-c s") 'semantic-ia-show-summary)
-  (local-set-key (kbd "C-c p") 'semantic-analyze-proto-impl-toggle)
-  (local-set-key (kbd "C-c C-r") 'semantic-symref))
+  (local-set-key (kbd "C-c t") 'semantic-analyze-proto-impl-toggle))
 
 (add-hook 'c-mode-common-hook 'my:cedet-hook)
 
@@ -472,7 +471,11 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     :ensure t
     :config (progn
               (define-key company-mode-map (kbd "C-<tab>") 'company-complete)
+              (define-key company-active-map (kbd "?") 'describe-mode)
               (setq company-tooltip-limit 20)
+              (add-hook 'c-mode-common-hook
+                        #'(lambda ()
+                            (delete 'company-semantic company-backends)))
               (global-company-mode)))
   (use-package yasnippet
     :ensure t
