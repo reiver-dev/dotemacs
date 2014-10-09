@@ -110,7 +110,7 @@
   (define-key my:bindings-mode-map (kbd (concat "C-; " key)) function)
   (define-key my:bindings-mode-map (kbd (concat "C-c ; " key)) function))
 
-(my:bindings-mode 1)
+(my:bindings-mode t)
 
 (defun my:minibuffer-set-key (key command)
   "Binds key to all common minibuffer states"
@@ -126,9 +126,10 @@
   (define-key keymap-to key (lookup-key keymap-from key))
   (define-key keymap-from key nil))
 
-(defun my:add-hooks (fun hooks)
-  (mapc (lambda (hook) (add-hook hook fun))
-        hooks))
+(defun my:add-hooks (hooks fun)
+  (if (listp hooks)
+      (mapc (lambda (hook) (add-hook hook fun)) hooks)
+    (add-hook hook fun)))
 
 (defun my:zip-val (val lst)
   (let (res)
@@ -202,11 +203,19 @@ This is the same as using \\[set-mark-command] with the prefix argument."
 
 ;; Project root helpers
 (defvar my:project-root nil)
+
+(defun my:in-project-root-p (dir)
+  "Checks if DIR is in project root set by `my:project-root'"
+  (when (and my:project-root
+             (s-starts-with? my:project-root dir))
+    my:project-root))
+
 (defun my:project-root-set ()
   "Sets global project root to directory"
   (interactive)
   (setq my:project-root
         (expand-file-name (ido-read-directory-name "Set project dir: "))))
+
 (defun my:project-root-unset ()
   "Resets global project root"
   (interactive)
@@ -308,7 +317,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 ;; Window management
 (setq-default windmove-wrap-around t)
-(winner-mode 1)
+(winner-mode t)
 
 ;; Comint
 (setq-default comint-prompt-read-only t
@@ -321,24 +330,27 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
               (local-set-key (kbd "RET") 'newline-and-indent)))
 
 ;; Cedet
-(eval-after-load "semantic"
-  #'(progn
-      (add-to-list 'semantic-default-submodes 'global-semanticdb-minor-mode)
-      (add-to-list 'semantic-default-submodes 'global-semantic-mru-bookmark-mode)
-      (add-to-list 'semantic-default-submodes 'global-semantic-idle-scheduler-mode)
-      (add-to-list 'semantic-default-submodes 'global-semantic-highlight-func-mode)))
 
-(add-hook 'c-mode-common-hook 'semantic-mode)
+(add-to-list 'semantic-default-submodes 'global-semantic-decoration-mode)
+(add-to-list 'semantic-default-submodes 'global-semantic-mru-bookmark-mode)
+
+;; These are default
+;; (add-to-list 'semantic-default-submodes 'global-semanticdb-minor-mode)
+;; (add-to-list 'semantic-default-submodes 'global-semantic-idle-scheduler-mode)
+
+(semantic-mode t)
+
+(defun my:system-include-path ()
+  semantic-dependency-system-include-path)
 
 (defun my:cedet-hook ()
-  (local-set-key (kbd "C-<return>") 'semantic-complete-analyze-inline)
   (local-set-key (kbd "C-c i") 'semantic-decoration-include-visit)
   (local-set-key (kbd "C-c j") 'semantic-ia-fast-jump)
   (local-set-key (kbd "C-c q") 'semantic-ia-show-doc)
   (local-set-key (kbd "C-c s") 'semantic-ia-show-summary)
   (local-set-key (kbd "C-c t") 'semantic-analyze-proto-impl-toggle))
 
-(add-hook 'c-mode-common-hook 'my:cedet-hook)
+(my:add-hooks '(c-mode-hook c++-mode-hook) 'my:cedet-hook)
 
 
 ;;;;;;;;;;;;;;
@@ -454,18 +466,11 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
               (define-key helm-map (kbd "C-z") 'helm-select-action)))
   (use-package helm-swoop
     :ensure t)
-  (use-package helm-gtags
+  (use-package ggtags
     :ensure t
-    :pre-load (setq
-               helm-gtags-ignore-case t
-               helm-gtags-auto-update t
-               helm-gtags-use-input-at-cursor t
-               helm-gtags-pulse-at-cursor t
-               helm-gtags-prefix-key (kbd "C-c g")
-               helm-gtags-suggested-key-mapping t)
     :config (progn
-              (my:add-hooks 'helm-gtags-mode
-                            '(c-mode-hook c++-mode-hook))))
+              (my:add-hooks '(c-mode-hook c++-mode-hook)
+                            (lambda () (ggtags-mode t)))))
   ;; Completion
   (use-package company
     :ensure t
@@ -473,10 +478,11 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
               (define-key company-mode-map (kbd "C-<tab>") 'company-complete)
               (define-key company-active-map (kbd "?") 'describe-mode)
               (setq company-tooltip-limit 20)
-              (add-hook 'c-mode-common-hook
-                        #'(lambda ()
-                            (delete 'company-semantic company-backends)))
-              (global-company-mode)))
+              (setq company-semantic-modes nil)
+              (my:add-hooks '(c-mode-hook c++-mode-hook)
+                            (lambda ()
+                              (local-set-key (kbd "C-<return>") 'company-semantic)))
+              (global-company-mode t)))
   (use-package yasnippet
     :ensure t
     :config (progn
@@ -491,6 +497,11 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (use-package function-args
     :ensure t
     :config (progn
+              (define-minor-mode function-args-mode
+                "Minor mode for C++ code completion bindings. \\{function-args-mode-map}"
+                :keymap function-args-mode-map
+                :group 'function-args
+                :lighter " FA")
               (my:custom-set-faces
                (fa-face-hint :inherit hl-line)
                (fa-face-hint-bold :bold t :inherit fa-face-hint)
@@ -528,17 +539,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
                 (let ((root (projectile-project-root)))
                       (neotree-dir root)))
               (global-set-key (kbd "<f7>") 'my:neotree-project-root)
-              (defadvice projectile-project-root (around projectile-my-root activate)
-                (if (and my:project-root
-                         (s-starts-with? my:project-root
-                                         default-directory))
-                    (setq ad-return-value my:project-root)
-                  ad-do-it))
-              (defun my:compile-from-project ()
-                (interactive)
-                (let ((default-directory (projectile-project-root)))
-                  (call-interactively 'compile)))
-              (global-set-key (kbd "<f9>") 'my:compile-from-project)
+              (add-to-list 'projectile-project-root-files-functions 'my:in-project-root-p)
+              (setq semanticdb-project-root-functions projectile-project-root-files-functions)
               (projectile-global-mode)))
   (use-package helm-projectile
     :ensure t
@@ -567,7 +569,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
                           (define-key evil-motion-state-local-map (kbd "SPC") 'neotree-enter)
                           (define-key evil-motion-state-local-map (kbd "RET") 'neotree-enter)
                           (define-key evil-motion-state-local-map (kbd "q") 'neotree-hide)))
-              (evil-mode 1)))
+              (evil-mode t)))
   (use-package evil-leader
     :disabled t
     :ensure t
@@ -580,6 +582,11 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (use-package company-anaconda
     :ensure t
     :init (add-to-list 'company-backends 'company-anaconda))
+  (use-package company-c-headers
+    :ensure t
+    :config (progn
+              (setq company-c-headers-path-system 'my:system-include-path))
+              (add-to-list 'company-backends 'company-c-headers))
   (use-package flycheck
     :ensure t)
   (use-package js2-mode
