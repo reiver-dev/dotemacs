@@ -340,6 +340,9 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 (semantic-mode t)
 
+(semanticdb-enable-gnu-global-databases 'c-mode)
+(semanticdb-enable-gnu-global-databases 'c++-mode)
+
 (defun my:system-include-path ()
   semantic-dependency-system-include-path)
 
@@ -478,7 +481,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
               (define-key company-mode-map (kbd "C-<tab>") 'company-complete)
               (define-key company-active-map (kbd "?") 'describe-mode)
               (setq company-tooltip-limit 20)
-              (setq company-semantic-modes nil)
+              (setq-default company-backends
+                            (remove 'company-semantic company-backends))
               (my:add-hooks '(c-mode-hook c++-mode-hook)
                             (lambda ()
                               (local-set-key (kbd "C-<return>") 'company-semantic)))
