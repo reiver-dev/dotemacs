@@ -65,7 +65,6 @@
 ;; basic
 (setq-default inhibit-startup-screen t
               initial-scratch-message nil
-              color-theme-is-global t
               visible-bell t)
 
 ;; Fringe
@@ -78,7 +77,6 @@
 
 ;; Text behavior
 (setq-default shift-select-mode nil
-              truncate-lines nil
               word-wrap t
               sentence-end-double-space nil)
 
