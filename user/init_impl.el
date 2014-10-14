@@ -68,8 +68,6 @@
               color-theme-is-global t
               visible-bell t)
 
-(global-hl-line-mode)
-
 ;; Fringe
 (setq-default indicate-buffer-boundaries t)
 
@@ -83,6 +81,8 @@
               truncate-lines nil
               word-wrap t
               sentence-end-double-space nil)
+
+(global-auto-revert-mode t)
 
 ;; Indentation ;;
 (electric-indent-mode t)
@@ -507,10 +507,10 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
                 :group 'function-args
                 :lighter " FA")
               (my:custom-set-faces
-               (fa-face-hint :inherit hl-line)
+               (fa-face-hint :inherit highlight)
                (fa-face-hint-bold :bold t :inherit fa-face-hint)
-               (fa-face-semi :inherit (hl-line font-lock-keyword-face))
-               (fa-face-type :inherit (hl-line font-lock-type-face))
+               (fa-face-semi :inherit (highlight font-lock-keyword-face))
+               (fa-face-type :inherit (highlight font-lock-type-face))
                (fa-face-type-bold :bold t :inherit fa-face-type))
               (fa-config-default)))
  ;; External tools
