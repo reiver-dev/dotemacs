@@ -3,16 +3,11 @@
 ;;;;;;;;;;
 
 ;; my folders ;;
-(defconst user-emacs-directory-full (expand-file-name user-emacs-directory))
+(defconst my:user-dir (file-name-directory load-file-name))
+(defconst my:modules-dir (expand-file-name "modules" my:user-dir))
+(defconst my:snippets-dir (expand-file-name "snippets" my:user-dir))
 
-(defconst my:user-dir (concat user-emacs-directory-full "user/"))
-(defconst my:modules-dir (concat my:user-dir "modules/"))
-
-(defconst my:backup-dir (concat user-emacs-directory-full "backup/"))
-(defconst my:autosave-dir (concat user-emacs-directory-full "autosave/"))
-(defconst my:snippets-dir (concat my:user-dir "snippets/"))
-
-(dolist (dir (list my:backup-dir my:autosave-dir my:modules-dir my:snippets-dir))
+(dolist (dir (list my:modules-dir my:snippets-dir))
   (unless (file-directory-p dir)
     (make-directory dir)))
 
@@ -25,16 +20,9 @@
 (add-to-list 'package-archives '("marmelade" . "http://marmalade-repo.org/packages/"))
 (add-to-list 'package-archives '("melpa" . "http://melpa.milkbox.net/packages/"))
 
-;; python ;;
-(defconst my:python-path
-  (concat (getenv "PYTHONPATH") ":" (concat my:user-dir "python-path")))
-(setenv "PYTHONPATH" my:python-path)
-
 ;; backup and autosave ;;
-(setq
- backup-directory-alist `((".*" . ,my:backup-dir))
- auto-save-file-name-transforms `((".*" ,my:autosave-dir t))
- auto-save-list-file-prefix (concat my:autosave-dir "saves-"))
+(setq backup-directory-alist `((".*" . ,temporary-file-directory))
+      auto-save-file-name-transforms `((".*" ,temporary-file-directory t)))
 
 
 ;;;;;;;;;;;;;;;;
