@@ -307,6 +307,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 ;; Comint
 (setq-default comint-prompt-read-only t
+              comint-process-echoes t
               comint-scroll-to-bottom-on-input t)
 
 ;; Disable python indentation
@@ -354,8 +355,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
               (defun my:relative-ln-format (number)
                 "Relative line numbers format function"
                 (if (= number 0)
-                    " => "
-                  (format " %2d " (abs number))))
+                    "  =>"
+                  (format " %3d" (abs number))))
               (setq relative-line-numbers-format 'my:relative-ln-format)
               (add-hook 'prog-mode-hook 'relative-line-numbers-mode)))
   (use-package undo-tree
@@ -465,7 +466,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     :ensure t
     :config (progn
               (define-key company-mode-map (kbd "C-<tab>") 'company-complete)
-              (define-key company-active-map (kbd "?") 'describe-mode)
               (setq company-tooltip-limit 20)
               (setq-default company-backends
                             (remove 'company-semantic company-backends))
