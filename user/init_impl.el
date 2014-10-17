@@ -68,6 +68,7 @@
 ;; Text behavior
 (setq-default shift-select-mode nil
               word-wrap t
+              truncate-partial-width-windows 80
               sentence-end-double-space nil)
 
 (global-auto-revert-mode t)
@@ -417,10 +418,10 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (use-package ace-jump-mode
     :ensure t)
   (use-package ace-window
-    :ensure
+    :ensure t
     :config (progn
               (global-set-key (kbd "C-c w") 'ace-window)
-              (global-set-key (kbd "C-c w") 'ace-window)))
+              (global-set-key (kbd "C-c C-w") 'ace-window)))
   ;; Fast access and searching
   (use-package ido-vertical-mode
     :ensure t
@@ -449,7 +450,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     :pre-load (setq
                helm-command-prefix-key (kbd "C-c h")
                helm-quick-update t
-               helm-split-window-in-side-p t
                helm-candidate-number-limit 500)
     :config (progn
               (helm-mode t)
