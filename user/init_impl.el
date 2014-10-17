@@ -3,7 +3,9 @@
 ;;;;;;;;;;
 
 ;; my folders ;;
-(defconst my:user-dir (file-name-directory load-file-name))
+(ignore-errors
+  (defconst my:user-dir (file-name-directory load-file-name)))
+
 (defconst my:modules-dir (expand-file-name "modules" my:user-dir))
 (defconst my:snippets-dir (expand-file-name "snippets" my:user-dir))
 
@@ -145,6 +147,24 @@
            (lambda (item) (my:custom-face-prepare-list (car item) (cdr item)))
            ',fsettings)))
 
+;; for project settings
+(defun my:dir-locals-path (&optional relative)
+  "Finds directory local settings location"
+  (let* ((current (if (stringp buffer-file-name)
+                      buffer-file-name
+                    default-directory))
+         (dl-dir (locate-dominating-file current ".dir-locals.el")))
+    (unless (stringp dl-dir)
+      (error ".dir-locals.el not found"))
+    (file-name-as-directory
+     (if (stringp relative)
+         (expand-file-name relative dl-dir)
+       (expand-file-name dl-dir)))))
+
+(defmacro my:with-local-dir (relative &rest body)
+  `(let ((default-directory
+           (my:dir-locals-path ,relative)))
+     ,@body))
 
 ;;;;;;;;;;;;;;;;;
 ;; Interactive ;;
@@ -207,6 +227,7 @@ This is the same as using \\[set-mark-command] with the prefix argument."
   (interactive)
   (setq my:project-root nil))
 
+
 ;; Buffer management
 (defadvice quit-window (before quit-window-kill-buffer activate)
   (ad-set-arg 0 t))
@@ -243,7 +264,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (global-set-key (kbd "<escape>") 'keyboard-quit)
 (my:minibuffer-set-key (kbd "<escape>") 'my:minibuffer-keyboard-quit)
 
-(global-set-key (kbd "M-/") 'hippie-expand)
+(global-set-key (kbd "C-.") 'hippie-expand)
 (global-set-key (kbd "C-x C-c") 'switch-to-buffer)
 (global-set-key (kbd "C-x B") 'ibuffer)
 (global-set-key (kbd "C-c o") 'ff-find-other-file)
@@ -265,12 +286,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (global-set-key (kbd "C-<delete>") 'kill-line)
 (global-set-key (kbd "M-<delete>") 'kill-word)
 (global-set-key (kbd "M-k") 'kill-whole-line)
-
-;; Navigate windows
-(global-set-key (kbd "C-c w h") 'windmove-left)
-(global-set-key (kbd "C-c w j") 'windmove-down)
-(global-set-key (kbd "C-c w k") 'windmove-up)
-(global-set-key (kbd "C-c w l") 'windmove-right)
 
 (global-set-key (kbd "<f8>") 'compile)
 
@@ -330,6 +345,15 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (semanticdb-enable-gnu-global-databases 'c-mode)
 (semanticdb-enable-gnu-global-databases 'c++-mode)
 
+
+(defconst my:c-style
+  '("linux"
+    (c-basic-offset . 4)
+    (c-offsets-alist
+     (innamespace . 0))))
+
+(c-add-style "reiver" my:c-style)
+
 (defun my:system-include-path ()
   semantic-dependency-system-include-path)
 
@@ -365,13 +389,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
             (global-undo-tree-mode)
             (setq undo-tree-visualizer-timestamps t
                   undo-tree-visualizer-diff t)))
-  (use-package buffer-move
-    :ensure t
-    :config (progn
-              (global-set-key (kbd "C-c C-w h") 'buf-move-left)
-              (global-set-key (kbd "C-c C-w j") 'buf-move-down)
-              (global-set-key (kbd "C-c C-w k") 'buf-move-up)
-              (global-set-key (kbd "C-c C-w l") 'buf-move-right)))
   (use-package multiple-cursors
     :ensure t
     :config (progn
@@ -399,6 +416,11 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
               (show-smartparens-global-mode t)))
   (use-package ace-jump-mode
     :ensure t)
+  (use-package ace-window
+    :ensure
+    :config (progn
+              (global-set-key (kbd "C-c w") 'ace-window)
+              (global-set-key (kbd "C-c w") 'ace-window)))
   ;; Fast access and searching
   (use-package ido-vertical-mode
     :ensure t
