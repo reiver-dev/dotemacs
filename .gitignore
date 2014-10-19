@@ -4,3 +4,6 @@
 # Except init.el and user folder
 !init.el
 !user
+
+# But ignore compiled too
+*.elc

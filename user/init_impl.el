@@ -31,21 +31,22 @@
 ;; Appearance ;;
 ;;;;;;;;;;;;;;;;
 
-;; toolbars
+;; Toolbars
 (menu-bar-mode -1)
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
 (tooltip-mode -1)
 
-;; enable y/n answers
+;; Enable y/n answers
 (fset 'yes-or-no-p 'y-or-n-p)
 (setq use-dialog-box nil)
 
-;; modeline
+;; Modeline
 (line-number-mode t)
 (column-number-mode t)
 (size-indication-mode t)
 
+;; Make modeline flat
 (set-face-attribute 'mode-line nil :box nil)
 (set-face-attribute 'mode-line-inactive nil :box nil)
 (set-face-attribute 'mode-line-highlight nil
@@ -60,46 +61,66 @@
 ;; Fringe
 (setq-default indicate-buffer-boundaries t)
 
-;; Scroll
-(setq-default mouse-wheel-scroll-amount '(3 ((shift) . 1)) ;; three line at a time
-              mouse-wheel-progressive-speed nil ;; don't accelerate scrolling
-              mouse-wheel-follow-mouse t) ;; scroll window under mouse
+(setq-default
+ ;; three lines at a time
+ mouse-wheel-scroll-amount '(3 ((shift) . 1) ((control)))
+ ;; don't accelerate scrolling
+ mouse-wheel-progressive-speed nil)
 
 ;; Text behavior
 (setq-default shift-select-mode nil
-              word-wrap t
-              truncate-partial-width-windows 80
               sentence-end-double-space nil)
 
-(global-auto-revert-mode t)
+;; Indentation
+(setq-default indent-tabs-mode nil)
 
-;; Indentation ;;
-(electric-indent-mode t)
-(setq-default indent-tabs-mode nil
-              tab-width 4
-              fill-column 120)
+(defun my:prog-mode-setup ()
+  "Basic settings for prog and other modes"
+  (setq show-trailing-whitespace t
+        truncate-lines t))
 
-(add-hook 'prog-mode-hook
-          #'(lambda ()
-              (setq show-trailing-whitespace t)))
+(add-hook 'prog-mode-hook 'my:prog-mode-setup)
+(add-hook 'nxml-mode 'my:prog-mode-setup)
 
 
 ;;;;;;;;;;
 ;; Util ;;
 ;;;;;;;;;;
 
-(defvar my:bindings-mode-map (make-sparse-keymap))
+;; For convenient bindings
+(defvar my:bindings-mode-map
+  (make-sparse-keymap)
+  "Keymap for `my:bindings-mode'")
 
 (define-minor-mode my:bindings-mode
-  "My settings"
+  "My key bindings
+\\{my:bindings-mode-map}"
   :global t
   :keymap my:bindings-mode-map)
 
-(defun my:kmap (key function)
-  (define-key my:bindings-mode-map (kbd (concat "C-; " key)) function)
-  (define-key my:bindings-mode-map (kbd (concat "C-c ; " key)) function))
-
 (my:bindings-mode t)
+
+(defmacro my:kmap* (keymap &rest bindings)
+  "Macro for binding keys to `keymap'
+should get (kbd1 kbd2 .. function) as arguments"
+  (let (result)
+    (dolist (bind bindings)
+      (let ((keys (butlast bind))
+            (func (last bind)))
+        (dolist (key keys)
+          (setq result
+                (cons
+                 `(define-key ,keymap (kbd ,key) ,@func)
+                 result)))))
+    (if (< 1 (length result))
+        `(progn ,@result)
+      (car result))))
+
+(defmacro my:kmap (&rest bindings)
+  "Macro sets bindins to \\[my:bindings-mode-map] keymap"
+  (if (stringp (car bindings))
+      `(my:kmap* my:bindings-mode-map ,bindings)
+    `(my:kmap* my:bindings-mode-map ,@bindings)))
 
 (defun my:minibuffer-set-key (key command)
   "Binds key to all common minibuffer states"
@@ -115,42 +136,9 @@
   (define-key keymap-to key (lookup-key keymap-from key))
   (define-key keymap-from key nil))
 
-(defun my:add-hooks (hooks fun)
-  (if (listp hooks)
-      (mapc (lambda (hook) (add-hook hook fun)) hooks)
-    (add-hook hook fun)))
-
-(defun my:zip-val (val lst)
-  (let (res)
-    (dolist (item lst res)
-      (setq res (append res (list item val))))
-    res))
-
-;; custom set face helpers
-(defmacro my:custom-face-prepare-list (face attributes)
-  `(list ,face (list (list t ,attributes))))
-
-(defmacro my:custom-face-prepare (face &rest attributes)
-  (my:custom-face-prepare-list face attributes))
-
-(defun my:custom-set-faces-attr-value (value faces &rest attributes)
-  (let ((attrs (my:zip-val value attributes))
-        (faces (if (listp faces)
-                   faces
-                 (list faces))))
-    (apply 'custom-set-faces
-           (mapcar (lambda (item) (my:custom-face-prepare-list item attrs))
-                   faces))))
-
-(defmacro my:custom-set-faces (&rest fsettings)
-  `(apply 'custom-set-faces
-          (mapcar
-           (lambda (item) (my:custom-face-prepare-list (car item) (cdr item)))
-           ',fsettings)))
-
-;; for project settings
+;; For project settings
 (defun my:dir-locals-path (&optional relative)
-  "Finds directory local settings location"
+  "Finds directory local (.dir-locals.el) settings location"
   (let* ((current (if (stringp buffer-file-name)
                       buffer-file-name
                     default-directory))
@@ -163,75 +151,100 @@
        (expand-file-name dl-dir)))))
 
 (defmacro my:with-local-dir (relative &rest body)
+  "Macro for running commands from location relative to \".dir-locals.el\""
   `(let ((default-directory
            (my:dir-locals-path ,relative)))
      ,@body))
+
+;; For autoload byte-compiling
+;; http://www.lunaryorn.com/2013/06/25/introducing-with-eval-after-load.html
+(defmacro my:eval-after (feature &rest forms)
+  "Suppress warnings aroud `with-eval-after-load'"
+  (declare (indent 1) (debug t))
+  `(,(if (or (not (boundp 'byte-compile-current-file))
+             (not byte-compile-current-file)
+             (if (symbolp feature)
+                 (require feature nil :no-error)
+               (load feature :no-message :no-error)))
+         'progn
+       (message "Eval-After: cannot find %s" feature)
+       'with-no-warnings)
+    (with-eval-after-load ',feature ,@forms)))
+
+;; For window management
+(defun my:one-window-p (&optional window)
+  "Like `one-window-p', but correctly works with other frame selected"
+  (let ((frame (window-frame window)))
+    (eq window
+        (next-window window 'no-minibuf frame))))
+
+(defun my:move-window-to-other-window (target-window current-window side)
+  "Moves buffer to other window's split"
+  (when (eq target-window current-window)
+    (error "Can't move to same window"))
+  (let ((current-frame (window-frame current-window))
+        (target-frame  (window-frame target-window))
+        (buffer        (window-buffer current-window)))
+    (unless (frame-parameter target-frame 'unsplittable)
+      (if (my:one-window-p current-window)
+          (delete-frame current-frame)
+        (delete-window current-window))
+      (let ((new-window (split-window target-window nil side)))
+        (set-window-buffer new-window buffer)
+        (select-window new-window)))))
+
 
 ;;;;;;;;;;;;;;;;;
 ;; Interactive ;;
 ;;;;;;;;;;;;;;;;;
 
 (defun my:push-mark-no-activate ()
-  "Pushes `point' to `mark-ring' and does not activate the region
-Equivalent to \\[set-mark-command] when \\[transient-mark-mode] is disabled"
+  "Calls `push-mark' like `push-mark-command' but withoug activation"
   (interactive)
   (push-mark))
 
-(defun my:jump-to-mark ()
-  "Jumps to the local mark, respecting the `mark-ring' order.
-This is the same as using \\[set-mark-command] with the prefix argument."
-  (interactive)
-  (set-mark-command 1))
-
-(defadvice exchange-point-and-mark
-  (before exchange-pnm-no-activate activate compile)
-  (ad-set-arg 0 t))
+;; Do not activate mark during jump
+(defun my:exchange-point-and-mark (&optional ARG)
+  "Inverse `exchange-point-and-mark' prefix argument"
+  (interactive "P")
+  (exchange-point-and-mark (unless ARG t)))
 
 (defun my:kill-line-to-indent ()
+  "Kills line backward (opposite to `kill-line')
+and indents after that"
   (interactive)
   (kill-line 0)
   (indent-according-to-mode))
 
-;; Swap lines
+(defun my:kill-region-or-word ()
+  "Call `kill-region' or backward `kill-word'
+ depending on whether or not a region is selected."
+   (interactive)
+   (if (and transient-mark-mode mark-active)
+       (kill-region (point) (mark))
+     (kill-word -1)))
+
+(defun my:join-line (&optional ARG)
+  "Backward from `delete-indentation'.
+Joins this line to following line.
+With argument, join this line to previous line"
+  (interactive "P")
+  (delete-indentation (unless ARG t)))
+
 (defun my:move-line-up ()
   "Move up the current line."
   (interactive)
   (transpose-lines 1)
-  (previous-line 2)
+  (forward-line -2)
   (indent-according-to-mode))
 
 (defun my:move-line-down ()
   "Move down the current line."
   (interactive)
   (forward-line 1)
-  (previous-line 1)
   (transpose-lines 1)
+  (forward-line -1)
   (indent-according-to-mode))
-
-;; Project root helpers
-(defvar my:project-root nil)
-
-(defun my:in-project-root-p (dir)
-  "Checks if DIR is in project root set by `my:project-root'"
-  (when (and my:project-root
-             (s-starts-with? my:project-root dir))
-    my:project-root))
-
-(defun my:project-root-set ()
-  "Sets global project root to directory"
-  (interactive)
-  (setq my:project-root
-        (expand-file-name (ido-read-directory-name "Set project dir: "))))
-
-(defun my:project-root-unset ()
-  "Resets global project root"
-  (interactive)
-  (setq my:project-root nil))
-
-
-;; Buffer management
-(defadvice quit-window (before quit-window-kill-buffer activate)
-  (ad-set-arg 0 t))
 
 (defun my:minibuffer-keyboard-quit ()
   "Abort recursive edit. In Delete Selection mode, if the mark is active, just deactivate it;
@@ -243,68 +256,160 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
       (delete-windows-on "*Completions*"))
     (abort-recursive-edit)))
 
-(defun my:kill-current-buffer ()
+(defun my:kill-buffer ()
+  "Kills current active buffer without prompt"
   (interactive)
   (kill-buffer (current-buffer)))
 
-(defun my:kill-and-close-current ()
+(defun my:kill-buffer-and-window ()
+  "Kills current active buffer without prompt, closes window too"
   (interactive)
   (let ((buf (current-buffer)))
-    (when (not (one-window-p))
+    (unless (one-window-p)
       (delete-window))
     (kill-buffer buf)))
+
+(defun my:toggle-window-dedicated ()
+  "Toggle whether the current active window is dedicated or not"
+  (interactive)
+  (let ((window (selected-window)))
+    (message (if (set-window-dedicated-p
+                  window
+                  (not (window-dedicated-p window)))
+                 "Window %s dedicated"
+               "Window %s normal")
+             (buffer-name))))
+
+(defun my:resize-window (&optional arg)
+  "Resize window interactively"
+  (interactive "P")
+  (when (one-window-p)
+    (error "Cannot resize sole window"))
+  (when (window-fixed-size-p (selected-window))
+    (error "Window has fixed size"))
+  (let (c exit (n (or arg 5)))
+    (while (not exit)
+      (message "Resize window on hkjl")
+      (setq c (read-char))
+      (cond ((= c ?h) (shrink-window-horizontally n))
+            ((= c ?j) (enlarge-window n))
+            ((= c ?k) (shrink-window n))
+            ((= c ?l) (enlarge-window-horizontally n))
+            (t (setq exit t)))))
+  (message "Done."))
+
+(defun my:detach-window (&optional window)
+  "Close current window and open it's buffer
+in new frame"
+  (interactive)
+  (setq window (window-normalize-window window))
+  (if (my:one-window-p window)
+      (error "Can't detach single window"))
+  (switch-to-buffer-other-frame (window-buffer window))
+  (delete-window window))
 
 
 ;;;;;;;;;;;;;;;;;;;;;
 ;; Global bindings ;;
 ;;;;;;;;;;;;;;;;;;;;;
 
+;; Redefine esc
+;; however esc will not break from hangs like C-g
 (global-unset-key (kbd "ESC ESC ESC"))
 (global-set-key (kbd "C-S-g") 'keyboard-escape-quit)
 (global-set-key (kbd "C-x C-g") 'keyboard-escape-quit)
 (global-set-key (kbd "<escape>") 'keyboard-quit)
 (my:minibuffer-set-key (kbd "<escape>") 'my:minibuffer-keyboard-quit)
 
-(global-set-key (kbd "C-.") 'hippie-expand)
-(global-set-key (kbd "C-x C-c") 'switch-to-buffer)
-(global-set-key (kbd "C-x B") 'ibuffer)
-(global-set-key (kbd "C-c o") 'ff-find-other-file)
+(my:kmap
+ ("M-/" 'hippie-expand)
 
-(global-unset-key (kbd "M-t")) ;; which used to be transpose-words
-(global-set-key (kbd "M-t w") 'transpose-words)
-(global-set-key (kbd "M-t l") 'transpose-lines)
-(global-set-key (kbd "M-t u") 'my:move-line-up)
-(global-set-key (kbd "M-t d") 'my:move-line-down)
-(global-set-key (kbd "M-t s") 'transpose-sexps)
+ ;; Jumping
+ ("C-x m" 'my:push-mark-no-activate)
+ ("C-x p" 'pop-to-mark-command)
+ ("C-x C-x" 'my:exchange-point-and-mark)
+ ("C-c o" 'ff-find-other-file)
 
-(global-set-key (kbd "C-x m") 'my:push-mark-no-activate)
-(global-set-key (kbd "C-x p") 'pop-to-mark-command)
+ ;; Buffers
+ ("C-x B"   'ibuffer)
+ ("C-x C-c" 'switch-to-buffer)
+ ("C-x k"   'my:kill-buffer)
+ ("C-x C-k" 'my:kill-buffer-and-window)
+ ("C-x M-k" 'kill-buffer)
 
-(global-set-key (kbd "C-x C-k") 'my:kill-and-close-current)
-(global-set-key (kbd "C-x C-;") 'comment-or-uncomment-region)
+ ;; Editing
+ ("C-w" 'my:kill-region-or-word)
+ ("C-S-w" 'kill-region)
+ ("C-x C-;" 'comment-or-uncomment-region)
+ ("C-<backspace>" 'my:kill-line-to-indent)
+ ("C-<delete>"    'kill-line)
+ ("M-<delete>"    'kill-word)
+ ("M-k"           'kill-whole-line)
+ ("M-j"           'my:join-line)
 
-(global-set-key (kbd "C-<backspace>") 'my:kill-line-to-indent)
-(global-set-key (kbd "C-<delete>") 'kill-line)
-(global-set-key (kbd "M-<delete>") 'kill-word)
-(global-set-key (kbd "M-k") 'kill-whole-line)
+ ;; Window management
+ ("C-c w <left>"  'windmove-left)
+ ("C-c w <down>"  'windmove-down)
+ ("C-c w <up>"    'windmove-up)
+ ("C-c w <right>" 'windmove-right)
 
-(global-set-key (kbd "<f8>") 'compile)
+ ("C-c w h" 'windmove-left)
+ ("C-c w j" 'windmove-down)
+ ("C-c w k" 'windmove-up)
+ ("C-c w l" 'windmove-right)
+
+ ("C-c w r" 'my:resize-window)
+ ("C-c w n" 'my:detach-window)
+
+ ("<f9>" 'my:toggle-window-dedicated)
+
+ ("<f8>" 'compile))
+
 
 ;;;;;;;;;;;;;;;;;;;
 ;; Mode Settings ;;
 ;;;;;;;;;;;;;;;;;;;
 
+;; hippie settings from Prelude
+(setq hippie-expand-try-functions-list
+      '(try-expand-dabbrev
+        try-expand-dabbrev-all-buffers
+        try-expand-dabbrev-from-kill
+        try-complete-file-name-partially
+        try-complete-file-name
+        try-expand-all-abbrevs
+        try-expand-list
+        try-expand-line
+        try-complete-lisp-symbol-partially
+        try-complete-lisp-symbol))
+
 ;; Spell Check
 (when (executable-find "hunspell")
-  (eval-after-load "ispell"
-    #'(progn
-        (add-to-list 'ispell-local-dictionary-alist
-               '("russian-hunspell" "[Ё-ё]" "[^Ё-ё]" "[-]" nil ("-d" "ru_RU") nil utf-8))
-        (add-to-list 'ispell-local-dictionary-alist
-                     '("english-hunspell" "[A-z]" "[^A-z]" "[']" nil ("-d" "en_GB") nil iso-8859-1))
-        (setq ispell-program-name "hunspell"))))
+  (my:eval-after ispell
+    (add-to-list 'ispell-local-dictionary-alist
+                 '("russian-hunspell"
+                   "[Ё-ё]"  ;; Word characters
+                   "[^Ё-ё]" ;; Non-word characters
+                   "[-]"    ;; Non-word characters in words
+                   nil      ;; Many non-word chars?
+                   ("-d" "ru_RU") ;; Args to use this dictionary
+                   nil      ;; Ispell-related extenden char mode
+                   utf-8))  ;; Charset checker uses
+    (add-to-list 'ispell-local-dictionary-alist
+                 '("english-hunspell"
+                   "[A-z]"
+                   "[^A-z]"
+                   "[']"
+                   nil
+                   ("-d" "en_US")
+                   nil
+                   iso-8859-1))
+    (setq ispell-program-name "hunspell")))
 
 (setq flyspell-issue-message-flag nil)
+
+
+(global-auto-revert-mode t)
 
 ;; ido mode
 (recentf-mode t)
@@ -326,13 +431,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
               comint-process-echoes t
               comint-scroll-to-bottom-on-input t)
 
-;; Disable python indentation
-(add-hook 'python-mode-hook
-          #'(lambda ()
-              (setq-local electric-indent-mode nil)
-              (local-set-key (kbd "RET") 'newline-and-indent)))
 
-;; Cedet
+;; CEDET
 
 (add-to-list 'semantic-default-submodes 'global-semantic-decoration-mode)
 (add-to-list 'semantic-default-submodes 'global-semantic-mru-bookmark-mode)
@@ -346,7 +446,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (semanticdb-enable-gnu-global-databases 'c-mode)
 (semanticdb-enable-gnu-global-databases 'c++-mode)
 
-
 (defconst my:c-style
   '("linux"
     (c-basic-offset . 4)
@@ -355,17 +454,23 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 (c-add-style "reiver" my:c-style)
 
-(defun my:system-include-path ()
-  semantic-dependency-system-include-path)
+(my:eval-after semantic
+  (defun my:system-include-path ()
+    "Just returns `semantic-dependency-system-include-path'
+to feed to other packages"
+    semantic-dependency-system-include-path))
 
-(defun my:cedet-hook ()
+(defun my:cedet-setup ()
+  "Local settings for `semantic-mode'"
   (local-set-key (kbd "C-c i") 'semantic-decoration-include-visit)
   (local-set-key (kbd "C-c j") 'semantic-ia-fast-jump)
   (local-set-key (kbd "C-c q") 'semantic-ia-show-doc)
   (local-set-key (kbd "C-c s") 'semantic-ia-show-summary)
   (local-set-key (kbd "C-c t") 'semantic-analyze-proto-impl-toggle))
 
-(my:add-hooks '(c-mode-hook c++-mode-hook) 'my:cedet-hook)
+(add-hook 'c-mode-hook 'my:cedet-setup)
+(add-hook 'c++-mode-hook 'my:cedet-setup)
+(add-hook 'python-mode-hook 'my:cedet-setup)
 
 
 ;;;;;;;;;;;;;;
@@ -383,33 +488,44 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
                     "  =>"
                   (format " %3d" (abs number))))
               (setq relative-line-numbers-format 'my:relative-ln-format)
+              (my:eval-after relative-line-numbers
+                (set-face-attribute 'relative-line-numbers nil
+                                    :bold nil
+                                    :italic nil))
               (add-hook 'prog-mode-hook 'relative-line-numbers-mode)))
   (use-package undo-tree
     :ensure t
     :config (progn
-            (global-undo-tree-mode)
-            (setq undo-tree-visualizer-timestamps t
-                  undo-tree-visualizer-diff t)))
+              (global-undo-tree-mode)
+              (setq undo-tree-visualizer-timestamps t
+                    undo-tree-visualizer-diff t)))
   (use-package multiple-cursors
     :ensure t
     :config (progn
-              (global-set-key (kbd "C->") 'mc/mark-next-like-this)
-              (global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
-              (global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)))
+              (my:kmap ("C->" 'mc/mark-next-like-this)
+                       ("C-<" 'mc/mark-previous-like-this)
+                       ("C-c C-<" 'mc/mark-all-like-this))))
   (use-package expand-region
     :ensure t
     :config (progn
-              (global-set-key (kbd "C-=") 'er/expand-region)))
+              (my:kmap "C-=" 'er/expand-region)))
   (use-package smartparens
     :ensure t
     :config (progn
-              (setq sp-highlight-pair-overlay nil
+              (setq sp-autoskip-opening-pair t
+                    sp-autoskip-closing-pair 'always
+                    ;; disable overlay
+                    sp-highlight-pair-overlay nil
                     sp-highlight-wrap-overlay nil
                     sp-highlight-wrap-tag-overlay nil
+                    ;; show for evil-mode
+                    sp-show-pair-from-inside t
+                    ;; only html-mode by default
                     sp-navigate-consider-sgml-tags '(html-mode nxml-mode)
-                    sp-autoskip-opening-pair t
-                    sp-autoskip-closing-pair 'always
-                    sp-show-pair-from-inside t)
+                    sp-hybrid-kill-entire-symbol nil
+                    sp-base-key-bindings 'paredit)
+              (sp-use-paredit-bindings)
+              ;; Disable quote matching in lisp
               (sp-with-modes sp--lisp-modes
                 (sp-local-pair "'" nil :actions nil)
                 (sp-local-pair "`" "'" :when '(sp-in-string-p)))
@@ -420,8 +536,76 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (use-package ace-window
     :ensure t
     :config (progn
-              (global-set-key (kbd "C-c w") 'ace-window)
-              (global-set-key (kbd "C-c C-w") 'ace-window)))
+              (setq aw-keys '(?q ?w ?e ?r ?f ?1 ?2 ?3 ?4))
+              (add-to-list 'aw-ignored-buffers " *NeoTree*")
+              ;; Add killing buffer in window and moving windows operations
+              (defun my:aw--window-base (position action)
+                "Just like `aw-delete-window' but with custom action. Fix other-frame."
+                (let ((current-window (selected-window)))
+                  (if (windowp position)
+                      (funcall action position current-window)
+                    (let ((frame (aj-position-frame position))
+                          (window (aj-position-window position)))
+                      (if (and (frame-live-p frame)
+                               (not (eq frame (selected-frame))))
+                          (select-frame-set-input-focus (window-frame window)))
+                      (if (window-live-p window)
+                          (funcall action window current-window))))))
+              (defun my:aw-delete-window (position)
+                "Kill delete window of `aj-position' structure POSITION."
+                (my:aw--window-base
+                 position
+                 (lambda (window _)
+                   (let ((frame (window-frame window)))
+                     (if (one-window-p t frame)
+                         (delete-frame frame)
+                       (delete-window window))))))
+              (defun my:aw-kill-window (position)
+                "Kill buffer and delete window of `aj-position' structure POSITION."
+                (my:aw--window-base
+                 position
+                 (lambda (window _)
+                   (when (kill-buffer (window-buffer window))
+                     (let ((frame (window-frame window)))
+                       (if (one-window-p t frame)
+                           (delete-frame frame)
+                         (delete-window window)))))))
+              (defun my:aw-move-window (position)
+                "Move window to split, choose split after window."
+                (my:aw--window-base
+                 position
+                 (lambda (target-window current-window)
+                   (let* ((choice (read-char-choice "Choose side with hjkl: "
+                                                    '(?h ?j ?k ?l)))
+			  (side (cond ((= choice ?h) 'left)
+                                      ((= choice ?j) 'below)
+                                      ((= choice ?k) 'above)
+                                      ((= choice ?l) 'right))))
+                     (my:move-window-to-other-window target-window
+                                                     current-window side)))))
+              (defun my:aw-swap-window (position)
+                "Swap two window buffers"
+                (my:aw--window-base
+                 position
+                 (lambda (next-window prev-window)
+                   (let ((prev-buf (window-buffer prev-window))
+                         (next-buf (window-buffer next-window)))
+                     (set-window-buffer prev-window next-buf)
+                     (set-window-buffer next-window prev-buf)
+                     (select-window next-window)))))
+              (defalias 'ace-swap-window
+                (aw-generic " Ace - Swap" my:aw-swap-window))
+              (defalias 'ace-delete-window
+                (aw-generic " Ace - Del" my:aw-delete-window))
+              (defalias 'ace-kill-window
+                (aw-generic " Ace - Kill" my:aw-kill-window))
+              (defalias 'ace-move-window
+                (aw-generic " Ace - Move" my:aw-move-window))
+              (my:kmap ("C-c w w" "C-c C-w" 'ace-window)
+                       ("C-c w s" 'ace-swap-window)
+                       ("C-c w d" 'ace-delete-window)
+                       ("C-c w g" 'ace-kill-window)
+                       ("C-c w m" 'ace-move-window))))
   ;; Fast access and searching
   (use-package ido-vertical-mode
     :ensure t
@@ -431,16 +615,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     :config (progn
               (flx-ido-mode 1)
               (setq ido-use-faces nil)))
-  (use-package ido-ubiquitous
-    :ensure t
-    :disabled t
-    :config (ido-ubiquitous t))
-  (use-package smex
-    :ensure t
-    :disabled t
-    :config (progn
-              (global-set-key (kbd "M-x") 'smex)
-              (global-set-key (kbd "M-X") 'smex-major-mode-commands)))
   (use-package ag
     :ensure t
     :config (progn (setq ag-highlight-search t)))
@@ -449,79 +623,123 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     :defer t
     :pre-load (setq
                helm-command-prefix-key (kbd "C-c h")
-               helm-quick-update t
+               helm-split-window-in-side-p t
                helm-candidate-number-limit 500)
     :config (progn
-              (helm-mode t)
-              (defun my:helm-completion (engine actions)
-                (mapc
-                 (lambda (action)
-                   (add-to-list 'helm-completing-read-handlers-alist `(,action . ,engine)))
-                 actions))
-              (my:helm-completion nil '(switch-to-buffer kill-buffer multi-occur load-library))
-              (my:custom-set-faces
-               (helm-selection :underline nil)
-               (helm-selection-line :underline nil)
-               (helm-ff-directory :background nil))
-              (my:kmap "t" 'helm-etags-select)
-              (my:kmap "i" 'helm-semantic-or-imenu)
-              (my:kmap "e" 'helm-list-emacs-process)
-              (my:kmap "r" 'helm-resume)
-              (global-set-key (kbd "C-x b") 'helm-mini)
-              (global-set-key (kbd "C-x C-b") 'helm-buffers-list)
-              (global-set-key (kbd "C-x C-f") 'helm-find-files)
-              (global-set-key (kbd "C-h f") 'helm-apropos)
-              (global-set-key (kbd "M-x") 'helm-M-x)
-              (global-set-key (kbd "M-y") 'helm-show-kill-ring)
-              (define-key helm-map (kbd "C-i") 'helm-execute-persistent-action)
-              (define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action)
-              (define-key helm-map (kbd "C-z") 'helm-select-action)))
+              ;; Prevent winner from restoring helm buffers
+              (defun my:helm-display-buffer-winner-add (buffer)
+                "Adds buffer name to `winner-boring-buffers' before openning"
+                (add-to-list 'winner-boring-buffers buffer)
+                (helm-default-display-buffer buffer))
+              (setq helm-display-function 'my:helm-display-buffer-winner-add)
+              ;; Disable underline and dir highlight
+              (my:eval-after helm
+                (set-face-attribute 'helm-selection nil
+                                    :underline nil)
+                (set-face-attribute 'helm-selection-line nil
+                                    :underline nil))
+              (my:eval-after helm-file
+                (set-face-attribute 'helm-ff-directory nil
+                                    :background nil))
+              ;; Disable helm on some selections
+              (my:eval-after helm-mode
+                (defun my:helm-completion (engine actions)
+                  "For convenient filling the `helm-completing-read-handlers-alist'"
+                  (mapc
+                   (lambda (action)
+                     (add-to-list 'helm-completing-read-handlers-alist `(,action . ,engine)))
+                   actions))
+                (my:helm-completion nil '(switch-to-buffer
+                                          kill-buffer
+                                          multi-occur
+                                          load-library))
+                (my:helm-completion 'ido '(flycheck-set-checker-executable)))
+              ;; Bindings, C-c ; to work in terminal
+              (my:kmap ("C-; t" "C-c ; t" 'helm-etags-select)
+                       ("C-; i" "C-c ; i" 'helm-semantic-or-imenu)
+                       ("C-; m" "C-c ; m" 'helm-all-mark-rings)
+                       ("C-; e" "C-c ; e" 'helm-list-emacs-process)
+                       ("C-; r" "C-c ; r" 'helm-resume)
+                       ("C-x b"   'helm-mini)
+                       ("C-x C-b" 'helm-buffers-list)
+                       ("C-x C-f" 'helm-find-files)
+                       ("C-h f" 'helm-apropos)
+                       ("M-x" 'helm-M-x)
+                       ("M-y" 'helm-show-kill-ring))
+              (my:kmap* helm-map
+                        ("C-i" 'helm-execute-persistent-action)
+                        ("<tab>" 'helm-execute-persistent-action)
+                        ("C-z" 'helm-select-action))
+              (helm-mode t)))
   (use-package helm-swoop
-    :ensure t)
+    :ensure t
+    :pre-load (progn
+                ;; Suppress compiler warning
+                (defvar helm-swoop-last-prefix-number nil)))
   (use-package ggtags
     :ensure t
     :config (progn
-              (my:add-hooks '(c-mode-hook c++-mode-hook)
-                            (lambda () (ggtags-mode t)))))
+              (defun my:ggtags-on ()
+                "Set `ggtags-mode' on (for c/c++ switch)"
+                (ggtags-mode t))
+              (add-hook 'c-mode-hook 'my:ggtags-on)
+              (add-hook 'c++-mode-hook 'my:ggtags-on)))
   ;; Completion
   (use-package company
     :ensure t
     :config (progn
               (define-key company-mode-map (kbd "C-<tab>") 'company-complete)
               (setq company-tooltip-limit 20)
+              ;; Put semantic backend on separate key
               (setq-default company-backends
                             (remove 'company-semantic company-backends))
-              (my:add-hooks '(c-mode-hook c++-mode-hook)
-                            (lambda ()
-                              (local-set-key (kbd "C-<return>") 'company-semantic)))
+              (defun my:company-semantic-setup ()
+                "Sets `company-semantic' keybind locally"
+                (local-set-key (kbd "C-<return>") 'company-semantic))
+              (add-hook 'c-mode-hook 'my:company-semantic-setup)
+              (add-hook 'c++-mode-hook 'my:company-semantic-setup)
+              (add-hook 'python-mode-hook 'my:company-semantic-setup)
               (global-company-mode t)))
   (use-package yasnippet
     :ensure t
     :config (progn
-              (setq yas-prompt-functions '(yas-ido-prompt yas-completing-prompt yas-no-prompt))
+              ;; No more toolkit popups
+              (setq yas-prompt-functions
+                    '(yas-ido-prompt yas-completing-prompt yas-no-prompt))
+              ;; Just custom snippet dir
               (add-to-list 'yas-snippet-dirs my:snippets-dir)
-              (defadvice yas-expand (before advice-for-yas-expand activate)
-                (while (sp--get-active-overlay)
-                  (sp-remove-active-pair-overlay)))
-              (add-hook 'python-mode-hook
-                        #'(lambda () (setq-local yas-indent-line 'fixed)))
+              (advice-add 'yas-expand :before
+                          #'(lambda ()
+                              "Escape from `smartparens-mode' overlay"
+                              (let ((times 5))
+                                (while (and (> times 0) (sp--get-active-overlay))
+                                  (sp-remove-active-pair-overlay)
+                                  (setq times (- times 1))))))
               (yas-global-mode t)))
   (use-package function-args
     :ensure t
     :config (progn
-              (define-minor-mode function-args-mode
-                "Minor mode for C++ code completion bindings. \\{function-args-mode-map}"
-                :keymap function-args-mode-map
-                :group 'function-args
-                :lighter " FA")
-              (my:custom-set-faces
-               (fa-face-hint :inherit highlight)
-               (fa-face-hint-bold :bold t :inherit fa-face-hint)
-               (fa-face-semi :inherit (highlight font-lock-keyword-face))
-               (fa-face-type :inherit (highlight font-lock-type-face))
-               (fa-face-type-bold :bold t :inherit fa-face-type))
+              (my:eval-after function-args
+                (dolist (face '(fa-face-hint
+                                fa-face-hint-bold
+                                fa-face-semi
+                                fa-face-type
+                                fa-face-type-bold))
+                  (face-spec-reset-face face))
+                (set-face-attribute 'fa-face-hint nil
+                                    :inherit 'highlight)
+                (set-face-attribute 'fa-face-hint-bold nil
+                                    :bold t
+                                    :inherit 'fa-face-hint)
+                (set-face-attribute 'fa-face-semi nil
+                                    :inherit '(highlight font-lock-keyword-face))
+                (set-face-attribute 'fa-face-type nil
+                                    :inherit '(highlight font-lock-type-face))
+                (set-face-attribute 'fa-face-type-bold nil
+                                    :bold t
+                                    :inherit 'fa-face-type))
               (fa-config-default)))
- ;; External tools
+  ;; External tools
   (use-package magit
     :defer t
     :ensure t)
@@ -529,19 +747,30 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (use-package neotree
     :ensure t
     :init (progn
+            (defun neo-global--create-window ()
+              "Create global neotree window. Split root window."
+              (let ((window nil)
+                    (buffer (neo-global--get-buffer))
+                    (root (frame-root-window (selected-frame))))
+                (setq window
+                      (split-window root (- neo-window-width) 'left))
+                (select-window window)
+                (neo-window--init window buffer)
+                (setq neo-global--window window)
+                window))
+            ;; Allow delete window
             (setq neo-persist-show nil)
-            (global-set-key (kbd "<f5>") 'neotree-toggle)
-            (global-set-key (kbd "<f6>") 'neotree-find)
-            (define-key neotree-mode-map (kbd "r") 'neotree-refresh)
-            (define-key neotree-mode-map (kbd "h") 'neotree-hidden-file-toggle)
-            (define-key neotree-mode-map (kbd "a") 'neotree-stretch-toggle)
-            (define-key neotree-mode-map (kbd "p") 'neotree-previous-node)
-            (define-key neotree-mode-map (kbd "n") 'neotree-next-node)
-            (define-key neotree-mode-map (kbd "k") 'neotree-previous-node)
-            (define-key neotree-mode-map (kbd "j") 'neotree-next-node)
-            (defadvice neotree-enter (after my:nt-jump-to-button activate)
-              (unless (button-at (point))
-                (neotree-next-node)))))
+            (my:kmap ("<f5>" 'neotree-toggle)
+                     ("<f6>" 'neotree-find))
+            ;; Add jk movement
+            (my:kmap* neotree-mode-map
+                      ("r" 'neotree-refresh)
+                      ("h" 'neotree-hidden-file-toggle)
+                      ("a" 'neotree-stretch-toggle)
+                      ("p" 'neotree-previous-node)
+                      ("n" 'neotree-next-node)
+                      ("k" 'neotree-previous-node)
+                      ("j" 'neotree-next-node))))
   (use-package projectile
     :ensure t
     :config (progn
@@ -549,32 +778,30 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
                 "Jump neotree to current project root (if exists)"
                 (interactive)
                 (let ((root (projectile-project-root)))
-                      (neotree-dir root)))
-              (global-set-key (kbd "<f7>") 'my:neotree-project-root)
-              (add-to-list 'projectile-project-root-files-functions 'my:in-project-root-p)
-              (setq semanticdb-project-root-functions projectile-project-root-files-functions)
+                  (neotree-dir root)))
+              (my:kmap "<f7>" 'my:neotree-project-root)
+              ;; Try to emulate ede (from CEDET) project
+              (setq semanticdb-project-root-functions
+                    projectile-project-root-files-functions)
               (projectile-global-mode)))
   (use-package helm-projectile
     :ensure t
     :config (progn
               (helm-projectile-on)
-              (my:kmap "p" 'helm-projectile)))
+              (my:kmap "C-; p" "C-c ; p" 'helm-projectile)))
   ;; Evil mode and Co
   (use-package evil
     :ensure t
     :pre-load (progn
-                (setq evil-want-C-u-scroll t
-                      evil-want-C-w-in-emacs-state t
-                      evil-want-visual-char-semi-exclusive t)
-                (global-set-key (kbd "C-S-w") 'kill-region))
+                (setq evil-want-visual-char-semi-exclusive t))
     :config (progn
-              (setq evil-default-state 'emacs)
-              (mapc (lambda (mode)
-                      (evil-set-initial-state mode 'normal))
-                    '(nxml-mode))
-              (evil-set-initial-state 'neotree-mode 'motion)
-              (add-hook 'prog-mode-hook 'evil-normal-state)
+              ;; Start all insert-default modes in emacs state
+              (setq evil-emacs-state-modes (append evil-emacs-state-modes
+                                                   evil-insert-state-modes)
+                    evil-insert-state-modes nil)
               (define-key evil-normal-state-map (kbd "SPC") 'evil-ace-jump-word-mode)
+              ;; NeoTree tweaks
+              (evil-set-initial-state 'neotree-mode 'motion)
               (add-hook 'neotree-mode-hook
                         (lambda ()
                           (define-key evil-motion-state-local-map (kbd "TAB") 'neotree-enter)
@@ -597,8 +824,9 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (use-package company-c-headers
     :ensure t
     :config (progn
-              (setq company-c-headers-path-system 'my:system-include-path))
-              (add-to-list 'company-backends 'company-c-headers))
+              ;; Get include path from semantic
+              (setq company-c-headers-path-system 'my:system-include-path)
+              (add-to-list 'company-backends 'company-c-headers)))
   (use-package flycheck
     :ensure t)
   (use-package js2-mode
@@ -608,6 +836,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     :ensure t)
   (use-package cider
     :ensure t))
+
 
 (package-initialize)
 (when (require 'use-package nil t)
