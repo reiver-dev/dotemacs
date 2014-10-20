@@ -218,7 +218,7 @@ and indents after that"
 
 (defun my:kill-region-or-word ()
   "Call `kill-region' or backward `kill-word'
- depending on whether or not a region is selected."
+depending on whether or not a region is selected."
    (interactive)
    (if (and transient-mark-mode mark-active)
        (kill-region (point) (mark))
@@ -436,6 +436,9 @@ in new frame"
 
 (add-to-list 'semantic-default-submodes 'global-semantic-decoration-mode)
 (add-to-list 'semantic-default-submodes 'global-semantic-mru-bookmark-mode)
+(add-to-list 'semantic-default-submodes 'global-semantic-idle-summary-mode)
+(add-to-list 'semantic-default-submodes 'global-semantic-show-parser-state-mode)
+(add-to-list 'semantic-default-submodes 'global-semantic-show-unmatched-syntax-mode)
 
 ;; These are default
 ;; (add-to-list 'semantic-default-submodes 'global-semanticdb-minor-mode)
