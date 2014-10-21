@@ -408,13 +408,14 @@ in new frame"
 
 (setq flyspell-issue-message-flag nil)
 
-
+;; Sync unchanged buffers with filesystem
 (global-auto-revert-mode t)
 
-;; ido mode
+;; Show recent files
 (recentf-mode t)
-(ido-mode t)
 
+;; Ido mode for some operations
+(ido-mode t)
 (setq-default ido-create-new-buffer 'always
               ido-default-buffer-method 'selected-window
               ido-enable-last-directory-history nil
@@ -431,24 +432,7 @@ in new frame"
               comint-process-echoes t
               comint-scroll-to-bottom-on-input t)
 
-
-;; CEDET
-
-(add-to-list 'semantic-default-submodes 'global-semantic-decoration-mode)
-(add-to-list 'semantic-default-submodes 'global-semantic-mru-bookmark-mode)
-(add-to-list 'semantic-default-submodes 'global-semantic-idle-summary-mode)
-(add-to-list 'semantic-default-submodes 'global-semantic-show-parser-state-mode)
-(add-to-list 'semantic-default-submodes 'global-semantic-show-unmatched-syntax-mode)
-
-;; These are default
-;; (add-to-list 'semantic-default-submodes 'global-semanticdb-minor-mode)
-;; (add-to-list 'semantic-default-submodes 'global-semantic-idle-scheduler-mode)
-
-(semantic-mode t)
-
-(semanticdb-enable-gnu-global-databases 'c-mode)
-(semanticdb-enable-gnu-global-databases 'c++-mode)
-
+;; C/C++
 (defconst my:c-style
   '("linux"
     (c-basic-offset . 4)
@@ -457,23 +441,33 @@ in new frame"
 
 (c-add-style "reiver" my:c-style)
 
+;; CEDET
 (my:eval-after semantic
+
+  (add-to-list 'semantic-default-submodes 'global-semantic-decoration-mode)
+  (add-to-list 'semantic-default-submodes 'global-semantic-mru-bookmark-mode)
+  (add-to-list 'semantic-default-submodes 'global-semantic-idle-summary-mode)
+  (add-to-list 'semantic-default-submodes 'global-semantic-show-parser-state-mode)
+  (add-to-list 'semantic-default-submodes 'global-semantic-show-unmatched-syntax-mode)
+
+  (semanticdb-enable-gnu-global-databases 'c-mode)
+  (semanticdb-enable-gnu-global-databases 'c++-mode)
+
   (defun my:system-include-path ()
     "Just returns `semantic-dependency-system-include-path'
 to feed to other packages"
-    semantic-dependency-system-include-path))
+    semantic-dependency-system-include-path)
 
-(defun my:cedet-setup ()
-  "Local settings for `semantic-mode'"
-  (local-set-key (kbd "C-c i") 'semantic-decoration-include-visit)
-  (local-set-key (kbd "C-c j") 'semantic-ia-fast-jump)
-  (local-set-key (kbd "C-c q") 'semantic-ia-show-doc)
-  (local-set-key (kbd "C-c s") 'semantic-ia-show-summary)
-  (local-set-key (kbd "C-c t") 'semantic-analyze-proto-impl-toggle))
+  (defun my:cedet-setup ()
+    "Local settings for `semantic-mode'"
+    (local-set-key (kbd "C-c i") 'semantic-decoration-include-visit)
+    (local-set-key (kbd "C-c j") 'semantic-ia-fast-jump)
+    (local-set-key (kbd "C-c q") 'semantic-ia-show-doc)
+    (local-set-key (kbd "C-c s") 'semantic-ia-show-summary)
+    (local-set-key (kbd "C-c t") 'semantic-analyze-proto-impl-toggle))
 
-(add-hook 'c-mode-hook 'my:cedet-setup)
-(add-hook 'c++-mode-hook 'my:cedet-setup)
-(add-hook 'python-mode-hook 'my:cedet-setup)
+  (add-hook 'c-mode-hook 'my:cedet-setup)
+  (add-hook 'c++-mode-hook 'my:cedet-setup))
 
 
 ;;;;;;;;;;;;;;
@@ -701,7 +695,6 @@ to feed to other packages"
                 (local-set-key (kbd "C-<return>") 'company-semantic))
               (add-hook 'c-mode-hook 'my:company-semantic-setup)
               (add-hook 'c++-mode-hook 'my:company-semantic-setup)
-              (add-hook 'python-mode-hook 'my:company-semantic-setup)
               (global-company-mode t)))
   (use-package yasnippet
     :ensure t
@@ -741,7 +734,8 @@ to feed to other packages"
                 (set-face-attribute 'fa-face-type-bold nil
                                     :bold t
                                     :inherit 'fa-face-type))
-              (fa-config-default)))
+              (my:eval-after semantic/bovine
+                (fa-config-default))))
   ;; External tools
   (use-package magit
     :defer t
@@ -828,7 +822,8 @@ to feed to other packages"
     :ensure t
     :config (progn
               ;; Get include path from semantic
-              (setq company-c-headers-path-system 'my:system-include-path)
+              (my:eval-after semantic/bovine
+                (setq company-c-headers-path-system 'my:system-include-path))
               (add-to-list 'company-backends 'company-c-headers)))
   (use-package flycheck
     :ensure t)
