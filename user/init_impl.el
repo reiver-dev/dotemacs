@@ -53,19 +53,26 @@
                     :box nil
                     :inverse-video t)
 
-;; basic
+;; Line numbers appearance
+(with-eval-after-load 'linum
+  (set-face-attribute 'linum nil
+		      :bold t
+		      :italic nil))
+
+;; Misc settings
 (setq-default inhibit-startup-screen t
               initial-scratch-message nil
-              visible-bell t)
+              visible-bell t
+              indicate-buffer-boundaries t)
 
-;; Fringe
-(setq-default indicate-buffer-boundaries t)
-
+;; Scroll
 (setq-default
  ;; three lines at a time
  mouse-wheel-scroll-amount '(3 ((shift) . 1) ((control)))
  ;; don't accelerate scrolling
- mouse-wheel-progressive-speed nil)
+ mouse-wheel-progressive-speed nil
+ ;; don't recenter
+ scroll-conservatively 10)
 
 ;; Text behavior
 (setq-default shift-select-mode nil
@@ -485,10 +492,6 @@ to feed to other packages"
                     "  =>"
                   (format " %3d" (abs number))))
               (setq relative-line-numbers-format 'my:relative-ln-format)
-              (my:eval-after relative-line-numbers
-                (set-face-attribute 'relative-line-numbers nil
-                                    :bold nil
-                                    :italic nil))
               (add-hook 'prog-mode-hook 'relative-line-numbers-mode)))
   (use-package undo-tree
     :ensure t
@@ -793,9 +796,16 @@ to feed to other packages"
                 (setq evil-want-visual-char-semi-exclusive t))
     :config (progn
               ;; Start all insert-default modes in emacs state
-              (setq evil-emacs-state-modes (append evil-emacs-state-modes
+              (setq evil-default-state 'emacs
+                    evil-emacs-state-modes (append evil-emacs-state-modes
                                                    evil-insert-state-modes)
                     evil-insert-state-modes nil)
+              ;; Set normal state for prog-mode
+              (advice-add 'evil-initial-state :around
+                          #'(lambda (fun &rest args)
+                              (if (derived-mode-p 'prog-mode)
+                                  'normal
+                                (apply fun args))))
               (define-key evil-normal-state-map (kbd "SPC") 'evil-ace-jump-word-mode)
               ;; NeoTree tweaks
               (evil-set-initial-state 'neotree-mode 'motion)
