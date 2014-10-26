@@ -20,7 +20,7 @@
 
 (require 'package)
 (add-to-list 'package-archives '("marmelade" . "http://marmalade-repo.org/packages/"))
-(add-to-list 'package-archives '("melpa" . "http://melpa.milkbox.net/packages/"))
+(add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/"))
 
 ;; backup and autosave ;;
 (setq backup-directory-alist `((".*" . ,temporary-file-directory))
@@ -638,7 +638,7 @@ to feed to other packages"
                                     :underline nil)
                 (set-face-attribute 'helm-selection-line nil
                                     :underline nil))
-              (my:eval-after helm-file
+              (my:eval-after helm-files
                 (set-face-attribute 'helm-ff-directory nil
                                     :background nil))
               ;; Disable helm on some selections
