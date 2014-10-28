@@ -46,19 +46,6 @@
 (column-number-mode t)
 (size-indication-mode t)
 
-;; Make modeline flat
-(set-face-attribute 'mode-line nil :box nil)
-(set-face-attribute 'mode-line-inactive nil :box nil)
-(set-face-attribute 'mode-line-highlight nil
-                    :box nil
-                    :inverse-video t)
-
-;; Line numbers appearance
-(with-eval-after-load 'linum
-  (set-face-attribute 'linum nil
-		      :bold t
-		      :italic nil))
-
 ;; Misc settings
 (setq-default inhibit-startup-screen t
               initial-scratch-message nil
@@ -89,6 +76,35 @@
 (add-hook 'prog-mode-hook 'my:prog-mode-setup)
 (add-hook 'nxml-mode 'my:prog-mode-setup)
 
+;;;;;;;;;;;
+;; Theme ;;
+;;;;;;;;;;;
+
+(deftheme my:theme "My face theme settings")
+
+(custom-theme-set-faces
+ 'my:theme
+ ;; Line numbers appearance
+ '(linum ((t (:bold t :italic nil))))
+
+ ;; Make modeline flat
+ '(mode-line           ((t (:box nil))))
+ '(mode-line-inactive  ((t (:box nil))))
+ '(mode-line-highlight ((t (:box nil :inverse-video t))))
+
+ ;; Disable underline and dir highlight
+ '(helm-selection      ((t (:underline nil))))
+ '(helm-selection-line ((t (:underline nil))))
+ '(helm-ff-directory   ((t (:background nil))))
+
+ ;; Make function-args respect current theme
+ '(fa-face-hint      ((t (:inherit highlight))))
+ '(fa-face-hint-bold ((t (:bold t :inherit fa-face-hint))))
+ '(fa-face-semi      ((t (:inherit (highlight font-lock-keyword-face)))))
+ '(fa-face-type      ((t (:inherit (highlight font-lock-type-face)))))
+ '(fa-face-type-bold ((t (:bold t :inherit fa-face-type)))))
+
+(enable-theme 'my:theme)
 
 ;;;;;;;;;;
 ;; Util ;;
@@ -163,21 +179,6 @@ should get (kbd1 kbd2 .. function) as arguments"
            (my:dir-locals-path ,relative)))
      ,@body))
 
-;; For autoload byte-compiling
-;; http://www.lunaryorn.com/2013/06/25/introducing-with-eval-after-load.html
-(defmacro my:eval-after (feature &rest forms)
-  "Suppress warnings aroud `with-eval-after-load'"
-  (declare (indent 1) (debug t))
-  `(,(if (or (not (boundp 'byte-compile-current-file))
-             (not byte-compile-current-file)
-             (if (symbolp feature)
-                 (require feature nil :no-error)
-               (load feature :no-message :no-error)))
-         'progn
-       (message "Eval-After: cannot find %s" feature)
-       'with-no-warnings)
-    (with-eval-after-load ',feature ,@forms)))
-
 ;; For window management
 (defun my:one-window-p (&optional window)
   "Like `one-window-p', but correctly works with other frame selected"
@@ -226,10 +227,10 @@ and indents after that"
 (defun my:kill-region-or-word ()
   "Call `kill-region' or backward `kill-word'
 depending on whether or not a region is selected."
-   (interactive)
-   (if (and transient-mark-mode mark-active)
-       (kill-region (point) (mark))
-     (kill-word -1)))
+  (interactive)
+  (if (and transient-mark-mode mark-active)
+      (kill-region (point) (mark))
+    (kill-word -1)))
 
 (defun my:join-line (&optional ARG)
   "Backward from `delete-indentation'.
@@ -392,7 +393,7 @@ in new frame"
 
 ;; Spell Check
 (when (executable-find "hunspell")
-  (my:eval-after ispell
+  (with-eval-after-load 'ispell
     (add-to-list 'ispell-local-dictionary-alist
                  '("russian-hunspell"
                    "[Ё-ё]"  ;; Word characters
@@ -449,7 +450,7 @@ in new frame"
 (c-add-style "reiver" my:c-style)
 
 ;; CEDET
-(my:eval-after semantic
+(with-eval-after-load 'semantic
 
   (add-to-list 'semantic-default-submodes 'global-semantic-decoration-mode)
   (add-to-list 'semantic-default-submodes 'global-semantic-mru-bookmark-mode)
@@ -632,17 +633,8 @@ to feed to other packages"
                 (add-to-list 'winner-boring-buffers buffer)
                 (helm-default-display-buffer buffer))
               (setq helm-display-function 'my:helm-display-buffer-winner-add)
-              ;; Disable underline and dir highlight
-              (my:eval-after helm
-                (set-face-attribute 'helm-selection nil
-                                    :underline nil)
-                (set-face-attribute 'helm-selection-line nil
-                                    :underline nil))
-              (my:eval-after helm-files
-                (set-face-attribute 'helm-ff-directory nil
-                                    :background nil))
               ;; Disable helm on some selections
-              (my:eval-after helm-mode
+              (with-eval-after-load 'helm-mode
                 (defun my:helm-completion (engine actions)
                   "For convenient filling the `helm-completing-read-handlers-alist'"
                   (mapc
@@ -718,26 +710,7 @@ to feed to other packages"
   (use-package function-args
     :ensure t
     :config (progn
-              (my:eval-after function-args
-                (dolist (face '(fa-face-hint
-                                fa-face-hint-bold
-                                fa-face-semi
-                                fa-face-type
-                                fa-face-type-bold))
-                  (face-spec-reset-face face))
-                (set-face-attribute 'fa-face-hint nil
-                                    :inherit 'highlight)
-                (set-face-attribute 'fa-face-hint-bold nil
-                                    :bold t
-                                    :inherit 'fa-face-hint)
-                (set-face-attribute 'fa-face-semi nil
-                                    :inherit '(highlight font-lock-keyword-face))
-                (set-face-attribute 'fa-face-type nil
-                                    :inherit '(highlight font-lock-type-face))
-                (set-face-attribute 'fa-face-type-bold nil
-                                    :bold t
-                                    :inherit 'fa-face-type))
-              (my:eval-after semantic/bovine
+              (with-eval-after-load 'semantic/bovine
                 (fa-config-default))))
   ;; External tools
   (use-package magit
@@ -799,13 +772,15 @@ to feed to other packages"
               (setq evil-default-state 'emacs
                     evil-emacs-state-modes (append evil-emacs-state-modes
                                                    evil-insert-state-modes)
-                    evil-insert-state-modes nil)
+                    evil-insert-state-modes nil
+                    evil-normal-state-modes '(nxml-mode))
               ;; Set normal state for prog-mode
               (advice-add 'evil-initial-state :around
                           #'(lambda (fun &rest args)
                               (if (derived-mode-p 'prog-mode)
                                   'normal
                                 (apply fun args))))
+              ;; And others
               (define-key evil-normal-state-map (kbd "SPC") 'evil-ace-jump-word-mode)
               ;; NeoTree tweaks
               (evil-set-initial-state 'neotree-mode 'motion)
@@ -832,7 +807,7 @@ to feed to other packages"
     :ensure t
     :config (progn
               ;; Get include path from semantic
-              (my:eval-after semantic/bovine
+              (with-eval-after-load 'semantic/bovine
                 (setq company-c-headers-path-system 'my:system-include-path))
               (add-to-list 'company-backends 'company-c-headers)))
   (use-package flycheck
