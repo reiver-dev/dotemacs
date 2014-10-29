@@ -19,7 +19,7 @@
   (normal-top-level-add-subdirs-to-load-path))
 
 (require 'package)
-(add-to-list 'package-archives '("marmelade" . "http://marmalade-repo.org/packages/"))
+(add-to-list 'package-archives '("marmelade" . "https://marmalade-repo.org/packages/"))
 (add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/"))
 
 ;; backup and autosave ;;
@@ -178,6 +178,21 @@ should get (kbd1 kbd2 .. function) as arguments"
   `(let ((default-directory
            (my:dir-locals-path ,relative)))
      ,@body))
+
+;; For autoload byte-compiling
+;; http://www.lunaryorn.com/2013/06/25/introducing-with-eval-after-load.html
+(defmacro my:with-eval-after-load (feature &rest forms)
+  "Suppress warnings aroud `with-eval-after-load'"
+  (declare (indent 1) (debug t))
+  `(,(if (or (not (boundp 'byte-compile-current-file))
+             (not byte-compile-current-file)
+             (if (symbolp feature)
+                 (require feature nil :no-error)
+               (load feature :no-message :no-error)))
+         'progn
+       (message "Eval-After: cannot find %s" feature)
+       'with-no-warnings)
+    (with-eval-after-load ',feature ,@forms)))
 
 ;; For window management
 (defun my:one-window-p (&optional window)
@@ -393,7 +408,7 @@ in new frame"
 
 ;; Spell Check
 (when (executable-find "hunspell")
-  (with-eval-after-load 'ispell
+  (my:with-eval-after-load ispell
     (add-to-list 'ispell-local-dictionary-alist
                  '("russian-hunspell"
                    "[Ё-ё]"  ;; Word characters
@@ -450,7 +465,7 @@ in new frame"
 (c-add-style "reiver" my:c-style)
 
 ;; CEDET
-(with-eval-after-load 'semantic
+(my:with-eval-after-load semantic
 
   (add-to-list 'semantic-default-submodes 'global-semantic-decoration-mode)
   (add-to-list 'semantic-default-submodes 'global-semantic-mru-bookmark-mode)
@@ -460,11 +475,6 @@ in new frame"
 
   (semanticdb-enable-gnu-global-databases 'c-mode)
   (semanticdb-enable-gnu-global-databases 'c++-mode)
-
-  (defun my:system-include-path ()
-    "Just returns `semantic-dependency-system-include-path'
-to feed to other packages"
-    semantic-dependency-system-include-path)
 
   (defun my:cedet-setup ()
     "Local settings for `semantic-mode'"
@@ -476,6 +486,12 @@ to feed to other packages"
 
   (add-hook 'c-mode-hook 'my:cedet-setup)
   (add-hook 'c++-mode-hook 'my:cedet-setup))
+
+(my:with-eval-after-load semantic/dep
+  (defun my:system-include-path ()
+    "Just returns `semantic-dependency-system-include-path'
+to feed to other packages"
+    semantic-dependency-system-include-path))
 
 
 ;;;;;;;;;;;;;;
@@ -634,7 +650,7 @@ to feed to other packages"
                 (helm-default-display-buffer buffer))
               (setq helm-display-function 'my:helm-display-buffer-winner-add)
               ;; Disable helm on some selections
-              (with-eval-after-load 'helm-mode
+              (my:with-eval-after-load helm-mode
                 (defun my:helm-completion (engine actions)
                   "For convenient filling the `helm-completing-read-handlers-alist'"
                   (mapc
@@ -710,7 +726,7 @@ to feed to other packages"
   (use-package function-args
     :ensure t
     :config (progn
-              (with-eval-after-load 'semantic/bovine
+              (my:with-eval-after-load semantic/bovine
                 (fa-config-default))))
   ;; External tools
   (use-package magit
@@ -807,7 +823,7 @@ to feed to other packages"
     :ensure t
     :config (progn
               ;; Get include path from semantic
-              (with-eval-after-load 'semantic/bovine
+              (my:with-eval-after-load semantic/dep
                 (setq company-c-headers-path-system 'my:system-include-path))
               (add-to-list 'company-backends 'company-c-headers)))
   (use-package flycheck
