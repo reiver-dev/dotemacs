@@ -87,9 +87,7 @@
  ;; Line numbers appearance
  '(linum ((t (:bold t :italic nil))))
 
- ;; Make modeline flat
- '(mode-line           ((t (:box nil))))
- '(mode-line-inactive  ((t (:box nil))))
+ ;; Modeline highligh box is ugly
  '(mode-line-highlight ((t (:box nil :inverse-video t))))
 
  ;; Disable underline and dir highlight
