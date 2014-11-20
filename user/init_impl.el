@@ -1,3 +1,5 @@
+;; -*- lexical-binding: t; -*-
+
 ;;;;;;;;;;
 ;; MAIN ;;
 ;;;;;;;;;;
@@ -32,13 +34,17 @@
 ;;;;;;;;;;;;;;;;
 
 ;; Toolbars
-(menu-bar-mode -1)
-(tool-bar-mode -1)
-(scroll-bar-mode -1)
-(tooltip-mode -1)
+(when (fboundp 'menu-bar-mode)
+  (menu-bar-mode -1))
+(when (fboundp 'tool-bar-mode)
+  (tool-bar-mode -1))
+(when (fboundp 'toolltip-mode)
+  (tooltip-mode -1))
+(when (fboundp 'scroll-bar-mode)
+  (scroll-bar-mode -1))
 
 ;; Enable y/n answers
-(fset 'yes-or-no-p 'y-or-n-p)
+(fset #'yes-or-no-p #'y-or-n-p)
 (setq use-dialog-box nil)
 
 ;; Modeline
@@ -73,8 +79,8 @@
   (setq show-trailing-whitespace t
         truncate-lines t))
 
-(add-hook 'prog-mode-hook 'my:prog-mode-setup)
-(add-hook 'nxml-mode 'my:prog-mode-setup)
+(add-hook 'prog-mode-hook #'my:prog-mode-setup)
+(add-hook 'nxml-mode #'my:prog-mode-setup)
 
 ;;;;;;;;;;;
 ;; Theme ;;
@@ -337,54 +343,54 @@ in new frame"
 ;; Redefine esc
 ;; however esc will not break from hangs like C-g
 (global-unset-key (kbd "ESC ESC ESC"))
-(global-set-key (kbd "C-S-g") 'keyboard-escape-quit)
-(global-set-key (kbd "C-x C-g") 'keyboard-escape-quit)
-(global-set-key (kbd "<escape>") 'keyboard-quit)
-(my:minibuffer-set-key (kbd "<escape>") 'my:minibuffer-keyboard-quit)
+(global-set-key (kbd "C-S-g")           #'keyboard-escape-quit)
+(global-set-key (kbd "C-x C-g")         #'keyboard-escape-quit)
+(global-set-key (kbd "<escape>")        #'keyboard-quit)
+(my:minibuffer-set-key (kbd "<escape>") #'my:minibuffer-keyboard-quit)
 
 (my:kmap
- ("M-/" 'hippie-expand)
+ ("M-/" #'hippie-expand)
 
  ;; Jumping
- ("C-x m" 'my:push-mark-no-activate)
- ("C-x p" 'pop-to-mark-command)
- ("C-x C-x" 'my:exchange-point-and-mark)
- ("C-c o" 'ff-find-other-file)
+ ("C-x m"   #'my:push-mark-no-activate)
+ ("C-x p"   #'pop-to-mark-command)
+ ("C-x C-x" #'my:exchange-point-and-mark)
+ ("C-c o"   #'ff-find-other-file)
 
  ;; Buffers
- ("C-x B"   'ibuffer)
- ("C-x C-c" 'switch-to-buffer)
- ("C-x k"   'my:kill-buffer)
- ("C-x C-k" 'my:kill-buffer-and-window)
- ("C-x M-k" 'kill-buffer)
+ ("C-x B"   #'ibuffer)
+ ("C-x C-c" #'switch-to-buffer)
+ ("C-x k"   #'my:kill-buffer)
+ ("C-x C-k" #'my:kill-buffer-and-window)
+ ("C-x M-k" #'kill-buffer)
 
  ;; Editing
- ("C-w" 'my:kill-region-or-word)
- ("C-S-w" 'kill-region)
- ("C-x C-;" 'comment-or-uncomment-region)
- ("C-<backspace>" 'my:kill-line-to-indent)
- ("C-<delete>"    'kill-line)
- ("M-<delete>"    'kill-word)
- ("M-k"           'kill-whole-line)
- ("M-j"           'my:join-line)
+ ("C-w"           #'my:kill-region-or-word)
+ ("C-S-w"         #'kill-region)
+ ("C-x C-;"       #'comment-or-uncomment-region)
+ ("C-<backspace>" #'my:kill-line-to-indent)
+ ("C-<delete>"    #'kill-line)
+ ("M-<delete>"    #'kill-word)
+ ("M-k"           #'kill-whole-line)
+ ("M-j"           #'my:join-line)
 
  ;; Window management
- ("C-c w <left>"  'windmove-left)
- ("C-c w <down>"  'windmove-down)
- ("C-c w <up>"    'windmove-up)
- ("C-c w <right>" 'windmove-right)
+ ("C-c w <left>"  #'windmove-left)
+ ("C-c w <down>"  #'windmove-down)
+ ("C-c w <up>"    #'windmove-up)
+ ("C-c w <right>" #'windmove-right)
 
- ("C-c w h" 'windmove-left)
- ("C-c w j" 'windmove-down)
- ("C-c w k" 'windmove-up)
- ("C-c w l" 'windmove-right)
+ ("C-c w h" #'windmove-left)
+ ("C-c w j" #'windmove-down)
+ ("C-c w k" #'windmove-up)
+ ("C-c w l" #'windmove-right)
 
- ("C-c w r" 'my:resize-window)
- ("C-c w n" 'my:detach-window)
+ ("C-c w r" #'my:resize-window)
+ ("C-c w n" #'my:detach-window)
 
- ("<f9>" 'my:toggle-window-dedicated)
+ ("<f9>" #'my:toggle-window-dedicated)
 
- ("<f8>" 'compile))
+ ("<f8>" #'compile))
 
 
 ;;;;;;;;;;;;;;;;;;;
@@ -407,6 +413,7 @@ in new frame"
 ;; Spell Check
 (when (executable-find "hunspell")
   (my:with-eval-after-load ispell
+    (setq-default flyspell-issue-message-flag nil)
     (add-to-list 'ispell-local-dictionary-alist
                  '("russian-hunspell"
                    "[Ё-ё]"  ;; Word characters
@@ -427,7 +434,6 @@ in new frame"
                    iso-8859-1))
     (setq ispell-program-name "hunspell")))
 
-(setq flyspell-issue-message-flag nil)
 
 ;; Sync unchanged buffers with filesystem
 (global-auto-revert-mode t)
@@ -476,14 +482,14 @@ in new frame"
 
   (defun my:cedet-setup ()
     "Local settings for `semantic-mode'"
-    (local-set-key (kbd "C-c i") 'semantic-decoration-include-visit)
-    (local-set-key (kbd "C-c j") 'semantic-ia-fast-jump)
-    (local-set-key (kbd "C-c q") 'semantic-ia-show-doc)
-    (local-set-key (kbd "C-c s") 'semantic-ia-show-summary)
-    (local-set-key (kbd "C-c t") 'semantic-analyze-proto-impl-toggle))
+    (local-set-key (kbd "C-c i") #'semantic-decoration-include-visit)
+    (local-set-key (kbd "C-c j") #'semantic-ia-fast-jump)
+    (local-set-key (kbd "C-c q") #'semantic-ia-show-doc)
+    (local-set-key (kbd "C-c s") #'semantic-ia-show-summary)
+    (local-set-key (kbd "C-c t") #'semantic-analyze-proto-impl-toggle))
 
-  (add-hook 'c-mode-hook 'my:cedet-setup)
-  (add-hook 'c++-mode-hook 'my:cedet-setup))
+  (add-hook 'c-mode-hook #'my:cedet-setup)
+  (add-hook 'c++-mode-hook #'my:cedet-setup))
 
 (my:with-eval-after-load semantic/dep
   (defun my:system-include-path ()
@@ -498,16 +504,6 @@ to feed to other packages"
 
 (defun my:package-initialize ()
   ;; Navigation, editing, appearance
-  (use-package relative-line-numbers
-    :ensure t
-    :config (progn
-              (defun my:relative-ln-format (number)
-                "Relative line numbers format function"
-                (if (= number 0)
-                    "  =>"
-                  (format " %3d" (abs number))))
-              (setq relative-line-numbers-format 'my:relative-ln-format)
-              (add-hook 'prog-mode-hook 'relative-line-numbers-mode)))
   (use-package undo-tree
     :ensure t
     :config (progn
@@ -517,13 +513,13 @@ to feed to other packages"
   (use-package multiple-cursors
     :ensure t
     :config (progn
-              (my:kmap ("C->" 'mc/mark-next-like-this)
-                       ("C-<" 'mc/mark-previous-like-this)
-                       ("C-c C-<" 'mc/mark-all-like-this))))
+              (my:kmap ("C->" #'mc/mark-next-like-this)
+                       ("C-<" #'mc/mark-previous-like-this)
+                       ("C-c C-<" #'mc/mark-all-like-this))))
   (use-package expand-region
     :ensure t
     :config (progn
-              (my:kmap "C-=" 'er/expand-region)))
+              (my:kmap "C-=" #'er/expand-region)))
   (use-package smartparens
     :ensure t
     :config (progn
@@ -616,11 +612,11 @@ to feed to other packages"
                 (aw-generic " Ace - Kill" my:aw-kill-window))
               (defalias 'ace-move-window
                 (aw-generic " Ace - Move" my:aw-move-window))
-              (my:kmap ("C-c w w" "C-c C-w" 'ace-window)
-                       ("C-c w s" 'ace-swap-window)
-                       ("C-c w d" 'ace-delete-window)
-                       ("C-c w g" 'ace-kill-window)
-                       ("C-c w m" 'ace-move-window))))
+              (my:kmap ("C-c w w" "C-c C-w" #'ace-window)
+                       ("C-c w s" #'ace-swap-window)
+                       ("C-c w d" #'ace-delete-window)
+                       ("C-c w g" #'ace-kill-window)
+                       ("C-c w m" #'ace-move-window))))
   ;; Fast access and searching
   (use-package ido-vertical-mode
     :ensure t
@@ -646,7 +642,7 @@ to feed to other packages"
                 "Adds buffer name to `winner-boring-buffers' before openning"
                 (add-to-list 'winner-boring-buffers buffer)
                 (helm-default-display-buffer buffer))
-              (setq helm-display-function 'my:helm-display-buffer-winner-add)
+              (setq helm-display-function #'my:helm-display-buffer-winner-add)
               ;; Disable helm on some selections
               (my:with-eval-after-load helm-mode
                 (defun my:helm-completion (engine actions)
@@ -661,21 +657,21 @@ to feed to other packages"
                                           load-library))
                 (my:helm-completion 'ido '(flycheck-set-checker-executable)))
               ;; Bindings, C-c ; to work in terminal
-              (my:kmap ("C-; t" "C-c ; t" 'helm-etags-select)
-                       ("C-; i" "C-c ; i" 'helm-semantic-or-imenu)
-                       ("C-; m" "C-c ; m" 'helm-all-mark-rings)
-                       ("C-; e" "C-c ; e" 'helm-list-emacs-process)
-                       ("C-; r" "C-c ; r" 'helm-resume)
-                       ("C-x b"   'helm-mini)
-                       ("C-x C-b" 'helm-buffers-list)
-                       ("C-x C-f" 'helm-find-files)
-                       ("C-h f" 'helm-apropos)
-                       ("M-x" 'helm-M-x)
-                       ("M-y" 'helm-show-kill-ring))
+              (my:kmap ("C-; t" "C-c ; t" #'helm-etags-select)
+                       ("C-; i" "C-c ; i" #'helm-semantic-or-imenu)
+                       ("C-; m" "C-c ; m" #'helm-all-mark-rings)
+                       ("C-; e" "C-c ; e" #'helm-list-emacs-process)
+                       ("C-; r" "C-c ; r" #'helm-resume)
+                       ("C-x b"   #'helm-mini)
+                       ("C-x C-b" #'helm-buffers-list)
+                       ("C-x C-f" #'helm-find-files)
+                       ("C-h f" #'helm-apropos)
+                       ("M-x" #'helm-M-x)
+                       ("M-y" #'helm-show-kill-ring))
               (my:kmap* helm-map
-                        ("C-i" 'helm-execute-persistent-action)
-                        ("<tab>" 'helm-execute-persistent-action)
-                        ("C-z" 'helm-select-action))
+                        ("C-i" #'helm-execute-persistent-action)
+                        ("<tab>" #'helm-execute-persistent-action)
+                        ("C-z" #'helm-select-action))
               (helm-mode t)))
   (use-package helm-swoop
     :ensure t
@@ -688,22 +684,22 @@ to feed to other packages"
               (defun my:ggtags-on ()
                 "Set `ggtags-mode' on (for c/c++ switch)"
                 (ggtags-mode t))
-              (add-hook 'c-mode-hook 'my:ggtags-on)
-              (add-hook 'c++-mode-hook 'my:ggtags-on)))
+              (add-hook 'c-mode-hook #'my:ggtags-on)
+              (add-hook 'c++-mode-hook #'my:ggtags-on)))
   ;; Completion
   (use-package company
     :ensure t
     :config (progn
-              (define-key company-mode-map (kbd "C-<tab>") 'company-complete)
+              (define-key company-mode-map (kbd "C-<tab>") #'company-complete)
               (setq company-tooltip-limit 20)
               ;; Put semantic backend on separate key
               (setq-default company-backends
                             (remove 'company-semantic company-backends))
               (defun my:company-semantic-setup ()
                 "Sets `company-semantic' keybind locally"
-                (local-set-key (kbd "C-<return>") 'company-semantic))
-              (add-hook 'c-mode-hook 'my:company-semantic-setup)
-              (add-hook 'c++-mode-hook 'my:company-semantic-setup)
+                (local-set-key (kbd "C-<return>") #'company-semantic))
+              (add-hook 'c-mode-hook #'my:company-semantic-setup)
+              (add-hook 'c++-mode-hook #'my:company-semantic-setup)
               (global-company-mode t)))
   (use-package yasnippet
     :ensure t
@@ -713,7 +709,7 @@ to feed to other packages"
                     '(yas-ido-prompt yas-completing-prompt yas-no-prompt))
               ;; Just custom snippet dir
               (add-to-list 'yas-snippet-dirs my:snippets-dir)
-              (advice-add 'yas-expand :before
+              (advice-add #'yas-expand :before
                           #'(lambda ()
                               "Escape from `smartparens-mode' overlay"
                               (let ((times 5))
@@ -734,7 +730,7 @@ to feed to other packages"
   (use-package neotree
     :ensure t
     :init (progn
-            (defun neo-global--create-window ()
+            (defun my:neotree-create-window ()
               "Create global neotree window. Split root window."
               (let ((window nil)
                     (buffer (neo-global--get-buffer))
@@ -745,28 +741,24 @@ to feed to other packages"
                 (neo-window--init window buffer)
                 (setq neo-global--window window)
                 window))
+            (fset #'neo-global--create-window #'my:neotree-create-window)
             ;; Allow delete window
             (setq neo-persist-show nil)
-            (my:kmap ("<f5>" 'neotree-toggle)
-                     ("<f6>" 'neotree-find))
+            (my:kmap ("<f5>" #'neotree-toggle)
+                     ("<f6>" #'neotree-find))
             ;; Add jk movement
             (my:kmap* neotree-mode-map
-                      ("r" 'neotree-refresh)
-                      ("h" 'neotree-hidden-file-toggle)
-                      ("a" 'neotree-stretch-toggle)
-                      ("p" 'neotree-previous-node)
-                      ("n" 'neotree-next-node)
-                      ("k" 'neotree-previous-node)
-                      ("j" 'neotree-next-node))))
+                      ("r" #'neotree-refresh)
+                      ("h" #'neotree-hidden-file-toggle)
+                      ("a" #'neotree-stretch-toggle)
+                      ("p" #'neotree-previous-node)
+                      ("n" #'neotree-next-node)
+                      ("k" #'neotree-previous-node)
+                      ("j" #'neotree-next-node))))
   (use-package projectile
     :ensure t
     :config (progn
-              (defun my:neotree-project-root ()
-                "Jump neotree to current project root (if exists)"
-                (interactive)
-                (let ((root (projectile-project-root)))
-                  (neotree-dir root)))
-              (my:kmap "<f7>" 'my:neotree-project-root)
+              (my:kmap "<f7>" #'neotree-projectile-action)
               ;; Try to emulate ede (from CEDET) project
               (setq semanticdb-project-root-functions
                     projectile-project-root-files-functions)
@@ -775,8 +767,8 @@ to feed to other packages"
     :ensure t
     :config (progn
               (helm-projectile-on)
-              (my:kmap "C-; p" "C-c ; p" 'helm-projectile)))
-  ;; Evil mode and Co
+              (my:kmap "C-; p" "C-c ; p" #'helm-projectile)))
+
   (use-package evil
     :ensure t
     :pre-load (progn
@@ -789,21 +781,21 @@ to feed to other packages"
                     evil-insert-state-modes nil
                     evil-normal-state-modes '(nxml-mode))
               ;; Set normal state for prog-mode
-              (advice-add 'evil-initial-state :around
+              (advice-add #'evil-initial-state :around
                           #'(lambda (fun &rest args)
-                              (if (derived-mode-p 'prog-mode)
+                              (if (derived-mode-p 'prog-mode 'conf-mode)
                                   'normal
                                 (apply fun args))))
               ;; And others
-              (define-key evil-normal-state-map (kbd "SPC") 'evil-ace-jump-word-mode)
+              (define-key evil-normal-state-map (kbd "SPC") #'evil-ace-jump-word-mode)
               ;; NeoTree tweaks
               (evil-set-initial-state 'neotree-mode 'motion)
               (add-hook 'neotree-mode-hook
                         (lambda ()
-                          (define-key evil-motion-state-local-map (kbd "TAB") 'neotree-enter)
-                          (define-key evil-motion-state-local-map (kbd "SPC") 'neotree-enter)
-                          (define-key evil-motion-state-local-map (kbd "RET") 'neotree-enter)
-                          (define-key evil-motion-state-local-map (kbd "q") 'neotree-hide)))
+                          (define-key evil-motion-state-local-map (kbd "TAB") #'neotree-enter)
+                          (define-key evil-motion-state-local-map (kbd "SPC") #'neotree-enter)
+                          (define-key evil-motion-state-local-map (kbd "RET") #'neotree-enter)
+                          (define-key evil-motion-state-local-map (kbd "q") #'neotree-hide)))
               (evil-mode t)))
   (use-package evil-leader
     :disabled t
@@ -813,16 +805,16 @@ to feed to other packages"
   ;; Language specific
   (use-package anaconda-mode
     :ensure t
-    :init (add-hook 'python-mode-hook 'anaconda-mode))
+    :init (add-hook 'python-mode-hook #'anaconda-mode))
   (use-package company-anaconda
     :ensure t
-    :init (add-to-list 'company-backends 'company-anaconda))
+    :init (add-to-list 'company-backends #'company-anaconda))
   (use-package company-c-headers
     :ensure t
     :config (progn
               ;; Get include path from semantic
               (my:with-eval-after-load semantic/dep
-                (setq company-c-headers-path-system 'my:system-include-path))
+                (setq company-c-headers-path-system #'my:system-include-path))
               (add-to-list 'company-backends 'company-c-headers)))
   (use-package flycheck
     :ensure t)
