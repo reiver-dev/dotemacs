@@ -820,7 +820,7 @@ to feed to other packages"
     :ensure t)
   (use-package js2-mode
     :ensure t
-    :init (progn (add-to-list 'auto-mode-alist '("\\.js" . js2-mode))))
+    :init (progn (add-to-list 'auto-mode-alist '("\\.json" . js-mode))))
   (use-package clojure-mode
     :ensure t)
   (use-package cider
