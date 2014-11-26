@@ -248,7 +248,7 @@ and indents after that"
 depending on whether or not a region is selected."
   (interactive)
   (if (and transient-mark-mode mark-active)
-      (kill-region (point) (mark))
+      (call-interactively #'kill-region)
     (kill-word -1)))
 
 (defun my:join-line (&optional ARG)
