@@ -410,6 +410,11 @@ in new frame"
         try-complete-lisp-symbol-partially
         try-complete-lisp-symbol))
 
+;; Ediff
+(setq-default
+ ;; run control panel in same frame
+ ediff-window-setup-function #'ediff-setup-windows-plain)
+
 ;; Spell Check
 (when (executable-find "hunspell")
   (my:with-eval-after-load ispell
