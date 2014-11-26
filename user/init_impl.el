@@ -642,23 +642,12 @@ to feed to other packages"
                 "Adds buffer name to `winner-boring-buffers' before openning"
                 (add-to-list 'winner-boring-buffers buffer)
                 (helm-default-display-buffer buffer))
-              (setq helm-display-function #'my:helm-display-buffer-winner-add)
+              (setq-default helm-display-function
+                            #'my:helm-display-buffer-winner-add)
               ;; Disable helm on some selections
-              (my:with-eval-after-load helm-mode
-                (defun my:helm-completion (engine actions)
-                  "For convenient filling the `helm-completing-read-handlers-alist'"
-                  (mapc
-                   (lambda (action)
-                     (add-to-list 'helm-completing-read-handlers-alist `(,action . ,engine)))
-                   actions))
-                (my:helm-completion nil '(switch-to-buffer
-                                          kill-buffer
-                                          multi-occur
-                                          load-library))
-                (my:helm-completion 'ido '(flycheck-set-checker-executable)))
               ;; Bindings, C-c ; to work in terminal
               (my:kmap ("C-; t" "C-c ; t" #'helm-etags-select)
-                       ("C-; i" "C-c ; i" #'helm-semantic-or-imenu)
+                       ("C-; i" "C-c ; i" #'helm-imenu)
                        ("C-; m" "C-c ; m" #'helm-all-mark-rings)
                        ("C-; e" "C-c ; e" #'helm-list-emacs-process)
                        ("C-; r" "C-c ; r" #'helm-resume)
@@ -668,11 +657,12 @@ to feed to other packages"
                        ("C-h f" #'helm-apropos)
                        ("M-x" #'helm-M-x)
                        ("M-y" #'helm-show-kill-ring))
+              (my:with-eval-after-load semantic
+                (my:kmap "C-; i" "C-c ; i" #'helm-semantic-or-imenu))
               (my:kmap* helm-map
                         ("C-i" #'helm-execute-persistent-action)
                         ("<tab>" #'helm-execute-persistent-action)
-                        ("C-z" #'helm-select-action))
-              (helm-mode t)))
+                        ("C-z" #'helm-select-action))))
   (use-package helm-swoop
     :ensure t
     :pre-load (progn
@@ -719,9 +709,9 @@ to feed to other packages"
               (yas-global-mode t)))
   (use-package function-args
     :ensure t
-    :config (progn
-              (my:with-eval-after-load semantic/bovine
-                (fa-config-default))))
+    :defer t
+    :init (my:with-eval-after-load semantic
+            (fa-config-default)))
   ;; External tools
   (use-package magit
     :defer t
