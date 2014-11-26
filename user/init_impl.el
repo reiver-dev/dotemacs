@@ -165,7 +165,8 @@ should get (kbd1 kbd2 .. function) as arguments"
 
 ;; For project settings
 (defun my:dir-locals-path (&optional relative)
-  "Finds directory local (.dir-locals.el) settings location"
+  "Finds directory local (.dir-locals.el) settings location
+with RELATIVE argument returns path relative to dir-locals location"
   (let* ((current (if (stringp buffer-file-name)
                       buffer-file-name
                     default-directory))
@@ -447,12 +448,12 @@ in new frame"
 (recentf-mode t)
 
 ;; Ido mode for some operations
-(ido-mode t)
 (setq-default ido-create-new-buffer 'always
               ido-default-buffer-method 'selected-window
               ido-enable-last-directory-history nil
               ido-enable-flex-matching t
               ido-everywhere t)
+(ido-mode t)
 (add-to-list 'ido-ignore-buffers "^\\*helm")
 
 ;; Window management
