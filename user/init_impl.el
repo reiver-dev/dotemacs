@@ -279,7 +279,7 @@ With argument, join this line to previous line"
 then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (interactive)
   (if (and delete-selection-mode transient-mark-mode mark-active)
-      (setq deactivate-mark  t)
+      (deactivate-mark)
     (when (get-buffer "*Completions*")
       (delete-windows-on "*Completions*"))
     (abort-recursive-edit)))
@@ -330,11 +330,11 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   "Close current window and open it's buffer
 in new frame"
   (interactive)
-  (setq window (window-normalize-window window))
-  (if (my:one-window-p window)
-      (error "Can't detach single window"))
-  (switch-to-buffer-other-frame (window-buffer window))
-  (delete-window window))
+  (let ((window (window-normalize-window window)))
+        (if (my:one-window-p window)
+            (error "Can't detach single window"))
+        (switch-to-buffer-other-frame (window-buffer window))
+        (delete-window window)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;
@@ -399,17 +399,17 @@ in new frame"
 ;;;;;;;;;;;;;;;;;;;
 
 ;; hippie settings from Prelude
-(setq hippie-expand-try-functions-list
-      '(try-expand-dabbrev
-        try-expand-dabbrev-all-buffers
-        try-expand-dabbrev-from-kill
-        try-complete-file-name-partially
-        try-complete-file-name
-        try-expand-all-abbrevs
-        try-expand-list
-        try-expand-line
-        try-complete-lisp-symbol-partially
-        try-complete-lisp-symbol))
+(setq-default hippie-expand-try-functions-list
+              '(try-expand-dabbrev
+                try-expand-dabbrev-all-buffers
+                try-expand-dabbrev-from-kill
+                try-complete-file-name-partially
+                try-complete-file-name
+                try-expand-all-abbrevs
+                try-expand-list
+                try-expand-line
+                try-complete-lisp-symbol-partially
+                try-complete-lisp-symbol))
 
 ;; Ediff
 (setq-default
@@ -438,7 +438,7 @@ in new frame"
                    ("-d" "en_US")
                    nil
                    iso-8859-1))
-    (setq ispell-program-name "hunspell")))
+    (setq-default ispell-program-name "hunspell")))
 
 
 ;; Sync unchanged buffers with filesystem
@@ -514,8 +514,8 @@ to feed to other packages"
     :ensure t
     :config (progn
               (global-undo-tree-mode)
-              (setq undo-tree-visualizer-timestamps t
-                    undo-tree-visualizer-diff t)))
+              (setq-default undo-tree-visualizer-timestamps t
+                            undo-tree-visualizer-diff t)))
   (use-package multiple-cursors
     :ensure t
     :config (progn
@@ -529,18 +529,18 @@ to feed to other packages"
   (use-package smartparens
     :ensure t
     :config (progn
-              (setq sp-autoskip-opening-pair t
-                    sp-autoskip-closing-pair 'always
-                    ;; disable overlay
-                    sp-highlight-pair-overlay nil
-                    sp-highlight-wrap-overlay nil
-                    sp-highlight-wrap-tag-overlay nil
-                    ;; show for evil-mode
-                    sp-show-pair-from-inside t
-                    ;; only html-mode by default
-                    sp-navigate-consider-sgml-tags '(html-mode nxml-mode)
-                    sp-hybrid-kill-entire-symbol nil
-                    sp-base-key-bindings 'paredit)
+              (setq-default sp-autoskip-opening-pair t
+                            sp-autoskip-closing-pair 'always
+                            ;; disable overlay
+                            sp-highlight-pair-overlay nil
+                            sp-highlight-wrap-overlay nil
+                            sp-highlight-wrap-tag-overlay nil
+                            ;; show for evil-mode
+                            sp-show-pair-from-inside t
+                            ;; only html-mode by default
+                            sp-navigate-consider-sgml-tags '(html-mode nxml-mode)
+                            sp-hybrid-kill-entire-symbol nil
+                            sp-base-key-bindings 'paredit)
               (sp-use-paredit-bindings)
               ;; Disable quote matching in lisp
               (sp-with-modes sp--lisp-modes
@@ -553,7 +553,7 @@ to feed to other packages"
   (use-package ace-window
     :ensure t
     :config (progn
-              (setq aw-keys '(?q ?w ?e ?r ?f ?1 ?2 ?3 ?4))
+              (setq-default aw-keys '(?q ?w ?e ?r ?f ?1 ?2 ?3 ?4))
               (add-to-list 'aw-ignored-buffers " *NeoTree*")
               ;; Add killing buffer in window and moving windows operations
               (defun my:aw--window-base (position action)
@@ -631,10 +631,10 @@ to feed to other packages"
     :ensure t
     :config (progn
               (flx-ido-mode 1)
-              (setq ido-use-faces nil)))
+              (setq-default ido-use-faces nil)))
   (use-package ag
     :ensure t
-    :config (progn (setq ag-highlight-search t)))
+    :config (progn (setq-default ag-highlight-search t)))
   (use-package helm-config
     :ensure helm
     :defer t
@@ -687,7 +687,7 @@ to feed to other packages"
     :ensure t
     :config (progn
               (define-key company-mode-map (kbd "C-<tab>") #'company-complete)
-              (setq company-tooltip-limit 20)
+              (setq-default company-tooltip-limit 20)
               ;; Put semantic backend on separate key
               (setq-default company-backends
                             (remove 'company-semantic company-backends))
@@ -701,8 +701,8 @@ to feed to other packages"
     :ensure t
     :config (progn
               ;; No more toolkit popups
-              (setq yas-prompt-functions
-                    '(yas-ido-prompt yas-completing-prompt yas-no-prompt))
+              (setq-default yas-prompt-functions
+                            '(yas-ido-prompt yas-completing-prompt yas-no-prompt))
               ;; Just custom snippet dir
               (add-to-list 'yas-snippet-dirs my:snippets-dir)
               (advice-add #'yas-expand :before
@@ -725,57 +725,58 @@ to feed to other packages"
   ;; Project management and project tree
   (use-package neotree
     :ensure t
-    :init (progn
-            (defun my:neotree-create-window ()
-              "Create global neotree window. Split root window."
-              (let ((window nil)
-                    (buffer (neo-global--get-buffer))
-                    (root (frame-root-window (selected-frame))))
-                (setq window
-                      (split-window root (- neo-window-width) 'left))
-                (select-window window)
-                (neo-window--init window buffer)
-                (setq neo-global--window window)
-                window))
-            (fset #'neo-global--create-window #'my:neotree-create-window)
-            ;; Allow delete window
-            (setq neo-persist-show nil)
-            (my:kmap ("<f5>" #'neotree-toggle)
-                     ("<f6>" #'neotree-find))
-            ;; Add jk movement
-            (my:kmap* neotree-mode-map
-                      ("r" #'neotree-refresh)
-                      ("h" #'neotree-hidden-file-toggle)
-                      ("a" #'neotree-stretch-toggle)
-                      ("p" #'neotree-previous-node)
-                      ("n" #'neotree-next-node)
-                      ("k" #'neotree-previous-node)
-                      ("j" #'neotree-next-node))))
+    :config (progn
+              (defun my:neotree-create-window ()
+                "Create global neotree window. Split root window."
+                (let ((window nil)
+                      (buffer (neo-global--get-buffer))
+                      (root (frame-root-window (selected-frame))))
+                  (setq window
+                        (split-window root (- neo-window-width) 'left))
+                  (select-window window)
+                  (neo-window--init window buffer)
+                  (setq neo-global--window window)
+                  window))
+              (fset #'neo-global--create-window #'my:neotree-create-window)
+              ;; Allow delete window
+              (setq-default neo-persist-show nil)
+              (my:kmap ("<f5>" #'neotree-toggle)
+                       ("<f6>" #'neotree-find))
+              ;; Add jk movement
+              (my:kmap* neotree-mode-map
+                        ("r" #'neotree-refresh)
+                        ("h" #'neotree-hidden-file-toggle)
+                        ("a" #'neotree-stretch-toggle)
+                        ("p" #'neotree-previous-node)
+                        ("n" #'neotree-next-node)
+                        ("k" #'neotree-previous-node)
+                        ("j" #'neotree-next-node))))
   (use-package projectile
     :ensure t
     :config (progn
               (my:kmap "<f7>" #'neotree-projectile-action)
               ;; Try to emulate ede (from CEDET) project
-              (setq semanticdb-project-root-functions
-                    projectile-project-root-files-functions)
+              (my:with-eval-after-load semanticdb
+                (setq-default semanticdb-project-root-functions
+                              projectile-project-root-files-functions))
               (projectile-global-mode)))
   (use-package helm-projectile
     :ensure t
     :config (progn
               (helm-projectile-on)
               (my:kmap "C-; p" "C-c ; p" #'helm-projectile)))
-
   (use-package evil
     :ensure t
     :pre-load (progn
-                (setq evil-want-visual-char-semi-exclusive t))
+                (setq-default evil-want-visual-char-semi-exclusive t))
     :config (progn
               ;; Start all insert-default modes in emacs state
-              (setq evil-default-state 'emacs
-                    evil-emacs-state-modes (append evil-emacs-state-modes
-                                                   evil-insert-state-modes)
-                    evil-insert-state-modes nil
-                    evil-normal-state-modes '(nxml-mode))
+              (setq-default
+               evil-default-state 'emacs
+               evil-emacs-state-modes (append evil-emacs-state-modes
+                                              evil-insert-state-modes)
+               evil-insert-state-modes nil
+               evil-normal-state-modes '(nxml-mode haskell-mode lua-mode yaml-mode))
               ;; Set normal state for prog-mode
               (advice-add #'evil-initial-state :around
                           #'(lambda (fun &rest args)
@@ -801,10 +802,11 @@ to feed to other packages"
   ;; Language specific
   (use-package anaconda-mode
     :ensure t
-    :init (add-hook 'python-mode-hook #'anaconda-mode))
-  (use-package company-anaconda
-    :ensure t
-    :init (add-to-list 'company-backends #'company-anaconda))
+    :config (progn
+              (add-hook 'python-mode-hook #'anaconda-mode)
+              (use-package company-anaconda
+                :ensure t
+                :init (add-to-list 'company-backends #'company-anaconda))))
   (use-package company-c-headers
     :ensure t
     :config (progn
@@ -819,6 +821,19 @@ to feed to other packages"
     :init (progn (add-to-list 'auto-mode-alist '("\\.json" . js-mode))))
   (use-package yaml-mode
     :ensure t)
+  (use-package lua-mode
+    :ensure t
+    :config (progn
+              (setq-default lua-indent-level 4)))
+  (use-package haskell-mode
+    :ensure t
+    :config (progn
+              (add-hook 'haskell-mode-hook #'turn-on-haskell-indentation)
+              (when (executable-find "ghc-mod")
+                (use-package company-ghc
+                  :ensure t
+                  :init (add-to-list 'company-backends #'company-ghc))
+                (add-hook 'haskell-mode-hook #'ghc-init))))
   (use-package clojure-mode
     :ensure t)
   (use-package cider
