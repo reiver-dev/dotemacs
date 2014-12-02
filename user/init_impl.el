@@ -677,6 +677,12 @@ to feed to other packages"
   (use-package ggtags
     :ensure t
     :config (progn
+              (define-key ggtags-mode-map (kbd "M-.") nil)
+              (define-key ggtags-mode-map (kbd "C-M-.") nil)
+              (define-key
+                ggtags-mode-map [remap find-tag] #'ggtags-find-tag-dwim)
+              (define-key
+                ggtags-mode-map [remap find-tag-regexp] #'ggtags-find-tag-regexp)
               (defun my:ggtags-on ()
                 "Set `ggtags-mode' on (for c/c++ switch)"
                 (ggtags-mode t))
@@ -691,11 +697,12 @@ to feed to other packages"
               ;; Put semantic backend on separate key
               (setq-default company-backends
                             (remove 'company-semantic company-backends))
-              (defun my:company-semantic-setup ()
-                "Sets `company-semantic' keybind locally"
-                (local-set-key (kbd "C-<return>") #'company-semantic))
-              (add-hook 'c-mode-hook #'my:company-semantic-setup)
-              (add-hook 'c++-mode-hook #'my:company-semantic-setup)
+              (my:with-eval-after-load semantic
+                (defun my:company-semantic-setup ()
+                  "Sets `company-semantic' keybind locally"
+                  (local-set-key (kbd "C-<return>") #'company-semantic))
+                (add-hook 'c-mode-hook #'my:company-semantic-setup)
+                (add-hook 'c++-mode-hook #'my:company-semantic-setup))
               (global-company-mode t)))
   (use-package yasnippet
     :ensure t
@@ -806,7 +813,7 @@ to feed to other packages"
               (add-hook 'python-mode-hook #'anaconda-mode)
               (use-package company-anaconda
                 :ensure t
-                :init (add-to-list 'company-backends #'company-anaconda))))
+                :config (add-to-list 'company-backends #'company-anaconda))))
   (use-package company-c-headers
     :ensure t
     :config (progn
@@ -818,7 +825,7 @@ to feed to other packages"
     :ensure t)
   (use-package js2-mode
     :ensure t
-    :init (progn (add-to-list 'auto-mode-alist '("\\.json" . js-mode))))
+    :config (progn (add-to-list 'auto-mode-alist '("\\.json" . js-mode))))
   (use-package yaml-mode
     :ensure t)
   (use-package lua-mode
@@ -829,11 +836,12 @@ to feed to other packages"
     :ensure t
     :config (progn
               (add-hook 'haskell-mode-hook #'turn-on-haskell-indentation)
-              (when (executable-find "ghc-mod")
-                (use-package company-ghc
-                  :ensure t
-                  :init (add-to-list 'company-backends #'company-ghc))
-                (add-hook 'haskell-mode-hook #'ghc-init))))
+              (use-package company-ghc
+                :if (executable-find "ghc-mod")
+                :ensure t
+                :config (progn
+                          (add-to-list 'company-backends #'company-ghc)
+                          (add-hook 'haskell-mode-hook #'ghc-init)))))
   (use-package clojure-mode
     :ensure t)
   (use-package cider
