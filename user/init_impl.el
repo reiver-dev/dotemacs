@@ -7,7 +7,6 @@
 ;; my folders ;;
 (ignore-errors
   (defconst my:user-dir (file-name-directory load-file-name)))
-
 (defconst my:modules-dir (expand-file-name "modules" my:user-dir))
 (defconst my:snippets-dir (expand-file-name "snippets" my:user-dir))
 
@@ -114,6 +113,8 @@
 ;; Util ;;
 ;;;;;;;;;;
 
+(require 'cl)
+
 ;; For convenient bindings
 (defvar my:bindings-mode-map
   (make-sparse-keymap)
@@ -130,15 +131,17 @@
 (defmacro my:kmap* (keymap &rest bindings)
   "Macro for binding keys to `keymap'
 should get (kbd1 kbd2 .. function) as arguments"
-  (let (result)
-    (dolist (bind bindings)
-      (let ((keys (butlast bind))
-            (func (last bind)))
-        (dolist (key keys)
-          (setq result
-                (cons
-                 `(define-key ,keymap (kbd ,key) ,@func)
-                 result)))))
+  (let ((result
+         (mapcan
+          (lambda (bind)
+            (let ((keys (butlast bind))
+                  (func (last bind)))
+              (mapcar (lambda (key)
+                        (when (stringp key)
+                          (setq key `(kbd ,key)))
+                        `(define-key ,keymap ,key ,@func))
+                      keys)))
+          bindings)))
     (if (< 1 (length result))
         `(progn ,@result)
       (car result))))
@@ -447,15 +450,6 @@ in new frame"
 ;; Show recent files
 (recentf-mode t)
 
-;; Ido mode for some operations
-(setq-default ido-create-new-buffer 'always
-              ido-default-buffer-method 'selected-window
-              ido-enable-last-directory-history nil
-              ido-enable-flex-matching t
-              ido-everywhere t)
-(ido-mode t)
-(add-to-list 'ido-ignore-buffers "^\\*helm")
-
 ;; Window management
 (setq-default windmove-wrap-around t)
 (winner-mode t)
@@ -623,25 +617,16 @@ to feed to other packages"
                        ("C-c w d" #'ace-delete-window)
                        ("C-c w g" #'ace-kill-window)
                        ("C-c w m" #'ace-move-window))))
-  ;; Fast access and searching
-  (use-package ido-vertical-mode
-    :ensure t
-    :config (ido-vertical-mode 1))
-  (use-package flx-ido
-    :ensure t
-    :config (progn
-              (flx-ido-mode 1)
-              (setq-default ido-use-faces nil)))
   (use-package ag
     :ensure t
     :config (progn (setq-default ag-highlight-search t)))
   (use-package helm-config
     :ensure helm
     :defer t
-    :pre-load (setq
-               helm-command-prefix-key (kbd "C-c h")
-               helm-split-window-in-side-p t
-               helm-candidate-number-limit 500)
+    :pre-load (setq-default helm-command-prefix-key (kbd "C-c h")
+                            helm-split-window-in-side-p t
+                            helm-buffers-fuzzy-matching t
+                            helm-candidate-number-limit 500)
     :config (progn
               ;; Prevent winner from restoring helm buffers
               (defun my:helm-display-buffer-winner-add (buffer)
@@ -652,37 +637,39 @@ to feed to other packages"
                             #'my:helm-display-buffer-winner-add)
               ;; Disable helm on some selections
               ;; Bindings, C-c ; to work in terminal
-              (my:kmap ("C-; t" "C-c ; t" #'helm-etags-select)
-                       ("C-; i" "C-c ; i" #'helm-imenu)
-                       ("C-; m" "C-c ; m" #'helm-all-mark-rings)
-                       ("C-; e" "C-c ; e" #'helm-list-emacs-process)
-                       ("C-; r" "C-c ; r" #'helm-resume)
+              (my:kmap ("M-x" #'helm-M-x)
+                       ("M-y" #'helm-show-kill-ring)
                        ("C-x b"   #'helm-mini)
-                       ("C-x C-b" #'helm-buffers-list)
+                       ("C-x C-c" #'helm-buffers-list)
                        ("C-x C-f" #'helm-find-files)
                        ("C-h f" #'helm-apropos)
-                       ("M-x" #'helm-M-x)
-                       ("M-y" #'helm-show-kill-ring))
+                       ("C-; i" "C-c ; i" #'helm-imenu)
+                       ("C-; t" "C-c ; t" #'helm-etags-select)
+                       ("C-; m" "C-c ; m" #'helm-all-mark-rings)
+                       ("C-; e" "C-c ; e" #'helm-list-emacs-process)
+                       ("C-; r" "C-c ; r" #'helm-resume))
               (my:with-eval-after-load semantic
                 (my:kmap "C-; i" "C-c ; i" #'helm-semantic-or-imenu))
               (my:kmap* helm-map
                         ("C-i" #'helm-execute-persistent-action)
                         ("<tab>" #'helm-execute-persistent-action)
                         ("C-z" #'helm-select-action))))
-  (use-package helm-swoop
+   (use-package helm-swoop
     :ensure t
     :pre-load (progn
                 ;; Suppress compiler warning
-                (defvar helm-swoop-last-prefix-number nil)))
+                (defvar helm-swoop-last-prefix-number nil))
+    :config (progn
+              (my:kmap ("M-s o" #'helm-swoop)
+                       ("M-s /" #'helm-multi-swoop))))
   (use-package ggtags
     :ensure t
     :config (progn
-              (define-key ggtags-mode-map (kbd "M-.") nil)
-              (define-key ggtags-mode-map (kbd "C-M-.") nil)
-              (define-key
-                ggtags-mode-map [remap find-tag] #'ggtags-find-tag-dwim)
-              (define-key
-                ggtags-mode-map [remap find-tag-regexp] #'ggtags-find-tag-regexp)
+              (my:kmap* ggtags-mode-map
+                        ("M-." nil)
+                        ("C-M-." nil)
+                        ([remap find-tag] #'ggtags-find-tag-dwim)
+                        ([remap find-tag-regexp] #'ggtags-find-tag-regexp))
               (defun my:ggtags-on ()
                 "Set `ggtags-mode' on (for c/c++ switch)"
                 (ggtags-mode t))
@@ -770,6 +757,7 @@ to feed to other packages"
   (use-package helm-projectile
     :ensure t
     :config (progn
+              (defalias 'helm-projectile-ag #'projectile-ag)
               (helm-projectile-on)
               (my:kmap "C-; p" "C-c ; p" #'helm-projectile)))
   (use-package evil
