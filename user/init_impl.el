@@ -532,10 +532,7 @@ to feed to other packages"
                             ;; show for evil-mode
                             sp-show-pair-from-inside t
                             ;; only html-mode by default
-                            sp-navigate-consider-sgml-tags '(html-mode nxml-mode)
-                            sp-hybrid-kill-entire-symbol nil
-                            sp-base-key-bindings 'paredit)
-              (sp-use-paredit-bindings)
+                            sp-navigate-consider-sgml-tags '(html-mode nxml-mode))
               ;; Disable quote matching in lisp
               (sp-with-modes sp--lisp-modes
                 (sp-local-pair "'" nil :actions nil)
@@ -699,13 +696,14 @@ to feed to other packages"
                             '(yas-ido-prompt yas-completing-prompt yas-no-prompt))
               ;; Just custom snippet dir
               (add-to-list 'yas-snippet-dirs my:snippets-dir)
-              (advice-add #'yas-expand :before
-                          #'(lambda ()
-                              "Escape from `smartparens-mode' overlay"
-                              (let ((times 5))
-                                (while (and (> times 0) (sp--get-active-overlay))
-                                  (sp-remove-active-pair-overlay)
-                                  (setq times (- times 1))))))
+              (my:with-eval-after-load smartparens
+                  (advice-add #'yas-expand :before
+                              #'(lambda ()
+                                  "Escape from `smartparens-mode' overlay"
+                                  (let ((times 5))
+                                    (while (and (> times 0) (sp--get-active-overlay))
+                                      (sp-remove-active-pair-overlay)
+                                      (setq times (- times 1)))))))
               (yas-global-mode t)))
   (use-package function-args
     :ensure t
