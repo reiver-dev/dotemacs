@@ -704,6 +704,8 @@ to feed to other packages"
                                     (while (and (> times 0) (sp--get-active-overlay))
                                       (sp-remove-active-pair-overlay)
                                       (setq times (- times 1)))))))
+              (add-hook 'term-mode-hook
+                        (lambda () (yas-minor-mode -1)))
               (yas-global-mode t)))
   (use-package function-args
     :ensure t
