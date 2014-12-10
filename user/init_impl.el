@@ -717,6 +717,10 @@ to feed to other packages"
     :defer t
     :ensure t)
   ;; Project management and project tree
+  (use-package perspective
+    :ensure t
+    :config (progn
+              (persp-mode 1)))
   (use-package neotree
     :ensure t
     :config (progn
@@ -733,7 +737,8 @@ to feed to other packages"
                   window))
               (fset #'neo-global--create-window #'my:neotree-create-window)
               ;; Allow delete window
-              (setq-default neo-persist-show nil)
+              (setq-default neo-persist-show nil
+                            neo-hidden-files-regexp "\\(^\\.\\|.py[cd]\\)")
               (my:kmap ("<f5>" #'neotree-toggle)
                        ("<f6>" #'neotree-find))
               ;; Add jk movement
