@@ -361,6 +361,10 @@ in new frame"
  ("C-x C-x" #'my:exchange-point-and-mark)
  ("C-c o"   #'ff-find-other-file)
 
+ ;; Swap tag functions
+ ("M-*" "C-M-," #'tags-loop-continue)
+ ("M-," #'pop-tag-mark)
+
  ;; Buffers
  ("C-x B"   #'ibuffer)
  ("C-x C-c" #'switch-to-buffer)
@@ -523,16 +527,15 @@ to feed to other packages"
   (use-package smartparens
     :ensure t
     :config (progn
-              (setq-default sp-autoskip-opening-pair t
-                            sp-autoskip-closing-pair 'always
-                            ;; disable overlay
-                            sp-highlight-pair-overlay nil
-                            sp-highlight-wrap-overlay nil
-                            sp-highlight-wrap-tag-overlay nil
-                            ;; show for evil-mode
-                            sp-show-pair-from-inside t
-                            ;; only html-mode by default
-                            sp-navigate-consider-sgml-tags '(html-mode nxml-mode))
+              (setq-default
+               ;; disable overlay
+               sp-highlight-pair-overlay nil
+               sp-highlight-wrap-overlay nil
+               sp-highlight-wrap-tag-overlay nil
+               ;; show for evil-mode
+               sp-show-pair-from-inside t
+               ;; only html-mode by default
+               sp-navigate-consider-sgml-tags '(html-mode nxml-mode))
               ;; Disable quote matching in lisp
               (sp-with-modes sp--lisp-modes
                 (sp-local-pair "'" nil :actions nil)
@@ -677,10 +680,9 @@ to feed to other packages"
     :ensure t
     :config (progn
               (define-key company-mode-map (kbd "C-<tab>") #'company-complete)
-              (setq-default company-tooltip-limit 20)
-              ;; Put semantic backend on separate key
-              (setq-default company-backends
-                            (remove 'company-semantic company-backends))
+              (setq-default company-tooltip-limit 20
+                            ;; Put semantic backend on separate key
+                            company-backends (remove 'company-semantic company-backends))
               (my:with-eval-after-load semantic
                 (defun my:company-semantic-setup ()
                   "Sets `company-semantic' keybind locally"
@@ -717,10 +719,6 @@ to feed to other packages"
     :defer t
     :ensure t)
   ;; Project management and project tree
-  (use-package perspective
-    :ensure t
-    :config (progn
-              (persp-mode 1)))
   (use-package neotree
     :ensure t
     :config (progn
@@ -836,9 +834,15 @@ to feed to other packages"
                           (add-to-list 'company-backends #'company-ghc)
                           (add-hook 'haskell-mode-hook #'ghc-init)))))
   (use-package clojure-mode
-    :ensure t)
-  (use-package cider
-    :ensure t))
+    :ensure t
+    :config (progn
+              (use-package cider
+                :ensure t
+                :config (progn
+                          (my:kmap* cider-mode-map
+                                    ("M-." "M-," nil)
+                                    ([remap find-tag] #'cider-jump-to-var)
+                                    ([remap pop-tag-mark] #'cider-jump-back)))))))
 
 
 (package-initialize)
