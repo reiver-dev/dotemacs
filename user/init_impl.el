@@ -402,7 +402,7 @@ in new frame"
  ("M-," #'pop-tag-mark)
 
  ;; Buffers
- ("C-x B"   #'ibuffer)
+ ([remap list-buffers] #'ibuffer) ; "C-x C-b"
  ("C-x C-c" #'switch-to-buffer)
  ("C-x k"   #'my:kill-buffer)
  ("C-x C-k" #'my:kill-buffer-and-window)
@@ -708,17 +708,17 @@ to feed to other packages"
                             #'my:helm-display-buffer-winner-add)
               ;; Disable helm on some selections
               ;; Bindings, C-c ; to work in terminal
-              (my:kmap ("M-x" #'helm-M-x)
-                       ("M-y" #'helm-show-kill-ring)
-                       ("C-x b"   #'helm-mini)
-                       ("C-x C-c" #'helm-buffers-list)
-                       ("C-x C-f" #'helm-find-files)
-                       ("C-h f" #'helm-apropos)
-                       ("C-; i" "C-c ; i" #'helm-imenu)
-                       ("C-; t" "C-c ; t" #'helm-etags-select)
-                       ("C-; m" "C-c ; m" #'helm-all-mark-rings)
-                       ("C-; e" "C-c ; e" #'helm-list-emacs-process)
-                       ("C-; r" "C-c ; r" #'helm-resume))
+              (my:kmap ([remap execute-extended-command] #'helm-M-x)
+                       ([remap yank-pop]         #'helm-show-kill-ring)
+                       ("C-x C-c"                #'helm-buffers-list)
+                       ([remap switch-to-buffer] #'helm-mini)
+                       ("C-x C-f"                #'helm-find-files)
+                       ("C-h f"                  #'helm-apropos)
+                       ("C-; i" "C-c ; i"        #'helm-imenu)
+                       ("C-; t" "C-c ; t"        #'helm-etags-select)
+                       ("C-; m" "C-c ; m"        #'helm-all-mark-rings)
+                       ("C-; e" "C-c ; e"        #'helm-list-emacs-process)
+                       ("C-; r" "C-c ; r"        #'helm-resume))
               (my:with-eval-after-load semantic
                 (my:kmap "C-; i" "C-c ; i" #'helm-semantic-or-imenu))
               (my:kmap* helm-map
@@ -731,7 +731,7 @@ to feed to other packages"
                 ;; Suppress compiler warning
                 (defvar helm-swoop-last-prefix-number nil))
     :config (progn
-              (my:kmap ("M-s o" #'helm-swoop)
+              (my:kmap ([remap occur] #'helm-swoop)
                        ("M-s /" #'helm-multi-swoop))))
   (use-package ggtags
     :ensure t
