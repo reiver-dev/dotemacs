@@ -161,11 +161,6 @@ should get (kbd1 kbd2 .. function) as arguments"
                    minibuffer-local-isearch-map))
     (define-key m key command)))
 
-(defun my:move-key (keymap-from keymap-to key)
-  "Moves key binding from one keymap to another, deleting from the old location."
-  (define-key keymap-to key (lookup-key keymap-from key))
-  (define-key keymap-from key nil))
-
 ;; For project settings
 (defun my:dir-locals-path (&optional relative)
   "Finds directory local (.dir-locals.el) settings location
@@ -209,6 +204,38 @@ with RELATIVE argument returns path relative to dir-locals location"
     (eq window
         (next-window window 'no-minibuf frame))))
 
+(defun my:delete-window (window)
+  (let ((frame (window-frame window)))
+    (if (my:one-window-p frame)
+        (delete-frame frame)
+      (delete-window window))))
+
+(defun my:visible-frame-list ()
+  (remove-if-not
+   (lambda (frame)
+     (or (eq frame (selected-frame))
+         (window-system frame)))
+   (visible-frame-list)))
+
+(defun my:visible-window-list ()
+  "Return windows from all visible frames"
+  (mapcan #'window-list (my:visible-frame-list)))
+
+(defun my:apply-to-window (action &optional window frame &rest args)
+  (unless frame
+    (setq frame (window-frame window)))
+  (when (and (frame-live-p frame)
+             (frame-visible-p frame)
+             (not (eq frame (selected-frame))))
+    (select-frame-set-input-focus frame))
+  (when (window-live-p window)
+    (if args
+        (apply action window args)
+      (funcall action window))))
+
+(defmacro my:wrap-window-fn (action &rest args)
+  `(lambda (window) (my:apply-to-window ,action window nil ,@args)))
+
 (defun my:move-window-to-other-window (target-window current-window side)
   "Moves buffer to other window's split"
   (when (eq target-window current-window)
@@ -224,6 +251,15 @@ with RELATIVE argument returns path relative to dir-locals location"
         (set-window-buffer new-window buffer)
         (select-window new-window)))))
 
+(defun my:query-move-to-window (target-window current-window)
+  (let* ((choice (read-char-choice "Choose side with hjkl: "
+                                   '(?h ?j ?k ?l)))
+         (side (cond ((= choice ?h) 'left)
+                     ((= choice ?j) 'below)
+                     ((= choice ?k) 'above)
+                     ((= choice ?l) 'right))))
+    (my:move-window-to-other-window target-window
+                                    current-window side)))
 
 ;;;;;;;;;;;;;;;;;
 ;; Interactive ;;
@@ -236,7 +272,7 @@ with RELATIVE argument returns path relative to dir-locals location"
 
 ;; Do not activate mark during jump
 (defun my:exchange-point-and-mark (&optional ARG)
-  "Inverse `exchange-point-and-mark' prefix argument"
+  "Inverse `exchange-point-and-mark' prefix argumennt"
   (interactive "P")
   (exchange-point-and-mark (unless ARG t)))
 
@@ -334,10 +370,10 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 in new frame"
   (interactive)
   (let ((window (window-normalize-window window)))
-        (if (my:one-window-p window)
-            (error "Can't detach single window"))
-        (switch-to-buffer-other-frame (window-buffer window))
-        (delete-window window)))
+    (if (my:one-window-p window)
+        (error "Can't detach single window"))
+    (switch-to-buffer-other-frame (window-buffer window))
+    (delete-window window)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;
@@ -353,7 +389,7 @@ in new frame"
 (my:minibuffer-set-key (kbd "<escape>") #'my:minibuffer-keyboard-quit)
 
 (my:kmap
- ("M-/" #'hippie-expand)
+ ([rebind dabbrev-expand] #'hippie-expand)
 
  ;; Jumping
  ("C-x m"   #'my:push-mark-no-activate)
@@ -370,7 +406,6 @@ in new frame"
  ("C-x C-c" #'switch-to-buffer)
  ("C-x k"   #'my:kill-buffer)
  ("C-x C-k" #'my:kill-buffer-and-window)
- ("C-x M-k" #'kill-buffer)
 
  ;; Editing
  ("C-w"           #'my:kill-region-or-word)
@@ -397,7 +432,6 @@ in new frame"
  ("C-c w n" #'my:detach-window)
 
  ("<f9>" #'my:toggle-window-dedicated)
-
  ("<f8>" #'compile))
 
 
@@ -524,8 +558,8 @@ to feed to other packages"
     :ensure t
     :config (progn
               (my:kmap "C-=" #'er/expand-region)))
-  (use-package smartparens
-    :ensure t
+  (use-package smartparens-config
+    :ensure smartparens
     :config (progn
               (setq-default
                ;; disable overlay
@@ -537,9 +571,6 @@ to feed to other packages"
                ;; only html-mode by default
                sp-navigate-consider-sgml-tags '(html-mode nxml-mode))
               ;; Disable quote matching in lisp
-              (sp-with-modes sp--lisp-modes
-                (sp-local-pair "'" nil :actions nil)
-                (sp-local-pair "`" "'" :when '(sp-in-string-p)))
               (smartparens-global-mode t)
               (show-smartparens-global-mode t)))
   (use-package ace-jump-mode
@@ -588,7 +619,7 @@ to feed to other packages"
                  (lambda (target-window current-window)
                    (let* ((choice (read-char-choice "Choose side with hjkl: "
                                                     '(?h ?j ?k ?l)))
-			  (side (cond ((= choice ?h) 'left)
+        		  (side (cond ((= choice ?h) 'left)
                                       ((= choice ?j) 'below)
                                       ((= choice ?k) 'above)
                                       ((= choice ?l) 'right))))
@@ -617,6 +648,46 @@ to feed to other packages"
                        ("C-c w d" #'ace-delete-window)
                        ("C-c w g" #'ace-kill-window)
                        ("C-c w m" #'ace-move-window))))
+  (use-package switch-window
+    :ensure t
+    :config (progn
+              (defun my:switch-window-list (&optional from-current-window)
+                (let ((wlist
+                       (if (or from-current-window switch-window-relative)
+                           (lambda (frame)
+                             (window-list frame nil))
+                         (lambda (frame)
+                           (window-list frame nil (frame-first-window frame))))))
+                  (mapcan wlist (my:visible-frame-list))))
+              (fset #'switch-window-list #'my:switch-window-list)
+              (defun my:switch-window-list-enumerate ()
+                (loop for w in (my:visible-window-list)
+                      for x in (switch-window-list-keys)
+                      collect x))
+              (fset #'switch-window-enumerate #'my:switch-window-list-enumerate)
+              (defun my:switch-move-focus-with (action msg-before msg-after &optional args)
+                (let ((wlist (my:visible-window-list)))
+                  (if (<= (length wlist) switch-window-threshold)
+                      (my:apply-to-window action
+                                          (car (remove (selected-window) wlist))
+                                          nil
+                                          args)
+                    (let ((index (prompt-for-selected-window msg-before))
+                          (eobps (switch-window-list-eobp)))
+                      (apply-to-window-index (my:wrap-window-fn action args) index msg-after)
+                      (switch-window-restore-eobp (remove-if-not #'window-valid-p eobps))))))
+              (defun my:switch-window ()
+                (interactive)
+                (my:switch-move-focus-with #'select-window
+                                           "Move to window: "
+                                           "Moved to: %s"))
+              (defun my:switch-move-window ()
+                (interactive)
+                (my:switch-move-focus-with #'my:query-move-to-window
+                                           "Move window to other window: "
+                                           "Moved to: %s"
+                                           (selected-window)))
+              (my:kmap ("M-o" #'my:switch-window))))
   (use-package ag
     :ensure t
     :config (progn (setq-default ag-highlight-search t)))
@@ -654,7 +725,7 @@ to feed to other packages"
                         ("C-i" #'helm-execute-persistent-action)
                         ("<tab>" #'helm-execute-persistent-action)
                         ("C-z" #'helm-select-action))))
-   (use-package helm-swoop
+  (use-package helm-swoop
     :ensure t
     :pre-load (progn
                 ;; Suppress compiler warning
@@ -679,7 +750,7 @@ to feed to other packages"
   (use-package company
     :ensure t
     :config (progn
-              (define-key company-mode-map (kbd "C-<tab>") #'company-complete)
+              (my:kmap* company-mode-map ("C-<tab>" #'company-complete))
               (setq-default company-tooltip-limit 20
                             ;; Put semantic backend on separate key
                             company-backends (remove 'company-semantic company-backends))
@@ -699,13 +770,13 @@ to feed to other packages"
               ;; Just custom snippet dir
               (add-to-list 'yas-snippet-dirs my:snippets-dir)
               (my:with-eval-after-load smartparens
-                  (advice-add #'yas-expand :before
-                              #'(lambda ()
-                                  "Escape from `smartparens-mode' overlay"
-                                  (let ((times 5))
-                                    (while (and (> times 0) (sp--get-active-overlay))
-                                      (sp-remove-active-pair-overlay)
-                                      (setq times (- times 1)))))))
+                (advice-add #'yas-expand :before
+                            #'(lambda ()
+                                "Escape from `smartparens-mode' overlay"
+                                (let ((times 5))
+                                  (while (and (> times 0) (sp--get-active-overlay))
+                                    (sp-remove-active-pair-overlay)
+                                    (setq times (- times 1)))))))
               (add-hook 'term-mode-hook
                         (lambda () (yas-minor-mode -1)))
               (yas-global-mode t)))
@@ -716,7 +787,6 @@ to feed to other packages"
             (fa-config-default)))
   ;; External tools
   (use-package magit
-    :defer t
     :ensure t)
   ;; Project management and project tree
   (use-package neotree
@@ -782,15 +852,16 @@ to feed to other packages"
                                   'normal
                                 (apply fun args))))
               ;; And others
-              (define-key evil-normal-state-map (kbd "SPC") #'evil-ace-jump-word-mode)
+              (my:kmap* evil-normal-state-map ("SPC" #'evil-ace-jump-word-mode))
               ;; NeoTree tweaks
               (evil-set-initial-state 'neotree-mode 'motion)
-              (add-hook 'neotree-mode-hook
-                        (lambda ()
-                          (define-key evil-motion-state-local-map (kbd "TAB") #'neotree-enter)
-                          (define-key evil-motion-state-local-map (kbd "SPC") #'neotree-enter)
-                          (define-key evil-motion-state-local-map (kbd "RET") #'neotree-enter)
-                          (define-key evil-motion-state-local-map (kbd "q") #'neotree-hide)))
+              (defun my:evil-neotree-setup ()
+                (my:kmap* evil-motion-state-local-map
+                          ("TAB" #'neotree-enter)
+                          ("SPC" #'neotree-enter)
+                          ("RET" #'neotree-enter)
+                          ("q"   #'neotree-hide)))
+              (add-hook 'neotree-mode-hook #'my:evil-neotree-setup)
               (evil-mode t)))
   (use-package evil-leader
     :disabled t
