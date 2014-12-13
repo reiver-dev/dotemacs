@@ -52,10 +52,17 @@
 (size-indication-mode t)
 
 ;; Misc settings
+(defun my:bell-function ()
+  (unless (memq this-command '(isearch-abort abort-recursive-edit exit-minibuffer keyboard-quit))
+    (ding)))
+
+
 (setq-default inhibit-startup-screen t
               initial-scratch-message nil
+              indicate-buffer-boundaries t
               visible-bell t
-              indicate-buffer-boundaries t)
+              ring-bell-function #'my:bell-function)
+
 
 ;; Scroll
 (setq-default
@@ -210,12 +217,16 @@ with RELATIVE argument returns path relative to dir-locals location"
         (delete-frame frame)
       (delete-window window))))
 
-(defun my:visible-frame-list ()
-  (remove-if-not
-   (lambda (frame)
-     (or (eq frame (selected-frame))
-         (window-system frame)))
-   (visible-frame-list)))
+(defun my:visible-frame-list (&optional from-current-frame)
+  (let* ((current-frame (selected-frame))
+         (frames (remove-if-not
+                 (lambda (frame)
+                   (or (eq frame current-frame)
+                       (window-system frame)))
+                 (visible-frame-list))))
+    (if from-current-frame
+        (cons current-frame (remove current-frame frames))
+      frames)))
 
 (defun my:visible-window-list ()
   "Return windows from all visible frames"
@@ -252,6 +263,7 @@ with RELATIVE argument returns path relative to dir-locals location"
         (select-window new-window)))))
 
 (defun my:query-move-to-window (target-window current-window)
+  "Function to interactevely choose side for `my:move-window-to-other-window'"
   (let* ((choice (read-char-choice "Choose side with hjkl: "
                                    '(?h ?j ?k ?l)))
          (side (cond ((= choice ?h) 'left)
@@ -260,6 +272,14 @@ with RELATIVE argument returns path relative to dir-locals location"
                      ((= choice ?l) 'right))))
     (my:move-window-to-other-window target-window
                                     current-window side)))
+
+(defun my:swap-windows (target-window current-window)
+  "Swaps two windows' buffers"
+  (let ((current-buf (window-buffer current-window))
+        (target-buf (window-buffer target-window)))
+    (set-window-buffer current-window target-buf)
+    (set-window-buffer target-window current-buf)
+    (select-window target-window)))
 
 ;;;;;;;;;;;;;;;;;
 ;; Interactive ;;
@@ -272,9 +292,10 @@ with RELATIVE argument returns path relative to dir-locals location"
 
 ;; Do not activate mark during jump
 (defun my:exchange-point-and-mark (&optional ARG)
-  "Inverse `exchange-point-and-mark' prefix argumennt"
+  "Inverse `exchange-point-and-mark' prefix argument when mark is not active (`mark-active')"
   (interactive "P")
-  (exchange-point-and-mark (unless ARG t)))
+  (exchange-point-and-mark
+   (unless mark-active (not ARG))))
 
 (defun my:kill-line-to-indent ()
   "Kills line backward (opposite to `kill-line')
@@ -392,9 +413,8 @@ in new frame"
  ([rebind dabbrev-expand] #'hippie-expand)
 
  ;; Jumping
+ ([rebind exchange-point-and-mark] #'my:exchange-point-and-mark)
  ("C-x m"   #'my:push-mark-no-activate)
- ("C-x p"   #'pop-to-mark-command)
- ("C-x C-x" #'my:exchange-point-and-mark)
  ("C-c o"   #'ff-find-other-file)
 
  ;; Swap tag functions
@@ -496,6 +516,8 @@ in new frame"
 (setq-default comint-prompt-read-only t
               comint-process-echoes t
               comint-scroll-to-bottom-on-input t)
+;; We have `my:kill-region-or-word' already
+(my:kmap* comint-mode-map ("C-c C-w" nil))
 
 ;; C/C++
 (defconst my:c-style
@@ -575,82 +597,13 @@ to feed to other packages"
               (show-smartparens-global-mode t)))
   (use-package ace-jump-mode
     :ensure t)
-  (use-package ace-window
-    :ensure t
-    :config (progn
-              (setq-default aw-keys '(?q ?w ?e ?r ?f ?1 ?2 ?3 ?4))
-              (add-to-list 'aw-ignored-buffers " *NeoTree*")
-              ;; Add killing buffer in window and moving windows operations
-              (defun my:aw--window-base (position action)
-                "Just like `aw-delete-window' but with custom action. Fix other-frame."
-                (let ((current-window (selected-window)))
-                  (if (windowp position)
-                      (funcall action position current-window)
-                    (let ((frame (aj-position-frame position))
-                          (window (aj-position-window position)))
-                      (if (and (frame-live-p frame)
-                               (not (eq frame (selected-frame))))
-                          (select-frame-set-input-focus (window-frame window)))
-                      (if (window-live-p window)
-                          (funcall action window current-window))))))
-              (defun my:aw-delete-window (position)
-                "Kill delete window of `aj-position' structure POSITION."
-                (my:aw--window-base
-                 position
-                 (lambda (window _)
-                   (let ((frame (window-frame window)))
-                     (if (one-window-p t frame)
-                         (delete-frame frame)
-                       (delete-window window))))))
-              (defun my:aw-kill-window (position)
-                "Kill buffer and delete window of `aj-position' structure POSITION."
-                (my:aw--window-base
-                 position
-                 (lambda (window _)
-                   (when (kill-buffer (window-buffer window))
-                     (let ((frame (window-frame window)))
-                       (if (one-window-p t frame)
-                           (delete-frame frame)
-                         (delete-window window)))))))
-              (defun my:aw-move-window (position)
-                "Move window to split, choose split after window."
-                (my:aw--window-base
-                 position
-                 (lambda (target-window current-window)
-                   (let* ((choice (read-char-choice "Choose side with hjkl: "
-                                                    '(?h ?j ?k ?l)))
-        		  (side (cond ((= choice ?h) 'left)
-                                      ((= choice ?j) 'below)
-                                      ((= choice ?k) 'above)
-                                      ((= choice ?l) 'right))))
-                     (my:move-window-to-other-window target-window
-                                                     current-window side)))))
-              (defun my:aw-swap-window (position)
-                "Swap two window buffers"
-                (my:aw--window-base
-                 position
-                 (lambda (next-window prev-window)
-                   (let ((prev-buf (window-buffer prev-window))
-                         (next-buf (window-buffer next-window)))
-                     (set-window-buffer prev-window next-buf)
-                     (set-window-buffer next-window prev-buf)
-                     (select-window next-window)))))
-              (defalias 'ace-swap-window
-                (aw-generic " Ace - Swap" my:aw-swap-window))
-              (defalias 'ace-delete-window
-                (aw-generic " Ace - Del" my:aw-delete-window))
-              (defalias 'ace-kill-window
-                (aw-generic " Ace - Kill" my:aw-kill-window))
-              (defalias 'ace-move-window
-                (aw-generic " Ace - Move" my:aw-move-window))
-              (my:kmap ("C-c w w" "C-c C-w" #'ace-window)
-                       ("C-c w s" #'ace-swap-window)
-                       ("C-c w d" #'ace-delete-window)
-                       ("C-c w g" #'ace-kill-window)
-                       ("C-c w m" #'ace-move-window))))
   (use-package switch-window
     :ensure t
     :config (progn
+              (defun my:switch-ignored-p (window)
+                (and (member (buffer-name (window-buffer window))
+                             (list " *NeoTree*"))
+                     (not (eq (window-frame window) (selected-frame)))))
               (defun my:switch-window-list (&optional from-current-window)
                 (let ((wlist
                        (if (or from-current-window switch-window-relative)
@@ -658,20 +611,19 @@ to feed to other packages"
                              (window-list frame nil))
                          (lambda (frame)
                            (window-list frame nil (frame-first-window frame))))))
-                  (mapcan wlist (my:visible-frame-list))))
+                  (remove-if #'my:switch-ignored-p
+                             (mapcan wlist (my:visible-frame-list t)))))
               (fset #'switch-window-list #'my:switch-window-list)
               (defun my:switch-window-list-enumerate ()
-                (loop for w in (my:visible-window-list)
+                (loop for w in (my:switch-window-list)
                       for x in (switch-window-list-keys)
                       collect x))
               (fset #'switch-window-enumerate #'my:switch-window-list-enumerate)
               (defun my:switch-move-focus-with (action msg-before msg-after &optional args)
-                (let ((wlist (my:visible-window-list)))
+                (let ((wlist (my:switch-window-list)))
                   (if (<= (length wlist) switch-window-threshold)
-                      (my:apply-to-window action
-                                          (car (remove (selected-window) wlist))
-                                          nil
-                                          args)
+                      (my:apply-to-window
+                       action (car (remove (selected-window) wlist)) nil args)
                     (let ((index (prompt-for-selected-window msg-before))
                           (eobps (switch-window-list-eobp)))
                       (apply-to-window-index (my:wrap-window-fn action args) index msg-after)
@@ -687,7 +639,15 @@ to feed to other packages"
                                            "Move window to other window: "
                                            "Moved to: %s"
                                            (selected-window)))
-              (my:kmap ("M-o" #'my:switch-window))))
+              (defun my:switch-swap-window ()
+                (interactive)
+                (my:switch-move-focus-with #'my:swap-windows
+                                           "Swap window with: "
+                                           "Swapped with: %s"
+                                           (selected-window)))
+              (my:kmap ("C-c C-w" "C-c w w" #'my:switch-window)
+                       ("C-c w m" #'my:switch-move-window)
+                       ("C-c w s" #'my:switch-swap-window))))
   (use-package ag
     :ensure t
     :config (progn (setq-default ag-highlight-search t)))
