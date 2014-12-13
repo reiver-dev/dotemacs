@@ -295,7 +295,7 @@ with RELATIVE argument returns path relative to dir-locals location"
   "Inverse `exchange-point-and-mark' prefix argument when mark is not active (`mark-active')"
   (interactive "P")
   (exchange-point-and-mark
-   (unless mark-active (not ARG))))
+   (if mark-active ARG (not ARG))))
 
 (defun my:kill-line-to-indent ()
   "Kills line backward (opposite to `kill-line')
@@ -410,10 +410,10 @@ in new frame"
 (my:minibuffer-set-key (kbd "<escape>") #'my:minibuffer-keyboard-quit)
 
 (my:kmap
- ([rebind dabbrev-expand] #'hippie-expand)
+ ([remap dabbrev-expand] #'hippie-expand)
 
  ;; Jumping
- ([rebind exchange-point-and-mark] #'my:exchange-point-and-mark)
+ ([remap exchange-point-and-mark] #'my:exchange-point-and-mark)
  ("C-x m"   #'my:push-mark-no-activate)
  ("C-c o"   #'ff-find-other-file)
 
