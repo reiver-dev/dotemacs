@@ -120,7 +120,22 @@
 ;; Util ;;
 ;;;;;;;;;;
 
-(require 'cl)
+(defun my:mapcan (function sequence)
+  "Replacement for `mapcan' to not require `cl.el'"
+  (apply 'nconc (mapcar function sequence)))
+
+(defun my:remove-if (func sequence)
+  "Reimplacement for `remove-if' to not use `cl.el'"
+  (delq nil (mapcar
+             (lambda (x) (if (funcall func x) nil x))
+             sequence)))
+
+
+(defun my:remove-if-not (func sequence)
+  "Reimplacement for `remove-if-not' to not use `cl.el'"
+  (delq nil (mapcar
+             (lambda (x) (if (funcall func x) x nil))
+             sequence)))
 
 ;; For convenient bindings
 (defvar my:bindings-mode-map
@@ -139,7 +154,7 @@
   "Macro for binding keys to `keymap'
 should get (kbd1 kbd2 .. function) as arguments"
   (let ((result
-         (mapcan
+         (my:mapcan
           (lambda (bind)
             (let ((keys (butlast bind))
                   (func (last bind)))
@@ -219,18 +234,18 @@ with RELATIVE argument returns path relative to dir-locals location"
 
 (defun my:visible-frame-list (&optional from-current-frame)
   (let* ((current-frame (selected-frame))
-         (frames (remove-if-not
-                 (lambda (frame)
-                   (or (eq frame current-frame)
-                       (window-system frame)))
-                 (visible-frame-list))))
+         (frames (my:remove-if-not
+                  (lambda (frame)
+                    (or (eq frame current-frame)
+                        (window-system frame)))
+                  (visible-frame-list))))
     (if from-current-frame
         (cons current-frame (remove current-frame frames))
       frames)))
 
 (defun my:visible-window-list ()
   "Return windows from all visible frames"
-  (mapcan #'window-list (my:visible-frame-list)))
+  (my:mapcan #'window-list (my:visible-frame-list)))
 
 (defun my:apply-to-window (action &optional window frame &rest args)
   (unless frame
@@ -473,9 +488,10 @@ in new frame"
                 try-complete-lisp-symbol))
 
 ;; Ediff
-(setq-default
- ;; run control panel in same frame
- ediff-window-setup-function #'ediff-setup-windows-plain)
+(my:with-eval-after-load ediff
+  (setq-default
+   ;; run control panel in same frame
+   ediff-window-setup-function #'ediff-setup-windows-plain))
 
 ;; Spell Check
 (when (executable-find "hunspell")
@@ -596,9 +612,49 @@ to feed to other packages"
                sp-navigate-consider-sgml-tags '(html-mode nxml-mode))
               ;; Disable quote matching in lisp
               (smartparens-global-mode t)
-              (show-smartparens-global-mode t)))
+              (show-smartparens-global-mode t)
+              (my:kmap* smartparens-mode-map
+                        ;; Basic Movements
+                        ("C-M-f" #'sp-forward-sexp)
+                        ("C-M-b" #'sp-backward-sexp)
+                        ("C-M-d" #'sp-down-sexp)
+                        ("C-M-u" #'sp-backward-up-sexp) ; remap backward-list
+                        ("C-M-p" #'sp-backward-down-sexp)
+                        ("C-M-n" #'sp-up-sexp) ; remap forward-list
+                        ("C-M-k" #'sp-kill-sexp)
+                        ("C-M-t" #'sp-transpose-sexp)
+                        ;; List manipulation
+                        ("C-x p c" #'sp-splice-sexp)
+                        ("C-x p s" #'sp-split-sexp)
+                        ("C-x p j" #'sp-join-sexp)
+                        ("C-x p a" #'sp-splice-sexp-killing-around)
+                        ("C-x p u" #'sp-unwrap-sexp)
+                        ("C-x p p" "M-p" #'sp-select-next-thing-exchange)
+                        ("C-x p r" #'sp-raise-sexp)
+                        ("C-x p d" #'sp-backward-unwrap-sexp))
+              (defvar my:paredit-extended-mode-map (make-sparse-keymap)
+                "Keymap for `my:paredit-exteded-mode'")
+              (define-minor-mode my:paredit-extended-mode
+                "Sets from `smartparens-mode': \\{my:paredit-extended-mode-map}"
+                :global t
+                :keymap my:paredit-extended-mode-map)
+              (my:kmap* my:paredit-extended-mode-map
+                        ;; Direction manipulation
+                        ("M-<up>"      #'sp-splice-sexp-killing-backward)
+                        ("M-<down>"    #'sp-splice-sexp-killing-forward)
+                        ("C-<right>"   #'sp-forward-slurp-sexp)
+                        ("C-<left>"    #'sp-forward-barf-sexp)
+                        ("C-M-<left>"  #'sp-backward-slurp-sexp)
+                        ("C-M-<right>" #'sp-backward-barf-sexp))
+              (defun my:lisp-setup-paredit ()
+                (my:paredit-extended-mode t)
+                (smartparens-strict-mode))
+              (add-hook 'lisp-mode-hook #'my:lisp-setup-paredit)
+              (add-hook 'emacs-lisp-mode-hook #'my:lisp-setup-paredit)))
   (use-package ace-jump-mode
-    :ensure t)
+    :ensure t
+    :config (progn
+              (my:kmap "M-o" #'ace-jump-char-mode)))
   (use-package switch-window
     :ensure t
     :config (progn
@@ -613,11 +669,11 @@ to feed to other packages"
                              (window-list frame nil))
                          (lambda (frame)
                            (window-list frame nil (frame-first-window frame))))))
-                  (remove-if #'my:switch-ignored-p
-                             (mapcan wlist (my:visible-frame-list t)))))
+                  (my:remove-if #'my:switch-ignored-p
+                                (my:mapcan wlist (my:visible-frame-list t)))))
               (fset #'switch-window-list #'my:switch-window-list)
               (defun my:switch-window-list-enumerate ()
-                (loop for w in (my:switch-window-list)
+                (loop for _ in (my:switch-window-list)
                       for x in (switch-window-list-keys)
                       collect x))
               (fset #'switch-window-enumerate #'my:switch-window-list-enumerate)
@@ -629,7 +685,7 @@ to feed to other packages"
                     (let ((index (prompt-for-selected-window msg-before))
                           (eobps (switch-window-list-eobp)))
                       (apply-to-window-index (my:wrap-window-fn action args) index msg-after)
-                      (switch-window-restore-eobp (remove-if-not #'window-valid-p eobps))))))
+                      (switch-window-restore-eobp (my:remove-if-not #'window-valid-p eobps))))))
               (defun my:switch-window ()
                 (interactive)
                 (my:switch-move-focus-with #'select-window
@@ -703,11 +759,11 @@ to feed to other packages"
                         ("C-M-." nil)
                         ([remap find-tag] #'ggtags-find-tag-dwim)
                         ([remap find-tag-regexp] #'ggtags-find-tag-regexp))
-              (defun my:ggtags-on ()
-                "Set `ggtags-mode' on (for c/c++ switch)"
+              (defun my:turn-on-ggtags-mode ()
+                "Set `ggtags-mode' on"
                 (ggtags-mode t))
-              (add-hook 'c-mode-hook #'my:ggtags-on)
-              (add-hook 'c++-mode-hook #'my:ggtags-on)))
+              (add-hook 'c-mode-hook #'my:turn-on-ggtags-mode)
+              (add-hook 'c++-mode-hook #'my:turn-on-ggtags-mode)))
   ;; Completion
   (use-package company
     :ensure t
@@ -869,9 +925,12 @@ to feed to other packages"
   (use-package clojure-mode
     :ensure t
     :config (progn
+              (add-hook 'clojure-mode-hook #'my:lisp-setup-paredit)
               (use-package cider
                 :ensure t
                 :config (progn
+                          (add-hook 'cider-repl-mode-hook
+                                    #'my:lisp-setup-paredit)
                           (my:kmap* cider-mode-map
                                     ("M-." "M-," nil)
                                     ([remap find-tag] #'cider-jump-to-var)
