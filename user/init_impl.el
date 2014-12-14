@@ -516,8 +516,10 @@ in new frame"
 (setq-default comint-prompt-read-only t
               comint-process-echoes t
               comint-scroll-to-bottom-on-input t)
-;; We have `my:kill-region-or-word' already
-(my:kmap* comint-mode-map ("C-c C-w" nil))
+
+(my:with-eval-after-load comint
+  ;; We have `my:kill-region-or-word' already
+  (my:kmap* comint-mode-map ("C-c C-w" nil)))
 
 ;; C/C++
 (defconst my:c-style
