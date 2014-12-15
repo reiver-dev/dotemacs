@@ -424,11 +424,14 @@ in new frame"
 (global-set-key (kbd "<escape>")        #'keyboard-quit)
 (my:minibuffer-set-key (kbd "<escape>") #'my:minibuffer-keyboard-quit)
 
+;; Never quit so fast
+(global-unset-key (kbd "C-x C-c"))
+
 (my:kmap
- ([remap dabbrev-expand] #'hippie-expand)
+ ([remap dabbrev-expand] #'hippie-expand) ; "M-/"
 
  ;; Jumping
- ([remap exchange-point-and-mark] #'my:exchange-point-and-mark)
+ ([remap exchange-point-and-mark] #'my:exchange-point-and-mark) ; "C-x C-x"
  ("C-x m"   #'my:push-mark-no-activate)
  ("C-c o"   #'ff-find-other-file)
 
@@ -438,7 +441,6 @@ in new frame"
 
  ;; Buffers
  ([remap list-buffers] #'ibuffer) ; "C-x C-b"
- ("C-x C-c" #'switch-to-buffer)
  ("C-x k"   #'my:kill-buffer)
  ("C-x C-k" #'my:kill-buffer-and-window)
 
@@ -654,7 +656,7 @@ to feed to other packages"
   (use-package ace-jump-mode
     :ensure t
     :config (progn
-              (my:kmap "M-o" #'ace-jump-char-mode)))
+              (my:kmap "M-o" #'ace-jump-word-mode)))
   (use-package switch-window
     :ensure t
     :config (progn
@@ -726,10 +728,10 @@ to feed to other packages"
                             #'my:helm-display-buffer-winner-add)
               ;; Disable helm on some selections
               ;; Bindings, C-c ; to work in terminal
-              (my:kmap ([remap execute-extended-command] #'helm-M-x)
-                       ([remap yank-pop]         #'helm-show-kill-ring)
+              (my:kmap ([remap execute-extended-command] #'helm-M-x) ; M-x
+                       ([remap yank-pop]         #'helm-show-kill-ring) ; M-y
+                       ([remap switch-to-buffer] #'helm-mini); C-x b
                        ("C-x C-c"                #'helm-buffers-list)
-                       ([remap switch-to-buffer] #'helm-mini)
                        ("C-x C-f"                #'helm-find-files)
                        ("C-h f"                  #'helm-apropos)
                        ("C-; i" "C-c ; i"        #'helm-imenu)
@@ -749,7 +751,7 @@ to feed to other packages"
                 ;; Suppress compiler warning
                 (defvar helm-swoop-last-prefix-number nil))
     :config (progn
-              (my:kmap ([remap occur] #'helm-swoop)
+              (my:kmap ([remap occur] #'helm-swoop) ; "M-s o"
                        ("M-s /" #'helm-multi-swoop))))
   (use-package ggtags
     :ensure t
