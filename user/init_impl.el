@@ -620,11 +620,10 @@ to feed to other packages"
                         ("C-M-f" #'sp-forward-sexp)
                         ("C-M-b" #'sp-backward-sexp)
                         ("C-M-d" #'sp-down-sexp)
-                        ("C-M-u" #'sp-backward-up-sexp) ; remap backward-list
-                        ("C-M-p" #'sp-backward-down-sexp)
+                        ("C-M-u" #'sp-backward-up-sexp)
+                        ("C-M-p" #'sp-backward-down-sexp) ; remap backward-list
                         ("C-M-n" #'sp-up-sexp) ; remap forward-list
                         ("C-M-k" #'sp-kill-sexp)
-                        ("C-M-t" #'sp-transpose-sexp)
                         ;; List manipulation
                         ("C-x p c" #'sp-splice-sexp)
                         ("C-x p s" #'sp-split-sexp)
@@ -641,6 +640,7 @@ to feed to other packages"
                 :global t
                 :keymap my:paredit-extended-mode-map)
               (my:kmap* my:paredit-extended-mode-map
+                        ("C-M-t" #'sp-transpose-sex) ; remap transpose-sex
                         ;; Direction manipulation
                         ("M-<up>"      #'sp-splice-sexp-killing-backward)
                         ("M-<down>"    #'sp-splice-sexp-killing-forward)
