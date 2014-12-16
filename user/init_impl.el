@@ -630,7 +630,7 @@ to feed to other packages"
                         ("C-x p j" #'sp-join-sexp)
                         ("C-x p a" #'sp-splice-sexp-killing-around)
                         ("C-x p u" #'sp-unwrap-sexp)
-                        ("C-x p p" "M-p" #'sp-select-next-thing-exchange)
+                        ("C-x p p" "C-+" #'sp-select-next-thing-exchange)
                         ("C-x p r" #'sp-raise-sexp)
                         ("C-x p d" #'sp-backward-unwrap-sexp))
               (defvar my:paredit-extended-mode-map (make-sparse-keymap)
@@ -640,7 +640,7 @@ to feed to other packages"
                 :global t
                 :keymap my:paredit-extended-mode-map)
               (my:kmap* my:paredit-extended-mode-map
-                        ("C-M-t" #'sp-transpose-sex) ; remap transpose-sex
+                        ("C-M-t" #'sp-transpose-sexp) ; remap transpose-sex
                         ;; Direction manipulation
                         ("M-<up>"      #'sp-splice-sexp-killing-backward)
                         ("M-<down>"    #'sp-splice-sexp-killing-forward)
