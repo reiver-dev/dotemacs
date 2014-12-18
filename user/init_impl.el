@@ -610,9 +610,7 @@ to feed to other packages"
                sp-highlight-wrap-overlay nil
                sp-highlight-wrap-tag-overlay nil
                ;; show for evil-mode
-               sp-show-pair-from-inside t
-               ;; only html-mode by default
-               sp-navigate-consider-sgml-tags '(html-mode nxml-mode))
+               sp-show-pair-from-inside t)
               ;; Disable quote matching in lisp
               (smartparens-global-mode t)
               (show-smartparens-global-mode t)
