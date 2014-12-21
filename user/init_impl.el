@@ -899,7 +899,7 @@ to feed to other packages"
   (use-package company-c-headers
     :ensure t
     :config (progn
-              ;; Get include path from semantic
+              ;; Get include path from Semantic
               (my:with-eval-after-load semantic/dep
                 (setq company-c-headers-path-system #'my:system-include-path))
               (add-to-list 'company-backends 'company-c-headers)))
