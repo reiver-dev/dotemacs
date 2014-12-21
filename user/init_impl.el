@@ -53,15 +53,21 @@
 
 ;; Misc settings
 (defun my:bell-function ()
-  (unless (memq this-command '(isearch-abort abort-recursive-edit exit-minibuffer keyboard-quit))
+  (unless (memq this-command
+                '(isearch-abort
+                  abort-recursive-edit
+                  exit-minibuffer
+                  keyboard-quit
+                  helm-keyboard-quit))
     (ding)))
 
 
 (setq-default inhibit-startup-screen t
               initial-scratch-message nil
               indicate-buffer-boundaries t
-              visible-bell t
-              ring-bell-function #'my:bell-function)
+              visible-bell t ;; do not beep
+              ring-bell-function #'my:bell-function ;; and blink less
+              disabled-command-function nil) ;; enable all commands
 
 
 ;; Scroll
@@ -75,7 +81,8 @@
 
 ;; Text behavior
 (setq-default shift-select-mode nil
-              sentence-end-double-space nil)
+              sentence-end-double-space nil
+              require-final-newline t)
 
 ;; Indentation
 (setq-default indent-tabs-mode nil)
@@ -219,6 +226,11 @@ with RELATIVE argument returns path relative to dir-locals location"
        'with-no-warnings)
     (with-eval-after-load ',feature ,@forms)))
 
+(defun my:global-unset-command (command)
+  "Unsets all key binding for COMMAND symbol. See `global-unset-key'."
+  (let ((bindings (where-is-internal command)))
+    (mapc (lambda (bnd) (global-unset-key bnd)) bindings)))
+
 ;; For window management
 (defun my:one-window-p (&optional window)
   "Like `one-window-p', but correctly works with other frame selected"
@@ -296,6 +308,13 @@ with RELATIVE argument returns path relative to dir-locals location"
     (set-window-buffer target-window current-buf)
     (select-window target-window)))
 
+;; Misc
+(defun my:region-active ()
+  "Checks whether there is valid active region selection"
+  (and transient-mark-mode mark-active
+       (not (eq (region-beginning) (region-end)))))
+
+
 ;;;;;;;;;;;;;;;;;
 ;; Interactive ;;
 ;;;;;;;;;;;;;;;;;
@@ -319,13 +338,38 @@ and indents after that"
   (kill-line 0)
   (indent-according-to-mode))
 
+;; Region dependent choices
 (defun my:kill-region-or-word ()
-  "Call `kill-region' or backward `kill-word'
+  "Call `kill-region' or `backward-kill-word'
 depending on whether or not a region is selected."
   (interactive)
-  (if (and transient-mark-mode mark-active)
+  (if (my:region-active)
       (call-interactively #'kill-region)
-    (kill-word -1)))
+    (call-interactively #'backward-kill-word)))
+
+(defun my:upcase-region-or-word ()
+  "Call `upcase-region' or `upcase-word'
+depending on whether or not a region is selected."
+  (interactive)
+  (if (my:region-active)
+      (call-interactively #'upcase-region)
+    (call-interactively #'upcase-word)))
+
+(defun my:downcase-region-or-word ()
+  "Call `downcase-region' or `downcase-word'
+depending on whether or not a region is selected."
+  (interactive)
+  (if (my:region-active)
+      (call-interactively #'downcase-region)
+    (call-interactively #'downcase-word)))
+
+(defun my:capitalize-region-or-word ()
+  "Call `capitalize-region' or `capitalize-word'
+depending on whether or not a region is selected."
+  (interactive)
+  (if (my:region-active)
+      (call-interactively #'capitalize-region)
+    (call-interactively #'capitalize-word)))
 
 (defun my:join-line (&optional ARG)
   "Backward from `delete-indentation'.
@@ -411,6 +455,10 @@ in new frame"
     (switch-to-buffer-other-frame (window-buffer window))
     (delete-window window)))
 
+(defun my:hippie-expand-no-case-fold ()
+  (interactive)
+  (let ((case-fold-search nil))
+    (call-interactively #'hippie-expand)))
 
 ;;;;;;;;;;;;;;;;;;;;;
 ;; Global bindings ;;
@@ -426,14 +474,29 @@ in new frame"
 
 ;; Never quit so fast
 (global-unset-key (kbd "C-x C-c"))
+;; We have suspend at `C-x C-z'
+(global-unset-key (kbd "C-z"))
+;; Use that for instant bindings
+(global-unset-key (kbd "<menu>"))
+
+
+(mapc #'my:global-unset-command
+      '(upcase-region downcase-region capitalize-region))
 
 (my:kmap
  ([remap dabbrev-expand] #'hippie-expand) ; "M-/"
+ ([remap dabbrev-completion] #'my:hippie-expand-no-case-fold) ; "C-M-/"
 
  ;; Jumping
  ([remap exchange-point-and-mark] #'my:exchange-point-and-mark) ; "C-x C-x"
  ("C-x m"   #'my:push-mark-no-activate)
  ("C-c o"   #'ff-find-other-file)
+
+ ;; Vim's word jumping
+ ("M-a" (lambda (ARG)
+          (interactive "^p")
+          (forward-same-syntax (- ARG))))
+ ("M-e" #'forward-same-syntax)
 
  ;; Swap tag functions
  ("M-*" "C-M-," #'tags-loop-continue)
@@ -453,6 +516,10 @@ in new frame"
  ("M-<delete>"    #'kill-word)
  ("M-k"           #'kill-whole-line)
  ("M-j"           #'my:join-line)
+
+ ([remap capitalize-word] #'my:capitalize-region-or-word)
+ ([remap upcase-word] #'my:upcase-region-or-word)
+ ([remap downcase-word] #'my:downcase-region-or-word)
 
  ;; Window management
  ("C-c w <left>"  #'windmove-left)
@@ -601,6 +668,24 @@ to feed to other packages"
     :config (progn
               (my:kmap ("C-=" #'er/expand-region)
                        ("C-+" #'er/mark-symbol))))
+  (use-package visual-regexp
+    :ensure t
+    :config (progn
+              (setq-default vr/auto-show-help nil)
+              (my:kmap
+               ([remap query-replace-regexp] #'vr/query-replace)
+               ("M-s m" #'vr/mc-mark))
+              (my:kmap* vr/minibuffer-replace-keymap
+                        ("C-c p" nil) ;; Will be shadowed by projectile
+                        ("C-c v" #'vr--shortcut-toggle-preview))))
+  (use-package iy-go-to-char
+    :ensure t
+    :init (setq-default
+           ;; kill-region do not work with `multiple-cursors-mode'
+           iy-go-to-char-override-local-map nil)
+    :config (progn
+              (my:kmap ("C-." #'iy-go-up-to-char)
+                       ("C-," #'iy-go-up-to-char-backward))))
   (use-package smartparens-config
     :ensure smartparens
     :config (progn
@@ -615,7 +700,7 @@ to feed to other packages"
               (smartparens-global-mode t)
               (show-smartparens-global-mode t)
               (my:kmap* smartparens-mode-map
-                        ;; Basic Movements
+                        ;; Basic movements
                         ("C-M-f" #'sp-forward-sexp)
                         ("C-M-b" #'sp-backward-sexp)
                         ("C-M-d" #'sp-down-sexp)
@@ -725,20 +810,19 @@ to feed to other packages"
                 (helm-default-display-buffer buffer))
               (setq-default helm-display-function
                             #'my:helm-display-buffer-winner-add)
-              ;; Disable helm on some selections
               ;; Bindings, C-c ; to work in terminal
-              (my:kmap ([remap execute-extended-command] #'helm-M-x) ; M-x
-                       ("M-X" #'execute-extended-command) ; for fallback
-                       ([remap yank-pop]         #'helm-show-kill-ring) ; M-y
-                       ([remap switch-to-buffer] #'helm-mini); C-x b
-                       ("C-x C-c"                #'helm-buffers-list)
-                       ("C-x C-f"                #'helm-find-files)
-                       ("C-h f"                  #'helm-apropos)
-                       ("C-; i" "C-c ; i"        #'helm-imenu)
-                       ("C-; t" "C-c ; t"        #'helm-etags-select)
-                       ("C-; m" "C-c ; m"        #'helm-all-mark-rings)
-                       ("C-; e" "C-c ; e"        #'helm-list-emacs-process)
-                       ("C-; r" "C-c ; r"        #'helm-resume))
+              (my:kmap ("M-x" #'helm-M-x)
+                       ("M-X" #'execute-extended-command)
+                       ("C-M-y" #'helm-show-kill-ring)
+                       ([remap switch-to-buffer] #'helm-mini) ; C-x b
+                       ("C-x C-c" #'helm-buffers-list)
+                       ("C-x C-f" #'helm-find-files)
+                       ("C-h f"   #'helm-apropos)
+                       ("C-; i" "C-c ; i" #'helm-imenu)
+                       ("C-; t" "C-c ; t" #'helm-etags-select)
+                       ("C-; m" "C-c ; m" #'helm-all-mark-rings)
+                       ("C-; e" "C-c ; e" #'helm-list-emacs-process)
+                       ("C-; r" "C-c ; r" #'helm-resume))
               (my:with-eval-after-load semantic
                 (my:kmap "C-; i" "C-c ; i" #'helm-semantic-or-imenu))
               (my:kmap* helm-map
@@ -813,7 +897,7 @@ to feed to other packages"
     :ensure t
     :config (progn
               (defun my:neotree-create-window ()
-                "Create global neotree window. Split root window."
+                "Create global NeoTree window. Split root window."
                 (let ((window nil)
                       (buffer (neo-global--get-buffer))
                       (root (frame-root-window (selected-frame))))
@@ -854,6 +938,7 @@ to feed to other packages"
               (helm-projectile-on)
               (my:kmap "C-; p" "C-c ; p" #'helm-projectile)))
   (use-package evil
+    :disabled t
     :ensure t
     :pre-load (progn
                 (setq-default evil-want-visual-char-semi-exclusive t))
