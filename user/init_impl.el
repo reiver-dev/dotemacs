@@ -715,8 +715,8 @@ to feed to other packages"
                         ("C-x p a" #'sp-splice-sexp-killing-around)
                         ("C-x p u" #'sp-unwrap-sexp)
                         ("C-x p p" #'sp-select-next-thing-exchange)
-                        ("C-x p r" #'sp-raise-sexp)
-                        ("C-x p d" #'sp-backward-unwrap-sexp))
+                        ("C-x p d" #'sp-backward-unwrap-sexp)
+                        ("C-x p w" #'sp-rewrap-sexp))
               (defvar my:paredit-extended-mode-map (make-sparse-keymap)
                 "Keymap for `my:paredit-exteded-mode'")
               (define-minor-mode my:paredit-extended-mode
