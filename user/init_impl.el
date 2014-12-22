@@ -23,9 +23,10 @@
 (add-to-list 'package-archives '("marmelade" . "https://marmalade-repo.org/packages/"))
 (add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/"))
 
-;; backup and autosave ;;
+;; backup, autosave, lockfiles ;;
 (setq backup-directory-alist `((".*" . ,temporary-file-directory))
-      auto-save-file-name-transforms `((".*" ,temporary-file-directory t)))
+      auto-save-file-name-transforms `((".*" ,temporary-file-directory t))
+      create-lockfiles nil)
 
 
 ;;;;;;;;;;;;;;;;
