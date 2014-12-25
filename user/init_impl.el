@@ -78,7 +78,12 @@
  ;; don't accelerate scrolling
  mouse-wheel-progressive-speed nil
  ;; don't recenter
- scroll-conservatively 10)
+ scroll-conservatively 100000
+ scroll-margin 0
+ scroll-preserve-screen-position t
+ ;; horizontal scroll jumps
+ hscroll-step 1
+ hscroll-margin 5)
 
 ;; Text behavior
 (setq-default shift-select-mode nil
