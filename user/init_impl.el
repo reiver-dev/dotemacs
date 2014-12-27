@@ -1005,6 +1005,8 @@ to feed to other packages"
     :ensure t
     :config (progn
               (setq-default lua-indent-level 4)))
+  (use-package rust-mode
+    :ensure t)
   (use-package haskell-mode
     :ensure t
     :config (progn
