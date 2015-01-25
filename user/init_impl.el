@@ -665,35 +665,38 @@ to feed to other packages"
                             undo-tree-visualizer-diff t)))
   (use-package multiple-cursors
     :ensure t
-    :config (progn
-              (my:kmap ("C->" #'mc/mark-next-like-this)
-                       ("C-<" #'mc/mark-previous-like-this)
-                       ("C-c C-<" #'mc/mark-all-like-this))))
+    :defer t
+    :init (my:kmap ("C->" #'mc/mark-next-like-this)
+                   ("C-<" #'mc/mark-previous-like-this)
+                   ("C-c C-<" #'mc/mark-all-like-this)))
   (use-package expand-region
     :ensure t
-    :config (progn
-              (my:kmap ("C-=" #'er/expand-region)
-                       ("C-+" #'er/mark-symbol))))
+    :commands er/mark-symbol
+    :init (my:kmap ("C-=" #'er/expand-region)
+                   ("C-+" #'er/mark-symbol)))
   (use-package visual-regexp
     :ensure t
+    :defer t
+    :init (my:kmap
+           ([remap query-replace-regexp] #'vr/query-replace)
+           ("M-s m" #'vr/mc-mark))
     :config (progn
               (setq-default vr/auto-show-help nil)
-              (my:kmap
-               ([remap query-replace-regexp] #'vr/query-replace)
-               ("M-s m" #'vr/mc-mark))
               (my:kmap* vr/minibuffer-replace-keymap
                         ("C-c p" nil) ;; Will be shadowed by projectile
                         ("C-c v" #'vr--shortcut-toggle-preview))))
   (use-package iy-go-to-char
     :ensure t
-    :init (setq-default
-           ;; kill-region do not work with `multiple-cursors-mode'
-           iy-go-to-char-override-local-map nil)
-    :config (progn
-              (my:kmap ("C-." #'iy-go-up-to-char)
-                       ("C-," #'iy-go-up-to-char-backward))))
-  (use-package smartparens-config
-    :ensure smartparens
+    :defer t
+    :init (my:kmap ("C-." #'iy-go-up-to-char)
+                   ("C-," #'iy-go-up-to-char-backward))
+    :config (setq-default
+             ;; kill-region do not work with `multiple-cursors-mode'
+             iy-go-to-char-override-local-map nil))
+  (use-package smartparens
+    :ensure t
+    :defer t
+    :init (use-package smartparens-config)
     :config (progn
               (setq-default
                ;; disable overlay
@@ -727,7 +730,6 @@ to feed to other packages"
                 "Keymap for `my:paredit-exteded-mode'")
               (define-minor-mode my:paredit-extended-mode
                 "Sets from `smartparens-mode': \\{my:paredit-extended-mode-map}"
-                :global t
                 :keymap my:paredit-extended-mode-map)
               (my:kmap* my:paredit-extended-mode-map
                         ("C-M-t" #'sp-transpose-sexp) ; remap transpose-sex
@@ -745,8 +747,8 @@ to feed to other packages"
               (add-hook 'emacs-lisp-mode-hook #'my:lisp-setup-paredit)))
   (use-package ace-jump-mode
     :ensure t
-    :config (progn
-              (my:kmap "M-o" #'ace-jump-word-mode)))
+    :defer t
+    :init (my:kmap "M-o" #'ace-jump-word-mode))
   (use-package switch-window
     :ensure t
     :config (progn
@@ -800,14 +802,16 @@ to feed to other packages"
                        ("C-c w s" #'my:switch-swap-window))))
   (use-package ag
     :ensure t
-    :config (progn (setq-default ag-highlight-search t)))
-  (use-package helm-config
-    :ensure helm
     :defer t
-    :pre-load (setq-default helm-command-prefix-key (kbd "C-c h")
-                            helm-split-window-in-side-p t
-                            helm-buffers-fuzzy-matching t
-                            helm-candidate-number-limit 500)
+    :config (setq-default ag-highlight-search t))
+  (use-package helm
+    :ensure helm
+    :init (progn
+            (setq-default helm-command-prefix-key (kbd "C-c h")
+                          helm-split-window-in-side-p t
+                          helm-buffers-fuzzy-matching t
+                          helm-candidate-number-limit 500)
+            (use-package helm-config))
     :config (progn
               ;; Prevent winner from restoring helm buffers
               (defun my:helm-display-buffer-winner-add (buffer)
@@ -840,22 +844,22 @@ to feed to other packages"
     :pre-load (progn
                 ;; Suppress compiler warning
                 (defvar helm-swoop-last-prefix-number nil))
-    :config (progn
-              (my:kmap ([remap occur] #'helm-swoop) ; "M-s o"
-                       ("M-s /" #'helm-multi-swoop))))
+    :config (my:kmap ([remap occur] #'helm-swoop) ; "M-s o"
+                     ("M-s /" #'helm-multi-swoop)))
   (use-package ggtags
     :ensure t
-    :config (progn
-              (my:kmap* ggtags-mode-map
-                        ("M-." nil)
-                        ("C-M-." nil)
-                        ([remap find-tag] #'ggtags-find-tag-dwim)
-                        ([remap find-tag-regexp] #'ggtags-find-tag-regexp))
-              (defun my:turn-on-ggtags-mode ()
-                "Set `ggtags-mode' on"
-                (ggtags-mode t))
-              (add-hook 'c-mode-hook #'my:turn-on-ggtags-mode)
-              (add-hook 'c++-mode-hook #'my:turn-on-ggtags-mode)))
+    :defer t
+    :init (progn
+            (defun my:turn-on-ggtags-mode ()
+              "Set `ggtags-mode' on"
+              (ggtags-mode t))
+            (add-hook 'c-mode-hook #'my:turn-on-ggtags-mode)
+            (add-hook 'c++-mode-hook #'my:turn-on-ggtags-mode))
+    :config (my:kmap* ggtags-mode-map
+                      ("M-." nil)
+                      ("C-M-." nil)
+                      ([remap find-tag] #'ggtags-find-tag-dwim)
+                      ([remap find-tag-regexp] #'ggtags-find-tag-regexp)))
   ;; Completion
   (use-package company
     :ensure t
@@ -873,6 +877,8 @@ to feed to other packages"
               (global-company-mode t)))
   (use-package yasnippet
     :ensure t
+    :defer t
+    :idle (yas-global-mode t)
     :config (progn
               ;; No more toolkit popups
               (setq-default yas-prompt-functions
@@ -888,8 +894,7 @@ to feed to other packages"
                                     (sp-remove-active-pair-overlay)
                                     (setq times (- times 1)))))))
               (add-hook 'term-mode-hook
-                        (lambda () (yas-minor-mode -1)))
-              (yas-global-mode t)))
+                        (lambda () (yas-minor-mode -1)))))
   (use-package function-args
     :ensure t
     :defer t
@@ -897,10 +902,14 @@ to feed to other packages"
             (fa-config-default)))
   ;; External tools
   (use-package magit
-    :ensure t)
+    :ensure t
+    :defer t)
   ;; Project management and project tree
   (use-package neotree
     :ensure t
+    :defer t
+    :init (my:kmap ("<f5>" #'neotree-toggle)
+                   ("<f6>" #'neotree-find))
     :config (progn
               (defun my:neotree-create-window ()
                 "Create global NeoTree window. Split root window."
@@ -917,8 +926,6 @@ to feed to other packages"
               ;; Allow delete window
               (setq-default neo-persist-show nil
                             neo-hidden-files-regexp "\\(^\\.\\|.py[cd]\\)")
-              (my:kmap ("<f5>" #'neotree-toggle)
-                       ("<f6>" #'neotree-find))
               ;; Add jk movement
               (my:kmap* neotree-mode-map
                         ("r" #'neotree-refresh)
@@ -939,15 +946,15 @@ to feed to other packages"
               (projectile-global-mode)))
   (use-package helm-projectile
     :ensure t
-    :config (progn
-              (defalias 'helm-projectile-ag #'projectile-ag)
-              (helm-projectile-on)
-              (my:kmap "C-; p" "C-c ; p" #'helm-projectile)))
+    :defer t
+    :init (my:kmap "C-; p" "C-c ; p" #'helm-projectile)
+    :idle (helm-projectile-on)
+    :config (fset #'helm-projectile-ag #'projectile-ag))
   (use-package evil
     :disabled t
     :ensure t
-    :pre-load (progn
-                (setq-default evil-want-visual-char-semi-exclusive t))
+    :init (setq-default
+           evil-want-visual-char-semi-exclusive t)
     :config (progn
               ;; Start all insert-default modes in emacs state
               (setq-default
@@ -977,13 +984,13 @@ to feed to other packages"
   (use-package evil-leader
     :disabled t
     :ensure t
-    :config (progn
-              (global-evil-leader-mode)))
+    :config (global-evil-leader-mode t))
   ;; Language specific
   (use-package anaconda-mode
     :ensure t
+    :defer t
+    :init (add-hook 'python-mode-hook #'anaconda-mode)
     :config (progn
-              (add-hook 'python-mode-hook #'anaconda-mode)
               (use-package company-anaconda
                 :ensure t
                 :config (add-to-list 'company-backends #'company-anaconda))))
@@ -995,20 +1002,25 @@ to feed to other packages"
                 (setq company-c-headers-path-system #'my:system-include-path))
               (add-to-list 'company-backends 'company-c-headers)))
   (use-package flycheck
-    :ensure t)
+    :ensure t
+    :defer t)
   (use-package js2-mode
     :ensure t
-    :config (progn (add-to-list 'auto-mode-alist '("\\.json" . js-mode))))
+    :defer t
+    :init (add-to-list 'auto-mode-alist '("\\.json" . js-mode)))
   (use-package yaml-mode
-    :ensure t)
+    :ensure t
+    :defer t)
   (use-package lua-mode
     :ensure t
-    :config (progn
-              (setq-default lua-indent-level 4)))
+    :defer t
+    :config (setq-default lua-indent-level 4))
   (use-package rust-mode
-    :ensure t)
+    :ensure t
+    :defer t)
   (use-package haskell-mode
     :ensure t
+    :defer t
     :config (progn
               (add-hook 'haskell-mode-hook #'turn-on-haskell-indentation)
               (use-package company-ghc
@@ -1019,9 +1031,11 @@ to feed to other packages"
                           (add-hook 'haskell-mode-hook #'ghc-init)))))
   (use-package clojure-mode
     :ensure t
+    :defer t
     :config (progn
               (add-hook 'clojure-mode-hook #'my:lisp-setup-paredit)
               (use-package cider
+                :if (executable-find "lein")
                 :ensure t
                 :config (progn
                           (add-hook 'cider-repl-mode-hook
