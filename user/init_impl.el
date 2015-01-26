@@ -466,6 +466,13 @@ in new frame"
   (let ((case-fold-search nil))
     (call-interactively #'hippie-expand)))
 
+(defun my:hippie-expand-files ()
+  (interactive)
+  (let ((hippie-expand-try-functions-list
+         '(try-complete-file-name-partially
+           try-complete-file-name)))
+    (call-interactively #'hippie-expand)))
+
 ;;;;;;;;;;;;;;;;;;;;;
 ;; Global bindings ;;
 ;;;;;;;;;;;;;;;;;;;;;
@@ -491,7 +498,7 @@ in new frame"
 
 (my:kmap
  ([remap dabbrev-expand] #'hippie-expand) ; "M-/"
- ([remap dabbrev-completion] #'my:hippie-expand-no-case-fold) ; "C-M-/"
+ ([remap dabbrev-completion] #'my:hippie-expand-files) ; "C-M-/"
 
  ;; Jumping
  ([remap exchange-point-and-mark] #'my:exchange-point-and-mark) ; "C-x C-x"
@@ -808,18 +815,20 @@ to feed to other packages"
     :ensure helm
     :init (progn
             (setq-default helm-command-prefix-key (kbd "C-c h")
-                          helm-split-window-in-side-p t
                           helm-buffers-fuzzy-matching t
                           helm-candidate-number-limit 500)
             (use-package helm-config))
     :config (progn
               ;; Prevent winner from restoring helm buffers
-              (defun my:helm-display-buffer-winner-add (buffer)
+              (defun my:helm-display-buffer (buffer)
                 "Adds buffer name to `winner-boring-buffers' before openning"
                 (add-to-list 'winner-boring-buffers buffer)
-                (helm-default-display-buffer buffer))
+                (let* ((height (min (/ (frame-height) 2) 16))
+                       (win (split-window (frame-root-window)
+                                          (- height) 'below)))
+                  (set-window-buffer win buffer)))
               (setq-default helm-display-function
-                            #'my:helm-display-buffer-winner-add)
+                            #'my:helm-display-buffer)
               ;; Bindings, C-c ; to work in terminal
               (my:kmap ("M-x" #'helm-M-x)
                        ("M-X" #'execute-extended-command)
@@ -864,7 +873,12 @@ to feed to other packages"
   (use-package company
     :ensure t
     :config (progn
-              (my:kmap* company-mode-map ("C-<tab>" #'company-complete))
+              (my:kmap* company-mode-map
+                        ("C-<tab>" #'company-complete))
+              (my:kmap* company-active-map
+                        ("C-p" #'company-select-previous)
+                        ("C-n" #'company-select-next))
+              (my:kmap "C-M-/" #'company-files)
               (setq-default company-tooltip-limit 20
                             ;; Put semantic backend on separate key
                             company-backends (remove 'company-semantic company-backends))
@@ -908,7 +922,7 @@ to feed to other packages"
   (use-package neotree
     :ensure t
     :defer t
-    :init (my:kmap ("<f5>" #'neotree-toggle)
+    :init (my:kmap ("<f5>" #'neotree-show)
                    ("<f6>" #'neotree-find))
     :config (progn
               (defun my:neotree-create-window ()
@@ -922,10 +936,18 @@ to feed to other packages"
                   (neo-window--init window buffer)
                   (setq neo-global--window window)
                   window))
+              (defun my:neotree-insert-symbol (name)
+                (cond ((equal name 'open) (neo-buffer--insert-with-face
+                                           "- " 'neo-expand-btn-face))
+                      ((equal name 'close) (neo-buffer--insert-with-face
+                                            "+ " 'neo-expand-btn-face))
+                      ((equal name 'leaf) (insert-char ?\s 2))))
               (fset #'neo-global--create-window #'my:neotree-create-window)
+              (fset #'neo-buffer--insert-fold-symbol #'my:neotree-insert-symbol)
               ;; Allow delete window
               (setq-default neo-persist-show nil
-                            neo-hidden-files-regexp "\\(^\\.\\|.py[cd]\\)")
+                            neo-hidden-files-regexp "\\(^\\.\\|.py[cd]\\)"
+                            neo-theme 'ascii)
               ;; Add jk movement
               (my:kmap* neotree-mode-map
                         ("r" #'neotree-refresh)
