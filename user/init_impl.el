@@ -90,13 +90,16 @@
               sentence-end-double-space nil
               require-final-newline t)
 
+(setq-default
+ truncate-lines t ;; do not wrap lines
+ bidi-display-reordering nil) ;; disable bidirectional text
+
 ;; Indentation
 (setq-default indent-tabs-mode nil)
 
 (defun my:prog-mode-setup ()
   "Basic settings for prog and other modes"
-  (setq show-trailing-whitespace t
-        truncate-lines t))
+  (setq show-trailing-whitespace t))
 
 (add-hook 'prog-mode-hook #'my:prog-mode-setup)
 (add-hook 'nxml-mode #'my:prog-mode-setup)
