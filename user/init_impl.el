@@ -52,6 +52,9 @@
 (column-number-mode t)
 (size-indication-mode t)
 
+;; Fringe
+(setq-default indicate-empty-lines t)
+
 ;; Misc settings
 (defun my:bell-function ()
   (unless (memq this-command
@@ -65,11 +68,9 @@
 
 (setq-default inhibit-startup-screen t
               initial-scratch-message nil
-              indicate-buffer-boundaries t
               visible-bell t ;; do not beep
               ring-bell-function #'my:bell-function ;; and blink less
               disabled-command-function nil) ;; enable all commands
-
 
 ;; Scroll
 (setq-default
