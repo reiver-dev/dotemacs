@@ -54,6 +54,17 @@
 
 ;; Fringe
 (setq-default indicate-empty-lines t)
+(fringe-mode '(8 . 0))
+
+;; Whitespace
+(setq-default
+   whitespace-style
+   '(face
+     newline trailing
+     space-before-tab indentation
+     lines-tail
+     space-mark tab-mark)
+   whitespace-line-column 120)
 
 ;; Misc settings
 (defun my:bell-function ()
@@ -815,10 +826,6 @@ to feed to other packages"
               (my:kmap ("C-c C-w" "C-c w w" #'my:switch-window)
                        ("C-c w m" #'my:switch-move-window)
                        ("C-c w s" #'my:switch-swap-window))))
-  (use-package ag
-    :ensure t
-    :defer t
-    :config (setq-default ag-highlight-search t))
   (use-package helm
     :ensure helm
     :init (progn
@@ -863,20 +870,6 @@ to feed to other packages"
                 (defvar helm-swoop-last-prefix-number nil))
     :config (my:kmap ([remap occur] #'helm-swoop) ; "M-s o"
                      ("M-s /" #'helm-multi-swoop)))
-  (use-package ggtags
-    :ensure t
-    :defer t
-    :init (progn
-            (defun my:turn-on-ggtags-mode ()
-              "Set `ggtags-mode' on"
-              (ggtags-mode t))
-            (add-hook 'c-mode-hook #'my:turn-on-ggtags-mode)
-            (add-hook 'c++-mode-hook #'my:turn-on-ggtags-mode))
-    :config (my:kmap* ggtags-mode-map
-                      ("M-." nil)
-                      ("C-M-." nil)
-                      ([remap find-tag] #'ggtags-find-tag-dwim)
-                      ([remap find-tag-regexp] #'ggtags-find-tag-regexp)))
   ;; Completion
   (use-package company
     :ensure t
@@ -923,9 +916,30 @@ to feed to other packages"
     :init (my:with-eval-after-load semantic
             (fa-config-default)))
   ;; External tools
+  (use-package ag
+    :ensure t
+    :defer t
+    :config (setq-default ag-highlight-search t))
   (use-package magit
     :ensure t
-    :defer t)
+    :defer t
+    :config (setq-default
+             ;; by-word diff
+             magit-diff-refine-hunk t))
+  (use-package ggtags
+    :ensure t
+    :defer t
+    :init (progn
+            (defun my:turn-on-ggtags-mode ()
+              "Set `ggtags-mode' on"
+              (ggtags-mode t))
+            (add-hook 'c-mode-hook #'my:turn-on-ggtags-mode)
+            (add-hook 'c++-mode-hook #'my:turn-on-ggtags-mode))
+    :config (my:kmap* ggtags-mode-map
+                      ("M-." nil)
+                      ("C-M-." nil)
+                      ([remap find-tag] #'ggtags-find-tag-dwim)
+                      ([remap find-tag-regexp] #'ggtags-find-tag-regexp)))
   ;; Project management and project tree
   (use-package neotree
     :ensure t
