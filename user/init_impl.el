@@ -635,6 +635,10 @@ in new frame"
   ;; We have `my:kill-region-or-word' already
   (my:kmap* comint-mode-map ("C-c C-w" nil)))
 
+;; org-mode
+(my:with-eval-after-load org
+  (setq-default org-src-fontify-natively t))
+
 ;; C/C++
 (defconst my:c-style
   '("linux"
