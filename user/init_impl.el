@@ -132,9 +132,9 @@
  '(mode-line-highlight ((t (:box nil :inverse-video t))))
 
  ;; Disable underline and dir highlight
- '(helm-selection      ((t (:underline nil))))
- '(helm-selection-line ((t (:underline nil))))
- '(helm-ff-directory   ((t (:background nil))))
+ ;; '(helm-selection      ((t (:underline nil))))
+ ;; '(helm-selection-line ((t (:underline nil))))
+ ;; '(helm-ff-directory   ((t (:background nil))))
 
  ;; Make function-args respect current theme
  '(fa-face-hint      ((t (:inherit highlight))))
@@ -732,7 +732,6 @@ to feed to other packages"
                sp-highlight-wrap-tag-overlay nil
                ;; show for evil-mode
                sp-show-pair-from-inside t)
-              ;; Disable quote matching in lisp
               (smartparens-global-mode t)
               (show-smartparens-global-mode t)
               (my:kmap* smartparens-mode-map
@@ -775,6 +774,9 @@ to feed to other packages"
                 (smartparens-strict-mode))
               (add-hook 'lisp-mode-hook #'my:lisp-setup-paredit)
               (add-hook 'emacs-lisp-mode-hook #'my:lisp-setup-paredit)))
+  (use-package rainbow-delimiters
+    :ensure t
+    :init (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
   (use-package ace-jump-mode
     :ensure t
     :defer t
