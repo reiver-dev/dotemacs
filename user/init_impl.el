@@ -261,12 +261,16 @@ with RELATIVE argument returns path relative to dir-locals location"
         (next-window window 'no-minibuf frame))))
 
 (defun my:delete-window (window)
+  "Like `delete-window' but closes frame if WINDOW is only window left"
   (let ((frame (window-frame window)))
     (if (my:one-window-p frame)
         (delete-frame frame)
       (delete-window window))))
 
 (defun my:visible-frame-list (&optional from-current-frame)
+  "Returns list of \"visible\" frames starting from current frame
+if FROM-CURRENT-FRAME is not nil.
+Here \"visible\" frame is current frame or any graphical frame"
   (let* ((current-frame (selected-frame))
          (frames (my:remove-if-not
                   (lambda (frame)
@@ -281,20 +285,16 @@ with RELATIVE argument returns path relative to dir-locals location"
   "Return windows from all visible frames"
   (my:mapcan #'window-list (my:visible-frame-list)))
 
-(defun my:apply-to-window (action &optional window frame &rest args)
-  (unless frame
-    (setq frame (window-frame window)))
-  (when (and (frame-live-p frame)
-             (frame-visible-p frame)
-             (not (eq frame (selected-frame))))
-    (select-frame-set-input-focus frame))
+(defun my:apply-to-window (action &optional window &rest args)
+  "Calls ACTION with argument WINDOW"
   (when (window-live-p window)
-    (if args
-        (apply action window args)
+    (let ((frame (window-frame window)))
+      (when (and (frame-live-p frame)
+                 (frame-visible-p frame)
+                 (not (eq frame (selected-frame))))
+        (select-frame-set-input-focus frame)))
+    (if args (apply action window args)
       (funcall action window))))
-
-(defmacro my:wrap-window-fn (action &rest args)
-  `(lambda (window) (my:apply-to-window ,action window nil ,@args)))
 
 (defun my:move-window-to-other-window (target-window current-window side)
   "Moves buffer to other window's split"
@@ -468,8 +468,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (message "Done."))
 
 (defun my:detach-window (&optional window)
-  "Close current window and open it's buffer
-in new frame"
+  "Close WINDOW and open it's buffer in new frame.
+ If WINDOW is nil, applies to selected window"
   (interactive)
   (let ((window (window-normalize-window window)))
     (if (my:one-window-p window)
@@ -785,10 +785,12 @@ to feed to other packages"
     :ensure t
     :config (progn
               (defun my:switch-ignored-p (window)
+                "Returns if WINDOW should be ignored during `switch-window'"
                 (and (member (buffer-name (window-buffer window))
                              (list " *NeoTree*"))
                      (not (eq (window-frame window) (selected-frame)))))
               (defun my:switch-window-list (&optional from-current-window)
+                "Like `switch-window-list', but looks through all frames"
                 (let ((wlist
                        (if (or from-current-window switch-window-relative)
                            (lambda (frame)
@@ -804,13 +806,15 @@ to feed to other packages"
                       collect x))
               (fset #'switch-window-enumerate #'my:switch-window-list-enumerate)
               (defun my:switch-move-focus-with (action msg-before msg-after &optional args)
+                "Choose window with overlay symbold and ACTION (with additional ARGS) to it"
                 (let ((wlist (my:switch-window-list)))
                   (if (<= (length wlist) switch-window-threshold)
                       (my:apply-to-window
-                       action (car (remove (selected-window) wlist)) nil args)
+                       action (car (remove (selected-window) wlist)) args)
                     (let ((index (prompt-for-selected-window msg-before))
                           (eobps (switch-window-list-eobp)))
-                      (apply-to-window-index (my:wrap-window-fn action args) index msg-after)
+                      (apply-to-window-index
+                       (lambda (window) (my:apply-to-window action window args)) index msg-after)
                       (switch-window-restore-eobp (my:remove-if-not #'window-valid-p eobps))))))
               (defun my:switch-window ()
                 (interactive)
