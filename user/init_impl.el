@@ -937,6 +937,7 @@ to feed to other packages"
              ;; by-word diff
              magit-diff-refine-hunk t))
   (use-package ggtags
+    :if (executable-find "gtags")
     :ensure t
     :defer t
     :init (progn
