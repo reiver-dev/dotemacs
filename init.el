@@ -1,3 +1,5 @@
+;; -*- lexical-binding: t; -*-
+
 ;; Load path for additional modules
 (let ((lpdir (concat user-emacs-directory "load-path")))
   (unless (file-directory-p lpdir)
