@@ -1,12 +1,16 @@
-;; -*- lexical-binding: t; -*-
+;;; init_impl.el --- Main config file  -*- lexical-binding: t -*-
+
+;;; Commentary:
+
+;;; Code:
 
 ;;;;;;;;;;
 ;; MAIN ;;
 ;;;;;;;;;;
 
 ;; my folders ;;
-(ignore-errors
-  (defconst my:user-dir (file-name-directory load-file-name)))
+(defconst my:user-dir (file-name-directory
+                       (or load-file-name buffer-file-name)))
 (defconst my:modules-dir (expand-file-name "modules" my:user-dir))
 (defconst my:snippets-dir (expand-file-name "snippets" my:user-dir))
 
@@ -151,7 +155,7 @@
 
 (defun my:mapcan (function sequence)
   "Replacement for `mapcan' to not require `cl.el'"
-  (apply 'nconc (mapcar function sequence)))
+  (apply #'nconc (mapcar function sequence)))
 
 (defun my:remove-if (func sequence)
   "Reimplacement for `remove-if' to not use `cl.el'"
@@ -1104,3 +1108,7 @@ to feed to other packages"
 (package-initialize)
 (when (require 'use-package nil t)
   (my:package-initialize))
+
+
+(provide 'init_impl)
+;;; init_impl.el ends here
