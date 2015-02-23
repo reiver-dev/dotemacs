@@ -733,9 +733,7 @@ to feed to other packages"
                ;; disable overlay
                sp-highlight-pair-overlay nil
                sp-highlight-wrap-overlay nil
-               sp-highlight-wrap-tag-overlay nil
-               ;; show for evil-mode
-               sp-show-pair-from-inside t)
+               sp-highlight-wrap-tag-overlay nil)
               (smartparens-global-mode t)
               (show-smartparens-global-mode t)
               (my:kmap* smartparens-mode-map
@@ -1008,41 +1006,6 @@ to feed to other packages"
     :init (my:kmap "C-; p" "C-c ; p" #'helm-projectile)
     :idle (helm-projectile-on)
     :config (fset #'helm-projectile-ag #'projectile-ag))
-  (use-package evil
-    :disabled t
-    :ensure t
-    :init (setq-default
-           evil-want-visual-char-semi-exclusive t)
-    :config (progn
-              ;; Start all insert-default modes in emacs state
-              (setq-default
-               evil-default-state 'emacs
-               evil-emacs-state-modes (append evil-emacs-state-modes
-                                              evil-insert-state-modes)
-               evil-insert-state-modes nil
-               evil-normal-state-modes '(nxml-mode haskell-mode lua-mode yaml-mode))
-              ;; Set normal state for prog-mode
-              (advice-add #'evil-initial-state :around
-                          #'(lambda (fun &rest args)
-                              (if (derived-mode-p 'prog-mode 'conf-mode)
-                                  'normal
-                                (apply fun args))))
-              ;; And others
-              (my:kmap* evil-normal-state-map ("SPC" #'evil-ace-jump-word-mode))
-              ;; NeoTree tweaks
-              (evil-set-initial-state 'neotree-mode 'motion)
-              (defun my:evil-neotree-setup ()
-                (my:kmap* evil-motion-state-local-map
-                          ("TAB" #'neotree-enter)
-                          ("SPC" #'neotree-enter)
-                          ("RET" #'neotree-enter)
-                          ("q"   #'neotree-hide)))
-              (add-hook 'neotree-mode-hook #'my:evil-neotree-setup)
-              (evil-mode t)))
-  (use-package evil-leader
-    :disabled t
-    :ensure t
-    :config (global-evil-leader-mode t))
   ;; Language specific
   (use-package anaconda-mode
     :ensure t
