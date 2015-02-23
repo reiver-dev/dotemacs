@@ -1092,4 +1092,5 @@ to feed to other packages"
 
 
 (provide 'init_impl)
+
 ;;; init_impl.el ends here
