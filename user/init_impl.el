@@ -951,8 +951,7 @@ to feed to other packages"
             (add-hook 'c-mode-hook #'my:turn-on-ggtags-mode)
             (add-hook 'c++-mode-hook #'my:turn-on-ggtags-mode))
     :config (my:kmap* ggtags-mode-map
-                      ("M-." nil)
-                      ("C-M-." nil)
+                      ("M-." "C-M-." nil)
                       ([remap find-tag] #'ggtags-find-tag-dwim)
                       ([remap find-tag-regexp] #'ggtags-find-tag-regexp)))
   ;; Project management and project tree
