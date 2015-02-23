@@ -1088,6 +1088,25 @@ to feed to other packages"
                 :config (progn
                           (add-to-list 'company-backends #'company-ghc)
                           (add-hook 'haskell-mode-hook #'ghc-init)))))
+  (use-package irony
+    :if (executable-find "clang")
+    :ensure t
+    :defer t
+    :init (progn
+            (add-hook 'c++-mode-hook #'irony-mode)
+            (add-hook 'c-mode-hook #'irony-mode))
+    :config (progn
+              (use-package company-irony
+                :ensure t
+                :config (add-to-list 'company-backends
+                                     (list #'company-c-headers #'company-irony)))
+              (use-package flycheck-irony
+                :ensure t
+                :config (my:with-eval-after-load flycheck
+                          (add-to-list 'flycheck-checkers #'irony)))
+              (use-package irony-eldoc
+                :ensure t
+                :config (add-hook 'irony-mode-hook #'irony-eldoc))))
   (use-package clojure-mode
     :ensure t
     :defer t
