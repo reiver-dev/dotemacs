@@ -962,7 +962,7 @@ to feed to other packages"
               (defun my:neotree-create-window ()
                 "Create global NeoTree window. Split root window."
                 (let ((window nil)
-                      (buffer (neo-global--get-buffer))
+                      (buffer (neo-global--get-buffer t))
                       (root (frame-root-window (selected-frame))))
                   (setq window
                         (split-window root (- neo-window-width) 'left))
