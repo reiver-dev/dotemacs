@@ -644,15 +644,23 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (setq-default org-src-fontify-natively t))
 
 ;; C/C++
+(with-eval-after-load 'cc-mode)
 (defconst my:c-style
   '("linux"
     (c-basic-offset . 4)
     (c-offsets-alist
-     (innamespace . 0))))
+     (innamespace . 0)
+     (inline-open . 0))))
 
 (c-add-style "reiver" my:c-style)
+(setq-default c-default-style
+              '((c-mode . "reiver")
+                (c++-mode . "reiver")
+                (java-mode . "java")
+                (awk-mode . "awk")
+                (other . "gnu")))
 
-;; CEDET
+;;  CEDET
 (my:with-eval-after-load semantic
 
   (add-to-list 'semantic-default-submodes 'global-semantic-decoration-mode)
