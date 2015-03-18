@@ -885,11 +885,12 @@ to feed to other packages"
                         ("C-z" #'helm-select-action))))
   (use-package helm-swoop
     :ensure t
-    :pre-load (progn
-                ;; Suppress compiler warning
-                (defvar helm-swoop-last-prefix-number nil))
-    :config (my:kmap ([remap occur] #'helm-swoop) ; "M-s o"
-                     ("M-s /" #'helm-multi-swoop)))
+    :defer t
+    :init (progn
+            ;; Suppress compiler warning
+            (defvar helm-swoop-last-prefix-number nil)
+            (my:kmap ([remap occur] #'helm-swoop) ; "M-s o"
+                     ("M-s /" #'helm-multi-swoop))))
   ;; Completion
   (use-package company
     :ensure t
@@ -912,9 +913,9 @@ to feed to other packages"
               (global-company-mode t)))
   (use-package yasnippet
     :ensure t
-    :defer t
-    :idle (yas-global-mode t)
+    :defer 5
     :config (progn
+              (yas-global-mode t)
               ;; No more toolkit popups
               (setq-default yas-prompt-functions
                             '(yas-ido-prompt yas-completing-prompt yas-no-prompt))
@@ -1010,10 +1011,11 @@ to feed to other packages"
               (projectile-global-mode)))
   (use-package helm-projectile
     :ensure t
-    :defer t
-    :init (my:kmap "C-; p" "C-c ; p" #'helm-projectile)
-    :idle (helm-projectile-on)
-    :config (fset #'helm-projectile-ag #'projectile-ag))
+    :defer 5
+    :config (progn
+              (my:kmap "C-; p" "C-c ; p" #'helm-projectile)
+              (helm-projectile-on)
+              (fset #'helm-projectile-ag #'projectile-ag)))
   ;; Language specific
   (use-package anaconda-mode
     :ensure t
