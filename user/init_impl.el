@@ -163,12 +163,14 @@
              (lambda (x) (if (funcall func x) nil x))
              sequence)))
 
-
 (defun my:remove-if-not (func sequence)
   "Reimplacement for `remove-if-not' to not use `cl.el'"
   (delq nil (mapcar
              (lambda (x) (if (funcall func x) x nil))
              sequence)))
+
+(defmacro my:add-to (l el)
+  `(setq ,l (cons ,el ,l)))
 
 ;; For convenient bindings
 (defvar my:bindings-mode-map
@@ -694,411 +696,455 @@ to feed to other packages"
 ;; Packages ;;
 ;;;;;;;;;;;;;;
 
-(defun my:package-initialize ()
-  ;; Navigation, editing, appearance
-  (use-package undo-tree
-    :ensure t
-    :config (progn
-              (global-undo-tree-mode)
-              (setq-default undo-tree-visualizer-timestamps t
-                            undo-tree-visualizer-diff t)))
-  (use-package multiple-cursors
-    :ensure t
-    :defer t
-    :init (my:kmap ("C->" #'mc/mark-next-like-this)
-                   ("C-<" #'mc/mark-previous-like-this)
-                   ("C-c C-<" #'mc/mark-all-like-this)))
-  (use-package expand-region
-    :ensure t
-    :commands er/mark-symbol
-    :init (my:kmap ("C-=" #'er/expand-region)
-                   ("C-+" #'er/mark-symbol)))
-  (use-package visual-regexp
-    :ensure t
-    :defer t
-    :init (my:kmap
-           ([remap query-replace-regexp] #'vr/query-replace)
-           ("M-s m" #'vr/mc-mark))
-    :config (progn
-              (setq-default vr/auto-show-help nil)
-              (my:kmap* vr/minibuffer-replace-keymap
-                        ("C-c p" nil) ;; Will be shadowed by projectile
-                        ("C-c v" #'vr--shortcut-toggle-preview))))
-  (use-package iy-go-to-char
-    :ensure t
-    :defer t
-    :init (my:kmap ("C-." #'iy-go-up-to-char)
-                   ("C-," #'iy-go-up-to-char-backward))
-    :config (setq-default
-             ;; kill-region do not work with `multiple-cursors-mode'
-             iy-go-to-char-override-local-map nil))
-  (use-package smartparens
-    :ensure t
-    :defer t
-    :init (use-package smartparens-config)
-    :config (progn
-              (setq-default
-               ;; disable overlay
-               sp-highlight-pair-overlay nil
-               sp-highlight-wrap-overlay nil
-               sp-highlight-wrap-tag-overlay nil)
-              (smartparens-global-mode t)
-              (show-smartparens-global-mode t)
-              (my:kmap* smartparens-mode-map
-                        ;; Basic movements
-                        ("C-M-f" #'sp-forward-sexp)
-                        ("C-M-b" #'sp-backward-sexp)
-                        ("C-M-d" #'sp-down-sexp)
-                        ("C-M-u" #'sp-backward-up-sexp)
-                        ("C-M-p" #'sp-backward-down-sexp) ; remap backward-list
-                        ("C-M-n" #'sp-up-sexp) ; remap forward-list
-                        ("C-M-k" #'sp-kill-sexp)
-                        ;; List manipulation
-                        ("C-x p c" #'sp-splice-sexp)
-                        ("C-x p s" #'sp-split-sexp)
-                        ("C-x p j" #'sp-join-sexp)
-                        ("C-x p a" #'sp-splice-sexp-killing-around)
-                        ("C-x p b" #'sp-splice-sexp-killing-backward)
-                        ("C-x p f" #'sp-splice-sexp-killing-forward)
-                        ("C-x p r" #'sp-rewrap-sexp)
-                        ("C-x p u" #'sp-unwrap-sexp)
-                        ("C-x p d" #'sp-backward-unwrap-sexp)
-                        ("C-x p w" #'sp-swap-enclosing-sexp)
-                        ("C-x p p" #'sp-select-next-thing-exchange))
-              (defvar my:paredit-extended-mode-map (make-sparse-keymap)
-                "Keymap for `my:paredit-exteded-mode'")
-              (define-minor-mode my:paredit-extended-mode
-                "Sets from `smartparens-mode': \\{my:paredit-extended-mode-map}"
-                :keymap my:paredit-extended-mode-map)
-              (my:kmap* my:paredit-extended-mode-map
-                        ("C-M-t" #'sp-transpose-sexp) ; remap transpose-sex
-                        ;; Direction manipulation
-                        ("M-<up>"      #'sp-splice-sexp-killing-backward)
-                        ("M-<down>"    #'sp-splice-sexp-killing-forward)
-                        ("C-<right>"   #'sp-forward-slurp-sexp)
-                        ("C-<left>"    #'sp-forward-barf-sexp)
-                        ("C-M-<left>"  #'sp-backward-slurp-sexp)
-                        ("C-M-<right>" #'sp-backward-barf-sexp))
-              (defun my:lisp-setup-paredit ()
-                (my:paredit-extended-mode t)
-                (smartparens-strict-mode))
-              (add-hook 'lisp-mode-hook #'my:lisp-setup-paredit)
-              (add-hook 'emacs-lisp-mode-hook #'my:lisp-setup-paredit)))
-  (use-package rainbow-delimiters
-    :ensure t
-    :init (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
-  (use-package ace-jump-mode
-    :ensure t
-    :defer t
-    :init (my:kmap "M-o" #'ace-jump-word-mode))
-  (use-package switch-window
-    :ensure t
-    :config (progn
-              (defun my:switch-ignored-p (window)
-                "Returns if WINDOW should be ignored during `switch-window'"
-                (and (member (buffer-name (window-buffer window))
-                             (list " *NeoTree*"))
-                     (not (eq (window-frame window) (selected-frame)))))
-              (defun my:switch-window-list (&optional from-current-window)
-                "Like `switch-window-list', but looks through all frames"
-                (let ((wlist
-                       (if (or from-current-window switch-window-relative)
-                           (lambda (frame)
-                             (window-list frame nil))
-                         (lambda (frame)
-                           (window-list frame nil (frame-first-window frame))))))
-                  (my:remove-if #'my:switch-ignored-p
-                                (my:mapcan wlist (my:visible-frame-list t)))))
-              (fset #'switch-window-list #'my:switch-window-list)
-              (defun my:switch-window-list-enumerate ()
-                (loop for _ in (my:switch-window-list)
-                      for x in (switch-window-list-keys)
-                      collect x))
-              (fset #'switch-window-enumerate #'my:switch-window-list-enumerate)
-              (defun my:switch-move-focus-with (action msg-before msg-after &optional args)
-                "Choose window with overlay symbold and ACTION (with additional ARGS) to it"
-                (let ((wlist (my:switch-window-list)))
-                  (if (<= (length wlist) switch-window-threshold)
-                      (my:apply-to-window
-                       action (car (remove (selected-window) wlist)) args)
-                    (let ((index (prompt-for-selected-window msg-before))
-                          (eobps (switch-window-list-eobp)))
-                      (apply-to-window-index
-                       (lambda (window) (my:apply-to-window action window args)) index msg-after)
-                      (switch-window-restore-eobp (my:remove-if-not #'window-valid-p eobps))))))
-              (defun my:switch-window ()
-                (interactive)
-                (my:switch-move-focus-with #'select-window
-                                           "Move to window: "
-                                           "Moved to: %s"))
-              (defun my:switch-move-window ()
-                (interactive)
-                (my:switch-move-focus-with #'my:query-move-to-window
-                                           "Move window to other window: "
-                                           "Moved to: %s"
-                                           (selected-window)))
-              (defun my:switch-swap-window ()
-                (interactive)
-                (my:switch-move-focus-with #'my:swap-windows
-                                           "Swap window with: "
-                                           "Swapped with: %s"
-                                           (selected-window)))
-              (my:kmap ("C-c C-w" "C-c w w" #'my:switch-window)
-                       ("C-c w m" #'my:switch-move-window)
-                       ("C-c w s" #'my:switch-swap-window))))
-  (use-package helm
-    :ensure helm
-    :init (progn
-            (setq-default helm-command-prefix-key (kbd "C-c h")
-                          helm-buffers-fuzzy-matching t
-                          helm-candidate-number-limit 500)
-            (use-package helm-config))
-    :config (progn
-              ;; Prevent winner from restoring helm buffers
-              (defun my:helm-display-buffer (buffer)
-                "Adds buffer name to `winner-boring-buffers' before openning"
-                (add-to-list 'winner-boring-buffers buffer)
-                (let* ((height (min (/ (frame-height) 2) 16))
-                       (win (split-window (frame-root-window)
-                                          (- height) 'below)))
-                  (set-window-buffer win buffer)))
-              (setq-default helm-display-function
-                            #'my:helm-display-buffer)
-              ;; Bindings, C-c ; to work in terminal
-              (my:kmap ("M-x" #'helm-M-x)
-                       ("M-X" #'execute-extended-command)
-                       ("C-M-y" #'helm-show-kill-ring)
-                       ([remap switch-to-buffer] #'helm-mini) ; C-x b
-                       ("C-x C-c" #'helm-buffers-list)
-                       ("C-x C-f" #'helm-find-files)
-                       ("C-h f"   #'helm-apropos)
-                       ("C-; i" "C-c ; i" #'helm-imenu)
-                       ("C-; t" "C-c ; t" #'helm-etags-select)
-                       ("C-; m" "C-c ; m" #'helm-all-mark-rings)
-                       ("C-; e" "C-c ; e" #'helm-list-emacs-process)
-                       ("C-; r" "C-c ; r" #'helm-resume))
-              (my:with-eval-after-load semantic
-                (my:kmap "C-; i" "C-c ; i" #'helm-semantic-or-imenu))
-              (my:kmap* helm-map
-                        ("C-i" #'helm-execute-persistent-action)
-                        ("<tab>" #'helm-execute-persistent-action)
-                        ("C-z" #'helm-select-action))))
-  (use-package helm-swoop
-    :ensure t
-    :defer t
-    :init (progn
-            ;; Suppress compiler warning
-            (defvar helm-swoop-last-prefix-number nil)
-            (my:kmap ([remap occur] #'helm-swoop) ; "M-s o"
-                     ("M-s /" #'helm-multi-swoop))))
-  ;; Completion
-  (use-package company
-    :ensure t
-    :config (progn
-              (my:kmap* company-mode-map
-                        ("C-<tab>" #'company-complete))
-              (my:kmap* company-active-map
-                        ("C-p" #'company-select-previous)
-                        ("C-n" #'company-select-next))
-              (my:kmap "C-M-/" #'company-files)
-              (setq-default company-tooltip-limit 20
-                            ;; Put semantic backend on separate key
-                            company-backends (remove 'company-semantic company-backends))
-              (my:with-eval-after-load semantic
-                (defun my:company-semantic-setup ()
-                  "Sets `company-semantic' keybind locally"
-                  (local-set-key (kbd "C-<return>") #'company-semantic))
-                (add-hook 'c-mode-hook #'my:company-semantic-setup)
-                (add-hook 'c++-mode-hook #'my:company-semantic-setup))
-              (global-company-mode t)))
-  (use-package yasnippet
-    :ensure t
-    :defer 5
-    :config (progn
-              (yas-global-mode t)
-              ;; No more toolkit popups
-              (setq-default yas-prompt-functions
-                            '(yas-ido-prompt yas-completing-prompt yas-no-prompt))
-              ;; Just custom snippet dir
-              (add-to-list 'yas-snippet-dirs my:snippets-dir)
-              (my:with-eval-after-load smartparens
-                (advice-add #'yas-expand :before
-                            #'(lambda ()
-                                "Escape from `smartparens-mode' overlay"
-                                (let ((times 5))
-                                  (while (and (> times 0) (sp--get-active-overlay))
-                                    (sp-remove-active-pair-overlay)
-                                    (setq times (- times 1)))))))
-              (add-hook 'term-mode-hook
-                        (lambda () (yas-minor-mode -1)))))
-  (use-package function-args
-    :ensure t
-    :defer t
-    :init (my:with-eval-after-load semantic
-            (fa-config-default)))
-  ;; External tools
-  (use-package ag
-    :ensure t
-    :defer t
-    :config (setq-default ag-highlight-search t))
-  (use-package magit
-    :ensure t
-    :defer t
-    :config (setq-default
-             ;; by-word diff
-             magit-diff-refine-hunk t))
-  (use-package ggtags
-    :if (executable-find "gtags")
-    :ensure t
-    :defer t
-    :init (progn
-            (defun my:turn-on-ggtags-mode ()
-              "Set `ggtags-mode' on"
-              (ggtags-mode t))
-            (add-hook 'c-mode-hook #'my:turn-on-ggtags-mode)
-            (add-hook 'c++-mode-hook #'my:turn-on-ggtags-mode))
-    :config (my:kmap* ggtags-mode-map
-                      ("M-." "C-M-." nil)
-                      ([remap find-tag] #'ggtags-find-tag-dwim)
-                      ([remap find-tag-regexp] #'ggtags-find-tag-regexp)))
-  ;; Project management and project tree
-  (use-package neotree
-    :ensure t
-    :defer t
-    :init (my:kmap ("<f5>" #'neotree-show)
-                   ("<f6>" #'neotree-find))
-    :config (progn
-              (defun my:neotree-create-window ()
-                "Create global NeoTree window. Split root window."
-                (let ((window nil)
-                      (buffer (neo-global--get-buffer t))
-                      (root (frame-root-window (selected-frame))))
-                  (setq window
-                        (split-window root (- neo-window-width) 'left))
-                  (select-window window)
-                  (neo-window--init window buffer)
-                  (setq neo-global--window window)
-                  window))
-              (defun my:neotree-insert-symbol (name)
-                (cond ((equal name 'open) (neo-buffer--insert-with-face
-                                           "- " 'neo-expand-btn-face))
-                      ((equal name 'close) (neo-buffer--insert-with-face
-                                            "+ " 'neo-expand-btn-face))
-                      ((equal name 'leaf) (insert-char ?\s 2))))
-              (fset #'neo-global--create-window #'my:neotree-create-window)
-              (fset #'neo-buffer--insert-fold-symbol #'my:neotree-insert-symbol)
-              ;; Allow delete window
-              (setq-default neo-persist-show nil
-                            neo-hidden-files-regexp "\\(^\\.\\|.py[cd]\\)"
-                            neo-theme 'ascii)
-              ;; Add jk movement
-              (my:kmap* neotree-mode-map
-                        ("r" #'neotree-refresh)
-                        ("h" #'neotree-hidden-file-toggle)
-                        ("a" #'neotree-stretch-toggle)
-                        ("p" #'neotree-previous-node)
-                        ("n" #'neotree-next-node)
-                        ("k" #'neotree-previous-node)
-                        ("j" #'neotree-next-node))))
-  (use-package projectile
-    :ensure t
-    :config (progn
-              (my:kmap "<f7>" #'neotree-projectile-action)
-              ;; Try to emulate ede (from CEDET) project
-              (my:with-eval-after-load semanticdb
-                (setq-default semanticdb-project-root-functions
-                              projectile-project-root-files-functions))
-              (projectile-global-mode)))
-  (use-package helm-projectile
-    :ensure t
-    :defer 5
-    :config (progn
-              (my:kmap "C-; p" "C-c ; p" #'helm-projectile)
-              (helm-projectile-on)
-              (fset #'helm-projectile-ag #'projectile-ag)))
-  ;; Language specific
-  (use-package anaconda-mode
-    :ensure t
-    :defer t
-    :init (add-hook 'python-mode-hook #'anaconda-mode)
-    :config (progn
-              (use-package company-anaconda
-                :ensure t
-                :config (add-to-list 'company-backends #'company-anaconda))))
-  (use-package company-c-headers
-    :ensure t
-    :config (progn
-              ;; Get include path from Semantic
-              (my:with-eval-after-load semantic/dep
-                (setq company-c-headers-path-system #'my:system-include-path))
-              (add-to-list 'company-backends 'company-c-headers)))
-  (use-package flycheck
-    :ensure t
-    :defer t)
-  (use-package js2-mode
-    :ensure t
-    :defer t
-    :init (add-to-list 'auto-mode-alist '("\\.json" . js-mode)))
-  (use-package yaml-mode
-    :ensure t
-    :defer t)
-  (use-package lua-mode
-    :ensure t
-    :defer t
-    :config (setq-default lua-indent-level 4))
-  (use-package rust-mode
-    :ensure t
-    :defer t)
-  (use-package haskell-mode
-    :ensure t
-    :defer t
-    :config (progn
-              (add-hook 'haskell-mode-hook #'turn-on-haskell-indentation)
-              (use-package company-ghc
-                :if (executable-find "ghc-mod")
-                :ensure t
-                :config (progn
-                          (add-to-list 'company-backends #'company-ghc)
-                          (add-hook 'haskell-mode-hook #'ghc-init)))))
-  (use-package irony
-    :if (executable-find "clang")
-    :ensure t
-    :defer t
-    :init (progn
-            (add-hook 'c++-mode-hook #'irony-mode)
-            (add-hook 'c-mode-hook #'irony-mode))
-    :config (progn
-              (use-package company-irony
-                :ensure t
-                :config (add-to-list 'company-backends
-                                     (list #'company-c-headers #'company-irony)))
-              (use-package flycheck-irony
-                :ensure t
-                :config (my:with-eval-after-load flycheck
-                          (add-to-list 'flycheck-checkers #'irony)))
-              (use-package irony-eldoc
-                :ensure t
-                :config (add-hook 'irony-mode-hook #'irony-eldoc))))
-  (use-package clojure-mode
-    :ensure t
-    :defer t
-    :config (progn
-              (add-hook 'clojure-mode-hook #'my:lisp-setup-paredit)
-              (use-package cider
-                :if (executable-find "lein")
-                :ensure t
-                :config (progn
-                          (add-hook 'cider-repl-mode-hook
-                                    #'my:lisp-setup-paredit)
-                          (my:kmap* cider-mode-map
-                                    ("M-." "M-," nil)
-                                    ([remap find-tag] #'cider-jump-to-var)
-                                    ([remap pop-tag-mark] #'cider-jump-back)))))))
+(defvar my:packages nil)
+(defmacro my:with-package (name &rest args)
+  (declare (indent 1))
+  (unless (plist-get args :disabled) nil)
+  (let* ((ensure (plist-get args :ensure))
+         (package (if (or (not ensure) (eq t ensure)) name ensure))
+         (init (plist-get args :init))
+         (defer (let ((d (plist-get args :defer)))
+                  (when d
+                    (if (numberp d) d 10))))
+         (config (plist-get args :config))
+         (condition (plist-get args :if))
+         (result '()))
 
+    (when init
+      (my:add-to
+       result
+       (if defer
+           `(run-with-idle-timer ,defer nil (lambda () ,init))
+         init)))
 
+    (when config
+      (my:add-to
+       result
+       `(my:with-eval-after-load ,name ,@(macroexp-unprogn config))))
+
+    (when ensure
+      (my:add-to result `(when (not (package-installed-p ',package))
+                           (package-install ',package)))
+      (my:add-to result `(add-to-list 'my:packages ',package)))
+
+    (let ((r `(with-demoted-errors
+                  ,(concat "Error loading " (symbol-name package) ": %s")
+                ,@result)))
+      (if condition
+          `(if ,condition ,r nil)
+        r))))
+
+(put 'my:with-package 'lisp-indent-function 'defun)
 (package-initialize)
-(when (require 'use-package nil t)
-  (my:package-initialize))
+
+(my:with-package undo-tree
+  :ensure t
+  :init (global-undo-tree-mode)
+  :config (progn
+            (setq-default undo-tree-visualizer-timestamps t
+                          undo-tree-visualizer-diff t)))
+
+(my:with-package multiple-cursors
+  :ensure t
+  :init (my:kmap ("C->" #'mc/mark-next-like-this)
+                 ("C-<" #'mc/mark-previous-like-this)
+                 ("C-c C-<" #'mc/mark-all-like-this)))
+
+(my:with-package expand-region
+  :ensure t
+  :init (progn
+          (my:kmap ("C-=" #'er/expand-region)
+                   ("C-+" #'er/mark-symbol))))
+
+(my:with-package visual-regexp
+  :ensure t
+  :init (my:kmap
+         ([remap query-replace-regexp] #'vr/query-replace)
+         ("M-s m" #'vr/mc-mark))
+  :config (progn
+            (setq-default vr/auto-show-help nil)
+            (my:kmap* vr/minibuffer-replace-keymap
+                      ("C-c p" nil) ;; Will be shadowed by projectile
+                      ("C-c v" #'vr--shortcut-toggle-preview))))
+
+(my:with-package iy-go-to-char
+  :ensure t
+  :init (my:kmap ("C-." #'iy-go-up-to-char)
+                 ("C-," #'iy-go-up-to-char-backward))
+  :config (setq-default
+           ;; kill-region do not work with `multiple-cursors-mode'
+           iy-go-to-char-override-local-map nil))
+
+(my:with-package smartparens
+  :ensure t
+  :init (require 'smartparens-config)
+  :config (progn
+            (setq-default
+             ;; disable overlay
+             sp-highlight-pair-overlay nil
+             sp-highlight-wrap-overlay nil
+             sp-highlight-wrap-tag-overlay nil)
+            (smartparens-global-mode t)
+            (show-smartparens-global-mode t)
+            (my:kmap* smartparens-mode-map
+                      ;; Basic movements
+                      ("C-M-f" #'sp-forward-sexp)
+                      ("C-M-b" #'sp-backward-sexp)
+                      ("C-M-d" #'sp-down-sexp)
+                      ("C-M-u" #'sp-backward-up-sexp)
+                      ("C-M-p" #'sp-backward-down-sexp) ; remap backward-list
+                      ("C-M-n" #'sp-up-sexp) ; remap forward-list
+                      ("C-M-k" #'sp-kill-sexp)
+                      ;; List manipulation
+                      ("C-x p c" #'sp-splice-sexp)
+                      ("C-x p s" #'sp-split-sexp)
+                      ("C-x p j" #'sp-join-sexp)
+                      ("C-x p a" #'sp-splice-sexp-killing-around)
+                      ("C-x p b" #'sp-splice-sexp-killing-backward)
+                      ("C-x p f" #'sp-splice-sexp-killing-forward)
+                      ("C-x p r" #'sp-rewrap-sexp)
+                      ("C-x p u" #'sp-unwrap-sexp)
+                      ("C-x p d" #'sp-backward-unwrap-sexp)
+                      ("C-x p w" #'sp-swap-enclosing-sexp)
+                      ("C-x p p" #'sp-select-next-thing-exchange))
+            (defvar my:paredit-extended-mode-map (make-sparse-keymap)
+              "Keymap for `my:paredit-exteded-mode'")
+            (define-minor-mode my:paredit-extended-mode
+              "Sets from `smartparens-mode': \\{my:paredit-extended-mode-map}"
+              :keymap my:paredit-extended-mode-map)
+            (my:kmap* my:paredit-extended-mode-map
+                      ("C-M-t" #'sp-transpose-sexp) ; remap transpose-sex
+                      ;; Direction manipulation
+                      ("M-<up>"      #'sp-splice-sexp-killing-backward)
+                      ("M-<down>"    #'sp-splice-sexp-killing-forward)
+                      ("C-<right>"   #'sp-forward-slurp-sexp)
+                      ("C-<left>"    #'sp-forward-barf-sexp)
+                      ("C-M-<left>"  #'sp-backward-slurp-sexp)
+                      ("C-M-<right>" #'sp-backward-barf-sexp))
+            (defun my:lisp-setup-paredit ()
+              (my:paredit-extended-mode t)
+              (smartparens-strict-mode))
+            (add-hook 'lisp-mode-hook #'my:lisp-setup-paredit)
+            (add-hook 'emacs-lisp-mode-hook #'my:lisp-setup-paredit)))
+
+(my:with-package rainbow-delimiters
+  :ensure t
+  :init (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
+
+(my:with-package ace-jump-mode
+  :ensure t
+  :init (my:kmap "M-o" #'ace-jump-word-mode))
+
+(my:with-package switch-window
+  :ensure t
+  :init (progn
+          (require 'switch-window nil t)
+          (defun my:switch-ignored-p (window)
+            "Returns if WINDOW should be ignored during `switch-window'"
+            (and (member (buffer-name (window-buffer window))
+                         (list " *NeoTree*"))
+                 (not (eq (window-frame window) (selected-frame)))))
+          (defun my:switch-window-list (&optional from-current-window)
+            "Like `switch-window-list', but looks through all frames"
+            (let ((wlist
+                   (if (or from-current-window switch-window-relative)
+                       (lambda (frame)
+                         (window-list frame nil))
+                     (lambda (frame)
+                       (window-list frame nil (frame-first-window frame))))))
+              (my:remove-if #'my:switch-ignored-p
+                            (my:mapcan wlist (my:visible-frame-list t)))))
+          (fset #'switch-window-list #'my:switch-window-list)
+          (defun my:switch-window-list-enumerate ()
+            (loop for _ in (my:switch-window-list)
+                  for x in (switch-window-list-keys)
+                  collect x))
+          (fset #'switch-window-enumerate #'my:switch-window-list-enumerate)
+          (defun my:switch-move-focus-with (action msg-before msg-after &optional args)
+            "Choose window with overlay symbold and ACTION (with additional ARGS) to it"
+            (let ((wlist (my:switch-window-list)))
+              (if (<= (length wlist) switch-window-threshold)
+                  (my:apply-to-window
+                   action (car (remove (selected-window) wlist)) args)
+                (let ((index (prompt-for-selected-window msg-before))
+                      (eobps (switch-window-list-eobp)))
+                  (apply-to-window-index
+                   (lambda (window) (my:apply-to-window action window args)) index msg-after)
+                  (switch-window-restore-eobp (my:remove-if-not #'window-valid-p eobps))))))
+          (defun my:switch-window ()
+            (interactive)
+            (my:switch-move-focus-with #'select-window
+                                       "Move to window: "
+                                       "Moved to: %s"))
+          (defun my:switch-move-window ()
+            (interactive)
+            (my:switch-move-focus-with #'my:query-move-to-window
+                                       "Move window to other window: "
+                                       "Moved to: %s"
+                                       (selected-window)))
+          (defun my:switch-swap-window ()
+            (interactive)
+            (my:switch-move-focus-with #'my:swap-windows
+                                       "Swap window with: "
+                                       "Swapped with: %s"
+                                       (selected-window)))
+          (my:kmap ("C-c C-w" "C-c w w" #'my:switch-window)
+                   ("C-c w m" #'my:switch-move-window)
+                   ("C-c w s" #'my:switch-swap-window))))
+
+(my:with-package helm
+  :ensure t
+  :init (progn
+          (setq-default helm-command-prefix-key (kbd "C-c h")
+                        helm-buffers-fuzzy-matching t
+                        helm-candidate-number-limit 500)
+          (my:kmap ("M-x" #'helm-M-x)
+                   ("M-X" #'execute-extended-command)
+                   ("C-M-y" #'helm-show-kill-ring)
+                   ([remap switch-to-buffer] #'helm-mini) ; C-x b
+                   ("C-x C-c" #'helm-buffers-list)
+                   ("C-x C-f" #'helm-find-files)
+                   ("C-h f"   #'helm-apropos)
+                   ("C-; i" "C-c ; i" #'helm-imenu)
+                   ("C-; t" "C-c ; t" #'helm-etags-select)
+                   ("C-; m" "C-c ; m" #'helm-all-mark-rings)
+                   ("C-; e" "C-c ; e" #'helm-list-emacs-process)
+                   ("C-; r" "C-c ; r" #'helm-resume))
+          (require 'helm-config))
+  :config (progn
+            ;; Prevent winner from restoring helm buffers
+            (defun my:helm-display-buffer (buffer)
+              "Adds buffer name to `winner-boring-buffers' before openning"
+              (add-to-list 'winner-boring-buffers buffer)
+              (let* ((height (min (/ (frame-height) 2) 16))
+                     (win (split-window (frame-root-window)
+                                        (- height) 'below)))
+                (set-window-buffer win buffer)))
+            (setq-default helm-display-function
+                          #'my:helm-display-buffer)
+            ;; Bindings, C-c ; to work in terminal
+            (my:with-eval-after-load semantic
+              (my:kmap "C-; i" "C-c ; i" #'helm-semantic-or-imenu))
+            (my:kmap* helm-map
+                      ("C-i" #'helm-execute-persistent-action)
+                      ("<tab>" #'helm-execute-persistent-action)
+                      ("C-z" #'helm-select-action))))
+
+(my:with-package helm-swoop
+  :ensure t
+  :init (progn
+          ;; Suppress compiler warning
+          (my:kmap ([remap occur] #'helm-swoop) ; "M-s o"
+                   ("M-s /" #'helm-multi-swoop))))
+
+;; Completion
+(my:with-package company
+  :ensure t
+  :init (global-company-mode t)
+  :config (progn
+            (my:kmap* company-mode-map
+                      ("C-<tab>" #'company-complete))
+            (my:kmap* company-active-map
+                      ("C-p" #'company-select-previous)
+                      ("C-n" #'company-select-next))
+            (my:kmap "C-M-/" #'company-files)
+            (setq-default company-tooltip-limit 20
+                          ;; Put semantic backend on separate key
+                          company-backends (remove 'company-semantic company-backends))
+            (my:with-eval-after-load semantic
+              (defun my:company-semantic-setup ()
+                "Sets `company-semantic' keybind locally"
+                (local-set-key (kbd "C-<return>") #'company-semantic))
+              (add-hook 'c-mode-hook #'my:company-semantic-setup)
+              (add-hook 'c++-mode-hook #'my:company-semantic-setup))))
+
+(my:with-package yasnippet
+  :ensure t
+  :defer t
+  :init (yas-global-mode t)
+  :config (progn
+            ;; No more toolkit popups
+            (setq-default yas-prompt-functions
+                          '(yas-ido-prompt yas-completing-prompt yas-no-prompt))
+            ;; Just custom snippet dir
+            (add-to-list 'yas-snippet-dirs my:snippets-dir)
+            (my:with-eval-after-load smartparens
+              (advice-add #'yas-expand :before
+                          #'(lambda ()
+                              "Escape from `smartparens-mode' overlay"
+                              (let ((times 5))
+                                (while (and (> times 0) (sp--get-active-overlay))
+                                  (sp-remove-active-pair-overlay)
+                                  (setq times (- times 1)))))))
+            (add-hook 'term-mode-hook
+                      (lambda () (yas-minor-mode -1)))))
+
+(my:with-package function-args
+  :ensure t
+  :init (my:with-eval-after-load semantic
+          (fa-config-default)))
+
+;; External tools
+(my:with-package ag
+  :ensure t
+  :config (setq-default ag-highlight-search t))
+
+(my:with-package magit
+  :ensure t
+  :config (setq-default
+           ;; by-word diff
+           magit-diff-refine-hunk t))
+
+(my:with-package ggtags
+  :if (executable-find "gtags")
+  :ensure t
+  :init (progn
+          (defun my:turn-on-ggtags-mode ()
+            "Set `ggtags-mode' on"
+            (ggtags-mode t))
+          (add-hook 'c-mode-hook #'my:turn-on-ggtags-mode)
+          (add-hook 'c++-mode-hook #'my:turn-on-ggtags-mode))
+  :config (my:kmap* ggtags-mode-map
+                    ("M-." "C-M-." nil)
+                    ([remap find-tag] #'ggtags-find-tag-dwim)
+                    ([remap find-tag-regexp] #'ggtags-find-tag-regexp)))
+
+;; Project management and project tree
+(my:with-package neotree
+  :ensure t
+  :init (my:kmap ("<f5>" #'neotree-show)
+                 ("<f6>" #'neotree-find))
+  :config (progn
+            (defun my:neotree-create-window ()
+              "Create global NeoTree window. Split root window."
+              (let ((window nil)
+                    (buffer (neo-global--get-buffer t))
+                    (root (frame-root-window (selected-frame))))
+                (setq window
+                      (split-window root (- neo-window-width) 'left))
+                (select-window window)
+                (neo-window--init window buffer)
+                (setq neo-global--window window)
+                window))
+            (defun my:neotree-insert-symbol (name)
+              (cond ((equal name 'open) (neo-buffer--insert-with-face
+                                         "- " 'neo-expand-btn-face))
+                    ((equal name 'close) (neo-buffer--insert-with-face
+                                          "+ " 'neo-expand-btn-face))
+                    ((equal name 'leaf) (insert-char ?\s 2))))
+            (fset #'neo-global--create-window #'my:neotree-create-window)
+            (fset #'neo-buffer--insert-fold-symbol #'my:neotree-insert-symbol)
+            ;; Allow delete window
+            (setq-default neo-persist-show nil
+                          neo-hidden-files-regexp "\\(^\\.\\|.py[cd]\\)"
+                          neo-theme 'ascii)
+            ;; Add jk movement
+            (my:kmap* neotree-mode-map
+                      ("r" #'neotree-refresh)
+                      ("h" #'neotree-hidden-file-toggle)
+                      ("a" #'neotree-stretch-toggle)
+                      ("p" #'neotree-previous-node)
+                      ("n" #'neotree-next-node)
+                      ("k" #'neotree-previous-node)
+                      ("j" #'neotree-next-node))))
+
+(my:with-package projectile
+  :ensure t
+  :init (projectile-global-mode)
+  :config (progn
+            (my:kmap "<f7>" #'neotree-projectile-action)
+            ;; Try to emulate ede (from CEDET) project
+            (my:with-eval-after-load semanticdb
+              (setq-default semanticdb-project-root-functions
+                            projectile-project-root-files-functions))))
+
+(my:with-package helm-projectile
+  :ensure t
+  :defer t
+  :init (progn
+          (my:kmap "C-; p" "C-c ; p" #'helm-projectile)
+          (helm-projectile-on)
+          (fset #'helm-projectile-ag #'projectile-ag)))
+
+;; Language specific
+(my:with-package anaconda-mode
+  :ensure t
+  :init (add-hook 'python-mode-hook #'anaconda-mode))
+
+(my:with-package company-anaconda
+  :ensure t
+  :config (add-to-list 'company-backends #'company-anaconda))
+
+(my:with-package company-c-headers
+  :ensure t
+  :config (progn
+            ;; Get include path from Semantic
+            (my:with-eval-after-load semantic/dep
+              (setq company-c-headers-path-system #'my:system-include-path))
+            (add-to-list 'company-backends #'company-c-headers)))
+
+(my:with-package flycheck
+  :ensure t)
+
+(my:with-package js2-mode
+  :ensure t
+  :init (add-to-list 'auto-mode-alist '("\\.json" . js-mode)))
+
+(my:with-package yaml-mode
+  :ensure t)
+
+(my:with-package lua-mode
+  :ensure t
+  :config (setq-default lua-indent-level 4))
+
+(my:with-package rust-mode
+  :ensure t)
+
+(my:with-package haskell-mode
+  :ensure t
+  :config (progn
+            (add-hook 'haskell-mode-hook #'turn-on-haskell-indentation)))
+
+(my:with-package company-ghc
+  :if (executable-find "ghc-mod")
+  :ensure t
+  :config (progn
+            (add-to-list 'company-backends #'company-ghc)
+            (add-hook 'haskell-mode-hook #'ghc-init)))
+
+(my:with-package irony
+  :if (executable-find "clang")
+  :ensure t
+  :init (progn
+          (add-hook 'c++-mode-hook #'irony-mode)
+          (add-hook 'c-mode-hook #'irony-mode))
+  :config (progn
+            (my:with-package company-irony
+              :ensure t
+              :config (add-to-list 'company-backends
+                                   (list #'company-c-headers #'company-irony)))
+            (my:with-package flycheck-irony
+              :ensure t
+              :config (my:with-eval-after-load flycheck
+                        (add-to-list 'flycheck-checkers #'irony)))
+            (my:with-package irony-eldoc
+              :ensure t
+              :config (add-hook 'irony-mode-hook #'irony-eldoc))))
+
+(my:with-package clojure-mode
+  :ensure t
+  :config (add-hook 'clojure-mode-hook #'my:lisp-setup-paredit))
+
+(my:with-package cider
+  :if (executable-find "lein")
+  :ensure t
+  :config (progn
+            (add-hook 'cider-repl-mode-hook
+                      #'my:lisp-setup-paredit)
+            (my:kmap* cider-mode-map
+                      ("M-." "M-," nil)
+                      ([remap find-tag] #'cider-jump-to-var)
+                      ([remap pop-tag-mark] #'cider-jump-back))))
 
 
 (provide 'init_impl)
