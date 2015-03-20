@@ -752,6 +752,7 @@ to feed to other packages"
 (my:with-package expand-region
   :ensure t
   :init (progn
+          (autoload 'er/mark-symbol "expand-region")
           (my:kmap ("C-=" #'er/expand-region)
                    ("C-+" #'er/mark-symbol))))
 
