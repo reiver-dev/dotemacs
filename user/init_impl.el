@@ -1121,15 +1121,15 @@ to feed to other packages"
   :config (progn
             (my:with-package company-irony
               :ensure t
-              :config (add-to-list 'company-backends
-                                   (list #'company-c-headers #'company-irony)))
+              :init (add-to-list 'company-backends
+                                 (list #'company-c-headers #'company-irony)))
             (my:with-package flycheck-irony
               :ensure t
-              :config (my:with-eval-after-load flycheck
-                        (add-to-list 'flycheck-checkers #'irony)))
+              :init (my:with-eval-after-load flycheck
+                      (flycheck-irony-setup)))
             (my:with-package irony-eldoc
               :ensure t
-              :config (add-hook 'irony-mode-hook #'irony-eldoc))))
+              :init (add-hook 'irony-mode-hook #'irony-eldoc))))
 
 (my:with-package clojure-mode
   :ensure t
