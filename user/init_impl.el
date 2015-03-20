@@ -698,40 +698,40 @@ to feed to other packages"
 (defvar my:packages nil)
 (defmacro my:with-package (name &rest args)
   (declare (indent 1))
-  (unless (plist-get args :disabled) nil)
-  (let* ((ensure (plist-get args :ensure))
-         (package (if (or (not ensure) (eq t ensure)) name ensure))
-         (init (plist-get args :init))
-         (defer (let ((d (plist-get args :defer)))
-                  (when d
-                    (if (numberp d) d 10))))
-         (config (plist-get args :config))
-         (condition (plist-get args :if))
-         (result '()))
+  (unless (plist-get args :disabled)
+    (let* ((ensure (plist-get args :ensure))
+           (package (if (or (not ensure) (eq t ensure)) name ensure))
+           (init (plist-get args :init))
+           (defer (let ((d (plist-get args :defer)))
+                    (when d
+                      (if (numberp d) d 10))))
+           (config (plist-get args :config))
+           (condition (plist-get args :if))
+           (result '()))
 
-    (when init
-      (my:add-to
-       result
-       (if defer
-           `(run-with-idle-timer ,defer nil (lambda () ,init))
-         init)))
+      (when init
+        (my:add-to
+         result
+         (if defer
+             `(run-with-idle-timer ,defer nil (lambda () ,init))
+           init)))
 
-    (when config
-      (my:add-to
-       result
-       `(my:with-eval-after-load ,name ,@(macroexp-unprogn config))))
+      (when config
+        (my:add-to
+         result
+         `(my:with-eval-after-load ,name ,@(macroexp-unprogn config))))
 
-    (when ensure
-      (my:add-to result `(when (not (package-installed-p ',package))
-                           (package-install ',package)))
-      (my:add-to result `(add-to-list 'my:packages ',package)))
+      (when ensure
+        (my:add-to result `(when (not (package-installed-p ',package))
+                             (package-install ',package)))
+        (my:add-to result `(add-to-list 'my:packages ',package)))
 
-    (let ((r `(with-demoted-errors
-                  ,(concat "Error loading " (symbol-name package) ": %s")
-                ,@result)))
-      (if condition
-          `(if ,condition ,r nil)
-        r))))
+      (let ((r `(with-demoted-errors
+                    ,(concat "Error loading " (symbol-name package) ": %s")
+                  ,@result)))
+        (if condition
+            `(if ,condition ,r nil)
+          r)))))
 
 (put 'my:with-package 'lisp-indent-function 'defun)
 (package-initialize)
