@@ -218,24 +218,29 @@ should get (kbd1 kbd2 .. function) as arguments"
     (define-key m key command)))
 
 ;; For project settings
-(defun my:dir-locals-path (&optional relative)
-  "Finds directory local (.dir-locals.el) settings location
-with RELATIVE argument returns path relative to dir-locals location"
+(defun my:find-dir-locals ()
+  "Find directory local (.dir-locals.el) settings location;
+raises error if not found"
   (let* ((current (if (stringp buffer-file-name)
                       buffer-file-name
                     default-directory))
-         (dl-dir (locate-dominating-file current ".dir-locals.el")))
-    (unless (stringp dl-dir)
-      (error ".dir-locals.el not found"))
-    (file-name-as-directory
-     (if (stringp relative)
-         (expand-file-name relative dl-dir)
-       (expand-file-name dl-dir)))))
+         (dl-path (locate-dominating-file current ".dir-locals.el")))
+    (if (stringp dl-path)
+        dl-path
+      (error ".dir-locals.el not found"))))
+
+(defun my:dir-locals-path (&optional relative)
+  "Finds directory local (.dir-locals.el) settings location
+with RELATIVE argument returns path relative to dir-locals location,
+FORCE-DIR sets return value to be directory path"
+  (if (stringp relative)
+      (expand-file-name relative (my:find-dir-locals))
+    (expand-file-name (my:find-dir-locals))))
 
 (defmacro my:with-local-dir (relative &rest body)
   "Macro for running commands from location relative to \".dir-locals.el\""
   `(let ((default-directory
-           (my:dir-locals-path ,relative)))
+           (file-name-as-directory (my:dir-locals-path ,relative))))
      ,@body))
 
 ;; For autoload byte-compiling
