@@ -171,6 +171,9 @@
 (defmacro my:add-to (l el)
   `(setq ,l (cons ,el ,l)))
 
+(defmacro my:append-to (to from)
+  `(setq ,to (append ,from ,to)))
+
 ;; For convenient bindings
 (defvar my:bindings-mode-map
   (make-sparse-keymap)
