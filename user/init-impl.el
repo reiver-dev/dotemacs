@@ -221,15 +221,57 @@ should get (kbd1 kbd2 .. function) as arguments"
     (define-key m key command)))
 
 ;; For project settings
+(defun my:current-fs-point ()
+  "Returns current `buffer-file-name' or `default-directory'"
+  (if (stringp buffer-file-name) buffer-file-name default-directory))
+
+(defun my:parent-dir (dir)
+  "Just gets relative top dir for given DIR path."
+  (file-name-directory (directory-file-name target)))
+
+(defun my:locate-top-dominating-file (from name &optional default)
+  "Find top file with given NAME starting from directory FROM.
+Optional DEFAULT value returned if nothing found or nil.
+See `locate-dominating-file' for reference"
+  (let ((target (locate-dominating-file from name)))
+    (if target
+        (let ((parent (my:parent-dir target)))
+          (if (equal target parent) target
+            (my:locate-top-dominating-file parent name target)))
+      default)))
+
+(defun files-in-below-directory (directory pattern &optional ignore)
+  "List the file names in DIRECTORY and in its sub-directories equal to PATTERN.
+Optional IGNORE argument can be list of names to ignore in recursive walk or
+function receiving directory name as single argument"
+  (let (el-files-list
+        (current-directory-list
+         (with-demoted-errors
+             (directory-files directory t nil nil)))
+        (ignore-func (cond
+                      ((functionp ignore) ignore)
+                      ((listp ignore) (lambda (dir) (member dir ignore)))
+                      (t (lambda (dir) nil)))))
+    (while current-directory-list
+      (let* ((file (car current-directory-list))
+             (filename (file-relative-name file directory)))
+        (when (string= pattern filename)
+          (my:add-to el-files-list file))
+        (when (and (file-directory-p (car current-directory-list))
+                   (not (equal "." (substring file -1)))
+                   (not (funcall ignore-func file)))
+          (my:append-to
+           el-files-list
+           (files-in-below-directory file pattern))))
+      (setq current-directory-list (cdr current-directory-list)))
+    el-files-list))
+
 (defun my:find-dir-locals ()
   "Find directory local (.dir-locals.el) settings location;
 raises error if not found"
-  (let* ((current (if (stringp buffer-file-name)
-                      buffer-file-name
-                    default-directory))
-         (dl-path (locate-dominating-file current ".dir-locals.el")))
-    (if (stringp dl-path)
-        dl-path
+  (let ((dl-path
+         (locate-dominating-file (my:current-fs-point) ".dir-locals.el"))o)
+    (if (stringp dl-path) dl-path
       (error ".dir-locals.el not found"))))
 
 (defun my:dir-locals-path (&optional relative)
