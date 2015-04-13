@@ -19,4 +19,4 @@
 (load custom-file t)
 
 ;; Persistent common configuration
-(load (concat user-emacs-directory "user/init_impl"))
+(load (concat user-emacs-directory "user/init-impl"))

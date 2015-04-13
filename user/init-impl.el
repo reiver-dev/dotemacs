@@ -1,4 +1,4 @@
-;;; init_impl.el --- Main config file  -*- lexical-binding: t -*-
+;;; init-impl.el --- Main config file  -*- lexical-binding: t -*-
 
 ;;; Commentary:
 
@@ -242,6 +242,12 @@ FORCE-DIR sets return value to be directory path"
   `(let ((default-directory
            (file-name-as-directory (my:dir-locals-path ,relative))))
      ,@body))
+
+(defun my:add-to-path (&rest paths)
+  "Add PATHS values to `exec-path' and environment variable $PATH"
+  (setenv "PATH" (mapconcat #'identity (cons (getenv "PATH") paths)
+                            path-separator))
+  (setq exec-path (append exec-path paths)))
 
 ;; For autoload byte-compiling
 ;; http://www.lunaryorn.com/2013/06/25/introducing-with-eval-after-load.html
@@ -1152,6 +1158,6 @@ to feed to other packages"
                       ([remap pop-tag-mark] #'cider-jump-back))))
 
 
-(provide 'init_impl)
+(provide 'init-impl)
 
-;;; init_impl.el ends here
+;;; init-impl.el ends here
