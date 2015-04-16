@@ -290,9 +290,18 @@ FORCE-DIR sets return value to be directory path"
 
 (defun my:add-to-path (&rest paths)
   "Add PATHS values to `exec-path' and environment variable $PATH"
-  (setenv "PATH" (mapconcat #'identity (cons (getenv "PATH") paths)
-                            path-separator))
+  (let ((env-path (getenv "PATH"))
+        (value (mapconcat #'identity paths path-separator)))
+    (setenv "PATH" (concat env-path path-separator value)))
   (setq exec-path (append exec-path paths)))
+
+(defun my:add-to-path-front (&rest paths)
+  "Add PATHS values to `exec-path' and environment variable $PATH"
+  (let ((env-path (getenv "PATH"))
+        (value (mapconcat #'identity paths path-separator)))
+    (setenv "PATH" (concat value path-separator env-path)))
+  (setq exec-path (nconc paths exec-path)))
+
 
 ;; For autoload byte-compiling
 ;; http://www.lunaryorn.com/2013/06/25/introducing-with-eval-after-load.html
