@@ -240,7 +240,7 @@ See `locate-dominating-file' for reference"
             (my:locate-top-dominating-file parent name target)))
       default)))
 
-(defun files-in-below-directory (directory pattern &optional ignore)
+(defun my:files-in-below-directory (directory pattern &optional ignore)
   "List the file names in DIRECTORY and in its sub-directories equal to PATTERN.
 Optional IGNORE argument can be list of names to ignore in recursive walk or
 function receiving directory name as single argument"
