@@ -262,7 +262,7 @@ function receiving directory name as single argument"
                    (not (funcall ignore-func file)))
           (my:append-to
            el-files-list
-           (files-in-below-directory file pattern))))
+           (my:files-in-below-directory file pattern))))
       (setq current-directory-list (cdr current-directory-list)))
     el-files-list))
 
