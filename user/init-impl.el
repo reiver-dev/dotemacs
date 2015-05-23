@@ -963,6 +963,9 @@ to feed to other packages"
           (setq-default helm-command-prefix-key (kbd "C-c h")
                         helm-buffers-fuzzy-matching t
                         helm-candidate-number-limit 500)
+          (autoload 'helm--completion-in-region "helm-mode")
+          (setq-default completion-in-region-function
+                        #'helm--completion-in-region)
           (my:kmap ("M-x" #'helm-M-x)
                    ("M-X" #'execute-extended-command)
                    ("C-M-y" #'helm-show-kill-ring)
