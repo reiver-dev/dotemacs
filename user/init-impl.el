@@ -24,8 +24,10 @@
   (normal-top-level-add-subdirs-to-load-path))
 
 (require 'package)
-(add-to-list 'package-archives '("marmelade" . "https://marmalade-repo.org/packages/"))
-(add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/"))
+(add-to-list 'package-archives
+             '("marmelade" . "https://marmalade-repo.org/packages/"))
+(add-to-list 'package-archives
+             '("melpa" . "http://melpa.org/packages/"))
 
 ;; backup, autosave, lockfiles ;;
 (setq backup-directory-alist `((".*" . ,temporary-file-directory))
@@ -61,13 +63,7 @@
 (fringe-mode '(8 . 0))
 
 ;; Whitespace
-(setq-default whitespace-style
-              '(face
-                newline trailing
-                space-before-tab indentation
-                lines-tail
-                space-mark tab-mark)
-              whitespace-line-column 120)
+(setq-default whitespace-line-column 79)
 
 ;; Misc settings
 (defun my:bell-function ()
@@ -129,7 +125,9 @@
  'my:theme
  ;; Line numbers appearance
  '(linum ((t (:bold t :italic nil))))
- '(vertical-border ((((type graphic)) (:foreground nil :backround nil :inherit fringe :inverse-video t))))
+ '(vertical-border
+   ((((type graphic))
+     (:foreground nil :backround nil :inherit fringe :inverse-video t))))
 
  ;; Modeline highligh box is ugly
  '(mode-line-highlight ((t (:box nil :inverse-video t))))
@@ -241,9 +239,9 @@ See `locate-dominating-file' for reference"
       default)))
 
 (defun my:files-in-below-directory (directory pattern &optional ignore)
-  "List the file names in DIRECTORY and in its sub-directories equal to PATTERN.
-Optional IGNORE argument can be list of names to ignore in recursive walk or
-function receiving directory name as single argument"
+  "List the file names in DIRECTORY and in its sub-directories
+equal to PATTERN. Optional IGNORE argument can be list of names to ignore
+in recursive walk or function receiving directory name as single argument"
   (let (el-files-list
         (current-directory-list
          (with-demoted-errors
@@ -418,7 +416,8 @@ Here \"visible\" frame is current frame or any graphical frame"
 
 ;; Do not activate mark during jump
 (defun my:exchange-point-and-mark (&optional ARG)
-  "Inverse `exchange-point-and-mark' prefix argument when mark is not active (`mark-active')"
+  "Inverse `exchange-point-and-mark' prefix argument
+ when mark is not active (`mark-active')"
   (interactive "P")
   (exchange-point-and-mark
    (if mark-active ARG (not ARG))))
@@ -486,7 +485,8 @@ With argument, join this line to previous line"
   (indent-according-to-mode))
 
 (defun my:minibuffer-keyboard-quit ()
-  "Abort recursive edit. In Delete Selection mode, if the mark is active, just deactivate it;
+  "Abort recursive edit. In Delete Selection mode,
+ if the mark is active, just deactivate it;
 then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (interactive)
   (if (and delete-selection-mode transient-mark-mode mark-active)
@@ -732,8 +732,10 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (add-to-list 'semantic-default-submodes 'global-semantic-decoration-mode)
   (add-to-list 'semantic-default-submodes 'global-semantic-mru-bookmark-mode)
   (add-to-list 'semantic-default-submodes 'global-semantic-idle-summary-mode)
-  (add-to-list 'semantic-default-submodes 'global-semantic-show-parser-state-mode)
-  (add-to-list 'semantic-default-submodes 'global-semantic-show-unmatched-syntax-mode)
+  (add-to-list 'semantic-default-submodes
+               'global-semantic-show-parser-state-mode)
+  (add-to-list 'semantic-default-submodes
+               'global-semantic-show-unmatched-syntax-mode)
 
   (semanticdb-enable-gnu-global-databases 'c-mode)
   (semanticdb-enable-gnu-global-databases 'c++-mode)
@@ -925,8 +927,10 @@ to feed to other packages"
                   for x in (switch-window-list-keys)
                   collect x))
           (fset #'switch-window-enumerate #'my:switch-window-list-enumerate)
-          (defun my:switch-move-focus-with (action msg-before msg-after &optional args)
-            "Choose window with overlay symbold and ACTION (with additional ARGS) to it"
+          (defun my:switch-move-focus-with
+              (action msg-before msg-after &optional args)
+            "Choose window with overlay symbold and ACTION
+ (with additional ARGS) to it"
             (let ((wlist (my:switch-window-list)))
               (if (<= (length wlist) switch-window-threshold)
                   (my:apply-to-window
@@ -934,8 +938,10 @@ to feed to other packages"
                 (let ((index (prompt-for-selected-window msg-before))
                       (eobps (switch-window-list-eobp)))
                   (apply-to-window-index
-                   (lambda (window) (my:apply-to-window action window args)) index msg-after)
-                  (switch-window-restore-eobp (my:remove-if-not #'window-valid-p eobps))))))
+                   (lambda (window)
+                     (my:apply-to-window action window args)) index msg-after)
+                  (switch-window-restore-eobp
+                   (my:remove-if-not #'window-valid-p eobps))))))
           (defun my:switch-window ()
             (interactive)
             (my:switch-move-focus-with #'select-window
@@ -1018,7 +1024,8 @@ to feed to other packages"
             (my:kmap "C-M-/" #'company-files)
             (setq-default company-tooltip-limit 20
                           ;; Put semantic backend on separate key
-                          company-backends (remove 'company-semantic company-backends))
+                          company-backends
+                          (remove 'company-semantic company-backends))
             (my:with-eval-after-load semantic
               (defun my:company-semantic-setup ()
                 "Sets `company-semantic' keybind locally"
@@ -1032,8 +1039,9 @@ to feed to other packages"
   :init (yas-global-mode t)
   :config (progn
             ;; No more toolkit popups
-            (setq-default yas-prompt-functions
-                          '(yas-ido-prompt yas-completing-prompt yas-no-prompt))
+            (setq-default
+             yas-prompt-functions
+             '(yas-ido-prompt yas-completing-prompt yas-no-prompt))
             ;; Just custom snippet dir
             (add-to-list 'yas-snippet-dirs my:snippets-dir)
             (my:with-eval-after-load smartparens
@@ -1041,7 +1049,8 @@ to feed to other packages"
                           #'(lambda ()
                               "Escape from `smartparens-mode' overlay"
                               (let ((times 5))
-                                (while (and (> times 0) (sp--get-active-overlay))
+                                (while (and (> times 0)
+                                            (sp--get-active-overlay))
                                   (sp-remove-active-pair-overlay)
                                   (setq times (- times 1)))))))
             (add-hook 'term-mode-hook
