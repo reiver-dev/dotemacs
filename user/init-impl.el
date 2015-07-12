@@ -29,12 +29,6 @@
 (add-to-list 'package-archives
              '("melpa" . "http://melpa.org/packages/"))
 
-;; backup, autosave, lockfiles ;;
-(setq backup-directory-alist `((".*" . ,temporary-file-directory))
-      auto-save-file-name-transforms `((".*" ,temporary-file-directory t))
-      create-lockfiles nil)
-
-
 ;;;;;;;;;;;;;;;;
 ;; Appearance ;;
 ;;;;;;;;;;;;;;;;
