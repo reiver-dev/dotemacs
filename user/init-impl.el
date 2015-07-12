@@ -112,7 +112,8 @@
 
 (defun my:prog-mode-setup ()
   "Basic settings for prog and other modes"
-  (setq show-trailing-whitespace t))
+  (setq show-trailing-whitespace t)
+  (whitespace-mode t))
 
 (add-hook 'prog-mode-hook #'my:prog-mode-setup)
 (add-hook 'nxml-mode #'my:prog-mode-setup)
