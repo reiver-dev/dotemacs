@@ -63,7 +63,9 @@
 (fringe-mode '(8 . 0))
 
 ;; Whitespace
-(setq-default whitespace-line-column 79)
+(setq-default whitespace-line-column 79
+              whitespace-style
+              '(face trailing tab-mark lines-tail))
 
 ;; Misc settings
 (defun my:bell-function ()
