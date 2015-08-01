@@ -895,9 +895,9 @@ to feed to other packages"
   :ensure t
   :init (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
 
-(my:with-package ace-jump-mode
+(my:with-package avy
   :ensure t
-  :init (my:kmap "M-o" #'ace-jump-word-mode))
+  :init (my:kmap "C-:" #'avy-goto-word-1))
 
 (my:with-package switch-window
   :ensure t
