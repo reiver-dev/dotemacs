@@ -350,8 +350,8 @@ Here \"visible\" frame is current frame or any graphical frame"
   "Return windows from all visible frames"
   (my:mapcan #'window-list (my:visible-frame-list)))
 
-(defun my:apply-to-window (action &optional window &rest args)
-  "Calls ACTION with argument WINDOW"
+(defun my:apply-to-window (action window &rest args)
+  "Calls ACTION with argument WINDOW, switches frame focus if required"
   (when (window-live-p window)
     (let ((frame (window-frame window)))
       (when (and (frame-live-p frame)
@@ -899,66 +899,20 @@ to feed to other packages"
   :ensure t
   :init (my:kmap "C-:" #'avy-goto-word-1))
 
-(my:with-package switch-window
+(my:with-package ace-window
   :ensure t
-  :init (progn
-          (require 'switch-window nil t)
-          (defun my:switch-ignored-p (window)
-            "Returns if WINDOW should be ignored during `switch-window'"
-            (and (member (buffer-name (window-buffer window))
-                         (list " *NeoTree*"))
-                 (not (eq (window-frame window) (selected-frame)))))
-          (defun my:switch-window-list (&optional from-current-window)
-            "Like `switch-window-list', but looks through all frames"
-            (let ((wlist
-                   (if (or from-current-window switch-window-relative)
-                       (lambda (frame)
-                         (window-list frame nil))
-                     (lambda (frame)
-                       (window-list frame nil (frame-first-window frame))))))
-              (my:remove-if #'my:switch-ignored-p
-                            (my:mapcan wlist (my:visible-frame-list t)))))
-          (fset #'switch-window-list #'my:switch-window-list)
-          (defun my:switch-window-list-enumerate ()
-            (loop for _ in (my:switch-window-list)
-                  for x in (switch-window-list-keys)
-                  collect x))
-          (fset #'switch-window-enumerate #'my:switch-window-list-enumerate)
-          (defun my:switch-move-focus-with
-              (action msg-before msg-after &optional args)
-            "Choose window with overlay symbold and ACTION
- (with additional ARGS) to it"
-            (let ((wlist (my:switch-window-list)))
-              (if (<= (length wlist) switch-window-threshold)
-                  (my:apply-to-window
-                   action (car (remove (selected-window) wlist)) args)
-                (let ((index (prompt-for-selected-window msg-before))
-                      (eobps (switch-window-list-eobp)))
-                  (apply-to-window-index
-                   (lambda (window)
-                     (my:apply-to-window action window args)) index msg-after)
-                  (switch-window-restore-eobp
-                   (my:remove-if-not #'window-valid-p eobps))))))
-          (defun my:switch-window ()
-            (interactive)
-            (my:switch-move-focus-with #'select-window
-                                       "Move to window: "
-                                       "Moved to: %s"))
-          (defun my:switch-move-window ()
-            (interactive)
-            (my:switch-move-focus-with #'my:query-move-to-window
-                                       "Move window to other window: "
-                                       "Moved to: %s"
-                                       (selected-window)))
-          (defun my:switch-swap-window ()
-            (interactive)
-            (my:switch-move-focus-with #'my:swap-windows
-                                       "Swap window with: "
-                                       "Swapped with: %s"
-                                       (selected-window)))
-          (my:kmap ("C-c C-w" "C-c w w" #'my:switch-window)
-                   ("C-c w m" #'my:switch-move-window)
-                   ("C-c w s" #'my:switch-swap-window))))
+  :init
+  (progn
+    (defun my:aw-put-window (window)
+      (my:apply-to-window
+       my:query-move-to-window window (selected-window)))
+    (defun my:ace-move-window ()
+      (interactive)
+      (aw-select " Ace - Move Window" #'my:aw-put-window))
+    (my:kmap ("C-c C-w" "C-c w w" #'ace-window)
+             ("C-c w m" #'my:ace-move-window)
+             ("C-c w s" #'ace-swap-window))))
+
 
 (my:with-package helm
   :ensure t
