@@ -884,7 +884,7 @@ to feed to other packages"
               "Sets from `smartparens-mode': \\{my:paredit-extended-mode-map}"
               :keymap my:paredit-extended-mode-map)
             (my:kmap* my:paredit-extended-mode-map
-                      ("C-M-t" #'sp-transpose-sexp) ; remap transpose-sex
+                      ("C-M-t" #'sp-transpose-sexp) ; remap transpose-sexps
                       ;; Direction manipulation
                       ("M-<up>"      #'sp-splice-sexp-killing-backward)
                       ("M-<down>"    #'sp-splice-sexp-killing-forward)
