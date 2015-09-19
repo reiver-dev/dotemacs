@@ -601,15 +601,14 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
  ;; Buffers
  ([remap list-buffers] #'ibuffer) ; "C-x C-b"
  ("C-x k"   #'my:kill-buffer)
- ("C-x C-k" #'my:kill-buffer-and-window)
+ ("C-x K" #'my:kill-buffer-and-window)
 
  ;; Editing
  ("C-w"           #'my:kill-region-or-word)
  ("C-S-w"         #'kill-region)
  ("C-x C-;"       #'comment-or-uncomment-region)
- ("C-<backspace>" #'my:kill-line-to-indent)
- ("C-<delete>"    #'kill-line)
- ("M-<delete>"    #'kill-word)
+ ("M-<backspace>" #'my:kill-line-to-indent)
+ ("M-<delete>"    #'kill-line)
  ("M-k"           #'kill-whole-line)
  ("M-j"           #'my:join-line)
 
@@ -950,6 +949,9 @@ to feed to other packages"
             ;; Bindings, C-c ; to work in terminal
             (my:with-eval-after-load semantic
               (my:kmap "C-; i" "C-c ; i" #'helm-semantic-or-imenu))
+            ;; Free for backward-kill-word
+            (my:with-eval-after-load helm-files
+              (my:kmap* helm-find-files-map ("C-<backspace>" nil)))
             (my:kmap* helm-map
                       ("C-i" #'helm-execute-persistent-action)
                       ("<tab>" #'helm-execute-persistent-action)
