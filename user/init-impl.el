@@ -703,7 +703,11 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 ;; org-mode
 (my:with-eval-after-load org
-  (setq-default org-src-fontify-natively t))
+  (setq-default org-src-fontify-natively t
+                ;; set maximum indentation for description lists
+                org-list-description-max-indent 5
+                ;; prevent demoting heading also shifting text inside sections
+                org-adapt-indentation nil))
 
 ;; C/C++
 (with-eval-after-load 'cc-mode)
