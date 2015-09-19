@@ -842,6 +842,10 @@ to feed to other packages"
            ;; kill-region do not work with `multiple-cursors-mode'
            iy-go-to-char-override-local-map nil))
 
+(my:with-package which-key
+  :ensure t
+  :init (which-key-mode t))
+
 (my:with-package smartparens
   :ensure t
   :init (require 'smartparens-config)
