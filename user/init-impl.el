@@ -774,6 +774,7 @@ to feed to other packages"
                       (if (numberp d) d 10))))
            (config (plist-get args :config))
            (condition (plist-get args :if))
+           (lpath (plist-get args :load-path))
            (result '()))
 
       (when init
@@ -792,6 +793,9 @@ to feed to other packages"
         (my:add-to result `(when (not (package-installed-p ',package))
                              (package-install ',package)))
         (my:add-to result `(add-to-list 'my:packages ',package)))
+
+      (when lpath
+        (my:add-to result `(add-to-list 'load-path ,lpath)))
 
       (let ((r `(with-demoted-errors
                     ,(concat "Error loading " (symbol-name package) ": %s")
