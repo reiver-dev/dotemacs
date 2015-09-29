@@ -147,9 +147,9 @@
 ;; Util ;;
 ;;;;;;;;;;
 
-(defun my:mapcan (function sequence)
+(defmacro my:mapcan (function sequence)
   "Replacement for `mapcan' to not require `cl.el'"
-  (apply #'nconc (mapcar function sequence)))
+  `(apply #'nconc (mapcar ,function ,sequence)))
 
 (defun my:remove-if (func sequence)
   "Reimplacement for `remove-if' to not use `cl.el'"
