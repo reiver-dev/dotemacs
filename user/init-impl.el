@@ -220,8 +220,8 @@ should get (kbd1 kbd2 .. function) as arguments"
   "Returns current `buffer-file-name' or `default-directory'"
   (if (stringp buffer-file-name) buffer-file-name default-directory))
 
-(defun my:parent-dir (dir)
-  "Just gets relative top dir for given DIR path."
+(defun my:parent-dir (target)
+  "Just gets relative top directory for given TARGET path."
   (file-name-directory (directory-file-name target)))
 
 (defun my:locate-top-dominating-file (from name &optional default)
@@ -246,7 +246,7 @@ in recursive walk or function receiving directory name as single argument"
         (ignore-func (cond
                       ((functionp ignore) ignore)
                       ((listp ignore) (lambda (dir) (member dir ignore)))
-                      (t (lambda (dir) nil)))))
+                      (t (lambda (_dir) nil)))))
     (while current-directory-list
       (let* ((file (car current-directory-list))
              (filename (file-relative-name file directory)))
@@ -265,7 +265,7 @@ in recursive walk or function receiving directory name as single argument"
   "Find directory local (.dir-locals.el) settings location;
 raises error if not found"
   (let ((dl-path
-         (locate-dominating-file (my:current-fs-point) ".dir-locals.el"))o)
+         (locate-dominating-file (my:current-fs-point) ".dir-locals.el")))
     (if (stringp dl-path) dl-path
       (error ".dir-locals.el not found"))))
 
@@ -850,6 +850,12 @@ to feed to other packages"
   :ensure t
   :init (which-key-mode t))
 
+(defvar my:paredit-extended-mode-map (make-sparse-keymap)
+  "Keymap for `my:paredit-exteded-mode'")
+(define-minor-mode my:paredit-extended-mode
+  "Sets from `smartparens-mode': \\{my:paredit-extended-mode-map}"
+  :keymap my:paredit-extended-mode-map)
+
 (my:with-package smartparens
   :ensure t
   :init (require 'smartparens-config)
@@ -882,11 +888,6 @@ to feed to other packages"
                       ("C-x p d" #'sp-backward-unwrap-sexp)
                       ("C-x p w" #'sp-swap-enclosing-sexp)
                       ("C-x p p" #'sp-select-next-thing-exchange))
-            (defvar my:paredit-extended-mode-map (make-sparse-keymap)
-              "Keymap for `my:paredit-exteded-mode'")
-            (define-minor-mode my:paredit-extended-mode
-              "Sets from `smartparens-mode': \\{my:paredit-extended-mode-map}"
-              :keymap my:paredit-extended-mode-map)
             (my:kmap* my:paredit-extended-mode-map
                       ("C-M-t" #'sp-transpose-sexp) ; remap transpose-sexps
                       ;; Direction manipulation
@@ -914,9 +915,10 @@ to feed to other packages"
   :ensure t
   :init
   (progn
+    (autoload 'aw-select "ace-window")
     (defun my:aw-put-window (window)
       (my:apply-to-window
-       my:query-move-to-window window (selected-window)))
+       #'my:query-move-to-window window (selected-window)))
     (defun my:ace-move-window ()
       (interactive)
       (aw-select " Ace - Move Window" #'my:aw-put-window))
@@ -1085,10 +1087,10 @@ to feed to other packages"
                       ("r" #'neotree-refresh)
                       ("h" #'neotree-hidden-file-toggle)
                       ("a" #'neotree-stretch-toggle)
-                      ("p" #'neotree-previous-node)
-                      ("n" #'neotree-next-node)
-                      ("k" #'neotree-previous-node)
-                      ("j" #'neotree-next-node))))
+                      ("p" #'neotree-previous-line)
+                      ("n" #'neotree-next-line)
+                      ("k" #'neotree-previous-line)
+                      ("j" #'neotree-next-line))))
 
 (my:with-package projectile
   :ensure t
@@ -1158,8 +1160,8 @@ to feed to other packages"
   :if (executable-find "clang")
   :ensure t
   :init (progn
-          (add-hook 'c++-mode-hook #'irony-mode)
-          (add-hook 'c-mode-hook #'irony-mode))
+          (add-hook 'c++-mode-hook 'irony-mode)
+          (add-hook 'c-mode-hook 'irony-mode))
   :config (progn
             (my:with-package company-irony
               :ensure t
@@ -1185,8 +1187,8 @@ to feed to other packages"
                       #'my:lisp-setup-paredit)
             (my:kmap* cider-mode-map
                       ("M-." "M-," nil)
-                      ([remap find-tag] #'cider-jump-to-var)
-                      ([remap pop-tag-mark] #'cider-jump-back))))
+                      ([remap find-tag] #'cider-find-var)
+                      ([remap pop-tag-mark] #'cider-pop-back))))
 
 
 (provide 'init-impl)
