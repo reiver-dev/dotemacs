@@ -709,6 +709,18 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
                 ;; prevent demoting heading also shifting text inside sections
                 org-adapt-indentation nil))
 
+
+(defun my:large-file? ()
+  (< large-file-warning-threshold (buffer-size)))
+
+(define-derived-mode my:large-file-mode fundamental-mode "LargeFile"
+  "Mode to minimize large file freezes"
+  (setq bidi-display-reordering nil))
+
+(add-to-list 'magic-mode-alist
+             (cons #'my:large-file? #'my:large-file-mode))
+
+
 ;; C/C++
 (with-eval-after-load 'cc-mode)
 (defconst my:c-style
@@ -865,6 +877,7 @@ to feed to other packages"
              sp-highlight-pair-overlay nil
              sp-highlight-wrap-overlay nil
              sp-highlight-wrap-tag-overlay nil)
+            (add-to-list 'sp-ignore-modes-list 'my:large-file-mode)
             (smartparens-global-mode t)
             (show-smartparens-global-mode t)
             (my:kmap* smartparens-mode-map
