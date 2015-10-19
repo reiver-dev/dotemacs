@@ -1126,11 +1126,19 @@ to feed to other packages"
 ;; Language specific
 (my:with-package anaconda-mode
   :ensure t
-  :init (add-hook 'python-mode-hook #'anaconda-mode))
+  :init (add-hook 'python-mode-hook #'anaconda-mode)
+  :config (progn
+            (my:kmap* anaconda-mode-map
+                      ("M-*" "M-," "M-." nil)
+                      ([remap find-tag] #'anaconda-mode-find-definitions)
+                      ([remap pop-tag-mark] #'anaconda-mode-go-back)
+                      ([remap tags-loop-continue]
+                       #'anaconda-mode-find-assignments))))
 
 (my:with-package company-anaconda
   :ensure t
-  :config (add-to-list 'company-backends #'company-anaconda))
+  :init (my:with-eval-after-load anaconda-mode
+          (add-to-list 'company-backends #'company-anaconda)))
 
 (my:with-package company-c-headers
   :ensure t
