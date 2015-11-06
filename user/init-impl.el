@@ -594,10 +594,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
           (forward-same-syntax (- ARG))))
  ("M-e" #'forward-same-syntax)
 
- ;; Swap tag functions
- ("M-*" "C-M-," #'tags-loop-continue)
- ("M-," #'pop-tag-mark)
-
  ;; Buffers
  ([remap list-buffers] #'ibuffer) ; "C-x C-b"
  ("C-x k"   #'my:kill-buffer)
@@ -817,7 +813,6 @@ to feed to other packages"
           r)))))
 
 (put 'my:with-package 'lisp-indent-function 'defun)
-(package-initialize)
 
 (my:with-package undo-tree
   :ensure t
@@ -1062,9 +1057,9 @@ to feed to other packages"
           (add-hook 'c-mode-hook #'my:turn-on-ggtags-mode)
           (add-hook 'c++-mode-hook #'my:turn-on-ggtags-mode))
   :config (my:kmap* ggtags-mode-map
-                    ("M-." "C-M-." nil)
-                    ([remap find-tag] #'ggtags-find-tag-dwim)
-                    ([remap find-tag-regexp] #'ggtags-find-tag-regexp)))
+                    ("M-." "C-M-." "M-*" "M-," nil)
+                    ([remap xref-find-definitions] #'ggtags-find-tag-dwim)
+                    ([remap xref-find-apropos] #'ggtags-find-tag-regexp)))
 
 ;; Project management and project tree
 (my:with-package neotree
@@ -1129,11 +1124,12 @@ to feed to other packages"
   :init (add-hook 'python-mode-hook #'anaconda-mode)
   :config (progn
             (my:kmap* anaconda-mode-map
-                      ("M-*" "M-," "M-." nil)
-                      ([remap find-tag] #'anaconda-mode-find-definitions)
-                      ([remap pop-tag-mark] #'anaconda-mode-go-back)
-                      ([remap tags-loop-continue]
-                       #'anaconda-mode-find-assignments))))
+                      ("M-*" "M-," "M-." "C-M-i" nil)
+                      ("M-." #'anaconda-mode-find-definitions)
+                      ("M-," #'anaconda-mode-go-back)
+                      ("C-M-." #'anaconda-mode-find-assignments)
+                      ("C-M-," #'anaconda-mode-find-references)
+                      ([remap completion-at-point] #'anaconda-mode-complete))))
 
 (my:with-package company-anaconda
   :ensure t
@@ -1208,8 +1204,8 @@ to feed to other packages"
                       #'my:lisp-setup-paredit)
             (my:kmap* cider-mode-map
                       ("M-." "M-," nil)
-                      ([remap find-tag] #'cider-find-var)
-                      ([remap pop-tag-mark] #'cider-pop-back))))
+                      ([remap xref-find-definitions] #'cider-find-var)
+                      ([remap xref-pop-marker-stack] #'cider-pop-back))))
 
 
 (provide 'init-impl)
