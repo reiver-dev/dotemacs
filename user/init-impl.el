@@ -1068,9 +1068,8 @@ to feed to other packages"
           (add-hook 'c++-mode-hook #'my:turn-on-ggtags-mode))
   :config (my:kmap* ggtags-mode-map
                     ("M-." "C-M-." "M-*" "M-," nil)
-                    ([remap xref-find-definitions] #'ggtags-find-tag-dwim)
-                    ([remap xref-find-apropos] #'ggtags-find-tag-regexp)))
-
+                    ("M-." #'ggtags-find-tag-dwim)
+                    ("C-M-." #'ggtags-find-tag-regexp)))
 ;; Project management and project tree
 (my:with-package neotree
   :ensure t
@@ -1138,7 +1137,7 @@ to feed to other packages"
                       ("M-." #'anaconda-mode-find-definitions)
                       ("M-," #'anaconda-mode-go-back)
                       ("C-M-." #'anaconda-mode-find-assignments)
-                      ("C-M-," #'anaconda-mode-find-references)
+                      ("M-]" #'anaconda-mode-find-references)
                       ([remap completion-at-point] #'anaconda-mode-complete))))
 
 (my:with-package company-anaconda
@@ -1210,12 +1209,7 @@ to feed to other packages"
   :if (executable-find "lein")
   :ensure t
   :config (progn
-            (add-hook 'cider-repl-mode-hook
-                      #'my:lisp-setup-paredit)
-            (my:kmap* cider-mode-map
-                      ("M-." "M-," nil)
-                      ([remap xref-find-definitions] #'cider-find-var)
-                      ([remap xref-pop-marker-stack] #'cider-pop-back))))
+            (add-hook 'cider-repl-mode-hook #'my:lisp-setup-paredit)))
 
 
 (provide 'init-impl)
