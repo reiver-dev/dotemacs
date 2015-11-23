@@ -629,6 +629,12 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
  ("<f9>" #'my:toggle-window-dedicated)
  ("<f8>" #'compile))
 
+(if (eq (lookup-key (current-global-map) (kbd "M-*"))
+        'pop-tag-mark)
+    (my:kmap
+     ("M-," #'pop-tag-mark)
+     ("M-*" #'tags-loop-continue)))
+
 
 ;;;;;;;;;;;;;;;;;;;
 ;; Mode Settings ;;
