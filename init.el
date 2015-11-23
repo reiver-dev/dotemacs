@@ -1,7 +1,7 @@
 ;; -*- lexical-binding: t; -*-
 
 
-(package-initialize)
+;; (package-initialize)
 
 (defun -in-dir (name &optional root)
   (let ((-root (or root user-emacs-directory)))

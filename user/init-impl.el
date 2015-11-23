@@ -770,6 +770,9 @@ to feed to other packages"
 ;; Packages ;;
 ;;;;;;;;;;;;;;
 
+(package-initialize)
+
+
 (defvar my:packages nil)
 (defmacro my:with-package (name &rest args)
   (declare (indent 1))
