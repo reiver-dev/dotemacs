@@ -1174,7 +1174,7 @@ to feed to other packages"
 (my:with-package haskell-mode
   :ensure t
   :config (progn
-            (add-hook 'haskell-mode-hook #'turn-on-haskell-indentation)))
+            (add-hook 'haskell-mode-hook #'haskell-indentation-mode)))
 
 (my:with-package company-ghc
   :if (executable-find "ghc-mod")
