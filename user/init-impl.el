@@ -741,6 +741,15 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
                 (other . "gnu")))
 
 ;;  CEDET
+
+(defun my:cedet-setup ()
+  "Local settings for `semantic-mode'"
+  (local-set-key (kbd "C-c i") #'semantic-decoration-include-visit)
+  (local-set-key (kbd "C-c j") #'semantic-ia-fast-jump)
+  (local-set-key (kbd "C-c q") #'semantic-ia-show-doc)
+  (local-set-key (kbd "C-c s") #'semantic-ia-show-summary)
+  (local-set-key (kbd "C-c t") #'semantic-analyze-proto-impl-toggle))
+
 (my:with-eval-after-load semantic
 
   (add-to-list 'semantic-default-submodes 'global-semantic-decoration-mode)
@@ -753,14 +762,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
   (semanticdb-enable-gnu-global-databases 'c-mode)
   (semanticdb-enable-gnu-global-databases 'c++-mode)
-
-  (defun my:cedet-setup ()
-    "Local settings for `semantic-mode'"
-    (local-set-key (kbd "C-c i") #'semantic-decoration-include-visit)
-    (local-set-key (kbd "C-c j") #'semantic-ia-fast-jump)
-    (local-set-key (kbd "C-c q") #'semantic-ia-show-doc)
-    (local-set-key (kbd "C-c s") #'semantic-ia-show-summary)
-    (local-set-key (kbd "C-c t") #'semantic-analyze-proto-impl-toggle))
 
   (add-hook 'c-mode-hook #'my:cedet-setup)
   (add-hook 'c++-mode-hook #'my:cedet-setup))
