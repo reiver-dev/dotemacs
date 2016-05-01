@@ -147,10 +147,10 @@
           (my:kmap ("M-x" #'helm-M-x)
                    ("M-X" #'execute-extended-command)
                    ("C-M-y" #'helm-show-kill-ring)
+                   ([remap describe-function] #'helm-apropos) ; Help-f
                    ([remap switch-to-buffer] #'helm-mini) ; C-x b
                    ("C-x C-c" #'helm-buffers-list)
                    ("C-x C-f" #'helm-find-files)
-                   ("C-h f"   #'helm-apropos)
                    ("C-; i" "C-c ; i" #'helm-imenu)
                    ("C-; t" "C-c ; t" #'helm-etags-select)
                    ("C-; m" "C-c ; m" #'helm-all-mark-rings)

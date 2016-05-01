@@ -4,11 +4,6 @@
 
 ;;; Code:
 
-(defun my:region-active ()
-  "Checks whether there is valid active region selection"
-  (and transient-mark-mode mark-active
-       (not (eq (region-beginning) (region-end)))))
-
 (defun my:push-mark-no-activate ()
   "Calls `push-mark' like `push-mark-command' but withoug activation"
   (interactive)
@@ -30,37 +25,50 @@ and indents after that"
   (indent-according-to-mode))
 
 ;; Region dependent choices
-(defun my:kill-region-or-word ()
+(defun my:kill-region-or-word (arg)
   "Call `kill-region' or `backward-kill-word'
 depending on whether or not a region is selected."
-  (interactive)
-  (if (my:region-active)
-      (call-interactively #'kill-region)
-    (call-interactively #'backward-kill-word)))
+  (interactive "*p")
+  (if (use-region-p)
+      (kill-region (region-beginning) (region-end))
+    (backward-kill-word arg)))
 
-(defun my:upcase-region-or-word ()
-  "Call `upcase-region' or `upcase-word'
-depending on whether or not a region is selected."
-  (interactive)
-  (if (my:region-active)
-      (call-interactively #'upcase-region)
-    (call-interactively #'upcase-word)))
+(defun my:delete-word (arg)
+  "Delete characters forward until encountering the end of a word.
+With argument ARG, do this that many times."
+  (interactive "p")
+  (delete-region (point) (progn (forward-word arg) (point))))
 
-(defun my:downcase-region-or-word ()
-  "Call `downcase-region' or `downcase-word'
-depending on whether or not a region is selected."
-  (interactive)
-  (if (my:region-active)
-      (call-interactively #'downcase-region)
-    (call-interactively #'downcase-word)))
+(defun my:backward-delete-word (arg)
+  (interactive "p")
+  (my:delete-word (- arg)))
 
-(defun my:capitalize-region-or-word ()
-  "Call `capitalize-region' or `capitalize-word'
+(unless (fboundp 'updase-dwin)
+  (defun updase-dwim (arg)
+    "Call `upcase-region' or `upcase-word'
 depending on whether or not a region is selected."
-  (interactive)
-  (if (my:region-active)
-      (call-interactively #'capitalize-region)
-    (call-interactively #'capitalize-word)))
+    (interactive "*p")
+    (if (use-region-p)
+        (upcase-region (region-beginning) (region-end))
+      (upcase-word arg))))
+
+(unless (fboundp 'downcase-dwim)
+  (defun downcase-dwim (arg)
+    "Call `downcase-region' or `downcase-word'
+depending on whether or not a region is selected."
+    (interactive "*p")
+    (if (use-region-p)
+        (downcase-region (region-beginning) (region-end))
+      (downcase-word arg))))
+
+(unless (fboundp 'capitalize-dwim)
+  (defun capitalize-dwim (arg)
+    "Call `capitalize-region' or `capitalize-word'
+depending on whether or not a region is selected."
+    (interactive "*p")
+    (if (my:region-active)
+        (capitalize-region (region-beginning) (region-end))
+      (capitalize-word arg))))
 
 (defun my:join-line (&optional ARG)
   "Backward from `delete-indentation'.

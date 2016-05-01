@@ -145,17 +145,27 @@
  ("C-x C-c" #'switch-to-buffer)
 
  ;; Editing
- ("C-w"           #'my:kill-region-or-word)
- ("C-S-w"         #'kill-region)
- ("C-x C-;"       #'comment-or-uncomment-region)
- ("M-<backspace>" #'my:kill-line-to-indent)
- ("M-<delete>"    #'kill-line)
- ("M-k"           #'kill-whole-line)
- ("M-j"           #'my:join-line)
+ ("C-w" #'my:kill-region-or-word)
+ ("C-S-w" #'kill-region)
+ ("C-x C-;" #'comment-or-uncomment-region)
 
- ([remap capitalize-word] #'my:capitalize-region-or-word)
- ([remap upcase-word] #'my:upcase-region-or-word)
- ([remap downcase-word] #'my:downcase-region-or-word)
+ ("C-h" #'delete-backward-char)
+ ("M-h" #'my:backward-delete-word)
+
+ ("M-<backspace>"
+  [remap backward-kill-word] #'my:backward-delete-word)
+ ("M-<delete>"
+  [remap kill-word] #'my:delete-word)
+
+ ("C-<backspace>" #'my:kill-line-to-indent)
+ ("C-<delete>"    #'kill-line)
+
+ ("M-k" #'kill-whole-line)
+ ("M-j" #'my:join-line)
+
+ ([remap capitalize-word] #'capitalize-dwim)
+ ([remap upcase-word] #'upcase-dwim)
+ ([remap downcase-word] #'downcase-dwim)
 
  ;; Window management
  ("C-c w <left>"  #'windmove-left)
