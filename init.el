@@ -6,6 +6,8 @@
 
 ;; (package-initialize)
 
+(prefer-coding-system 'utf-8-unix)
+
 (defun -in-dir (name &optional root)
   "Convert name to absolute path.
 NAME - directory name
