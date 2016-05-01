@@ -43,7 +43,7 @@ With argument ARG, do this that many times."
   (interactive "p")
   (my:delete-word (- arg)))
 
-(unless (fboundp 'upcase-dwin)
+(unless (fboundp 'upcase-dwim)
   (defun upcase-dwim (arg)
     "Call `upcase-region' or `upcase-word'
 depending on whether or not a region is selected."
