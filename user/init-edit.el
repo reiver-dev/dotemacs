@@ -43,8 +43,8 @@ With argument ARG, do this that many times."
   (interactive "p")
   (my:delete-word (- arg)))
 
-(unless (fboundp 'updase-dwin)
-  (defun updase-dwim (arg)
+(unless (fboundp 'upcase-dwin)
+  (defun upcase-dwim (arg)
     "Call `upcase-region' or `upcase-word'
 depending on whether or not a region is selected."
     (interactive "*p")
@@ -66,7 +66,7 @@ depending on whether or not a region is selected."
     "Call `capitalize-region' or `capitalize-word'
 depending on whether or not a region is selected."
     (interactive "*p")
-    (if (my:region-active)
+    (if (use-region-p)
         (capitalize-region (region-beginning) (region-end))
       (capitalize-word arg))))
 
