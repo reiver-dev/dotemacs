@@ -228,11 +228,6 @@
             (add-hook 'term-mode-hook
                       (lambda () (yas-minor-mode -1)))))
 
-(my:with-package function-args
-  :ensure t
-  :init (my:with-eval-after-load semantic
-          (fa-config-default)))
-
 ;; External tools
 (my:with-package ag
   :ensure t
@@ -259,53 +254,10 @@
                     ("C-M-." #'ggtags-find-tag-regexp)))
 
 ;; Project management and project tree
-(my:with-package neotree
-  :ensure t
-  :init (my:kmap ("<f5>" #'neotree-show)
-                 ("<f6>" #'neotree-find))
-  :config (progn
-            (defun my:neotree-create-window ()
-              "Create global NeoTree window. Split root window."
-              (let ((window nil)
-                    (buffer (neo-global--get-buffer t))
-                    (root (frame-root-window (selected-frame))))
-                (setq window
-                      (split-window root (- neo-window-width) 'left))
-                (select-window window)
-                (neo-window--init window buffer)
-                (setq neo-global--window window)
-                window))
-            (defun my:neotree-insert-symbol (name)
-              (cond ((equal name 'open) (neo-buffer--insert-with-face
-                                         "- " 'neo-expand-btn-face))
-                    ((equal name 'close) (neo-buffer--insert-with-face
-                                          "+ " 'neo-expand-btn-face))
-                    ((equal name 'leaf) (insert-char ?\s 2))))
-            (if (fboundp #'neo-global--create-window)
-                (fset #'neo-global--create-window
-                      #'my:neotree-create-window))
-            (if (fboundp #'neo-buffer--insert-fold-symbol)
-                (fset #'neo-buffer--insert-fold-symbol
-                      #'my:neotree-insert-symbol))
-            ;; Allow delete window
-            (setq-default neo-persist-show nil
-                          neo-hidden-files-regexp "\\(^\\.\\|.py[cd]\\)"
-                          neo-theme 'ascii)
-            ;; Add jk movement
-            (my:kmap* neotree-mode-map
-                      ("r" #'neotree-refresh)
-                      ("h" #'neotree-hidden-file-toggle)
-                      ("a" #'neotree-stretch-toggle)
-                      ("p" #'neotree-previous-line)
-                      ("n" #'neotree-next-line)
-                      ("k" #'neotree-previous-line)
-                      ("j" #'neotree-next-line))))
-
 (my:with-package projectile
   :ensure t
   :init (projectile-global-mode)
   :config (progn
-            (my:kmap "<f7>" #'neotree-projectile-action)
             ;; Try to emulate ede (from CEDET) project
             (my:with-eval-after-load semanticdb
               (setq-default semanticdb-project-root-functions
