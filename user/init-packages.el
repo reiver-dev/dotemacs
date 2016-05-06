@@ -235,6 +235,8 @@
 
 (my:with-package magit
   :ensure t
+  :init (my:kmap
+         ("<f5>" #'magit-status))
   :config (setq-default
            ;; by-word diff
            magit-diff-refine-hunk t))
