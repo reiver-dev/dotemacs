@@ -256,6 +256,25 @@
                     ("C-M-." #'ggtags-find-tag-regexp)))
 
 ;; Project management and project tree
+(my:with-package dired+
+  :ensure t
+  :init (progn
+          (setq-default
+           dired-hide-details-hide-symlink-targets nil
+           dired-omit-verbose nil
+           font-lock-maximum-decoration (quote ((dired-mode . 1) (t . t)))
+           diredp-hide-details-initially-flag t
+           diredp-hide-details-propagate-flag t)
+          (diredp-toggle-find-file-reuse-dir t)
+          (defun my:dired-setup ()
+            (dired-omit-mode t))
+          (add-hook 'dired-mode-hook #'my:dired-setup)))
+
+(my:with-package diff-hl
+  :ensure t
+  :defer t
+  :init (global-diff-hl-mode))
+
 (my:with-package projectile
   :ensure t
   :init (projectile-global-mode)
