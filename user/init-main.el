@@ -99,6 +99,14 @@
   (setq show-trailing-whitespace t)
   (whitespace-mode t))
 
+
+(setq-default dired-listing-switches "-lhvA"
+              dired-clean-up-buffers-too t
+              dired-recursive-copies 'always
+              dired-recursive-deletes 'top
+              dired-hide-details-hide-symlink-targets nil)
+
+
 (add-hook 'prog-mode-hook #'my:prog-mode-setup)
 (add-hook 'nxml-mode #'my:prog-mode-setup)
 
