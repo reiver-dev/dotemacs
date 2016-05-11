@@ -47,7 +47,9 @@
 ;; Whitespace
 (setq-default whitespace-line-column 79
               whitespace-style
-              '(face trailing tab-mark lines-tail))
+              '(face trailing empty indentation
+                     space-before-tab space-after-tab))
+
 
 ;; Misc settings
 (defun my:bell-function ()
