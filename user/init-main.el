@@ -241,14 +241,6 @@
   ;; We have `my:kill-region-or-word' already
   (my:kmap* comint-mode-map ("C-c C-w" nil)))
 
-;; org-mode
-(my:with-eval-after-load org
-  (setq-default org-src-fontify-natively t
-                ;; set maximum indentation for description lists
-                org-list-description-max-indent 5
-                ;; prevent demoting heading also shifting text inside sections
-                org-adapt-indentation nil))
-
 
 (defun my:large-file? ()
   (< large-file-warning-threshold (buffer-size)))
@@ -277,9 +269,10 @@
                   (awk-mode . "awk")
                   (other . "gnu"))))
 
-;; CEDET
+
 (package-initialize)
 (require 'init-packages)
+(require 'init-org)
 
 (provide 'init-main)
 
