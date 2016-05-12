@@ -4,7 +4,7 @@
 
 ;;; Code:
 
-(require 'init-macro)
+(require 'init-package)
 
 (my:with-package ispell
   :if (executable-find "hunspell")

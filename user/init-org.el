@@ -4,7 +4,7 @@
 
 ;;; Code:
 
-(require 'init-macro)
+(require 'init-package)
 
 
 (setq-default org-ellipsis "⤵"

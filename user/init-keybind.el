@@ -6,9 +6,11 @@
 
 (require 'init-list)
 
+
 (defvar my:bindings-mode-map
   (make-sparse-keymap)
-  "Keymap for `my:bindings-mode'")
+  "Keymap for `my:bindings-mode'.")
+
 
 (define-minor-mode my:bindings-mode
   "My key bindings
@@ -16,11 +18,13 @@
   :global t
   :keymap my:bindings-mode-map)
 
+
 (my:bindings-mode t)
 
+
 (defmacro my:kmap* (keymap &rest bindings)
-  "Macro for binding keys to `keymap'
-should get (kbd1 kbd2 .. function) as arguments"
+  "Binding keys to KEYMAP.
+Should get (kbd1 kbd2 .. function) as BINDINGS args"
   (let ((result
          (my:mapcan
           (lambda (bind)
@@ -36,14 +40,17 @@ should get (kbd1 kbd2 .. function) as arguments"
         `(progn ,@result)
       (car result))))
 
+
 (defmacro my:kmap (&rest bindings)
-  "Macro sets bindins to \\[my:bindings-mode-map] keymap"
+  "Set BINDINGS to `my:bindings-mode-map' keymap.
+See `my:kmap*'."
   (if (stringp (car bindings))
       `(my:kmap* my:bindings-mode-map ,bindings)
     `(my:kmap* my:bindings-mode-map ,@bindings)))
 
+
 (defun my:minibuffer-set-key (key command)
-  "Binds key to all common minibuffer states"
+  "Bind KEY with COMMAND to all common minibuffer states."
   (dolist (m (list minibuffer-local-map
                    minibuffer-local-ns-map
                    minibuffer-local-completion-map
@@ -51,10 +58,13 @@ should get (kbd1 kbd2 .. function) as arguments"
                    minibuffer-local-isearch-map))
     (define-key m key command)))
 
+
 (defun my:global-unset-command (command)
-  "Unsets all key binding for COMMAND symbol. See `global-unset-key'."
+  "Unset all key binding for COMMAND symbol.
+See `global-unset-key'."
   (let ((bindings (where-is-internal command)))
     (mapc (lambda (bnd) (global-unset-key bnd)) bindings)))
+
 
 (provide 'init-keybind)
 

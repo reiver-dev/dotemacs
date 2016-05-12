@@ -5,29 +5,27 @@
 ;;; Code:
 
 (defun my:push-mark-no-activate ()
-  "Calls `push-mark' like `push-mark-command' but withoug activation"
+  "Call `push-mark' like `push-mark-command' but without activation."
   (interactive)
   (push-mark))
 
 ;; Do not activate mark during jump
-(defun my:exchange-point-and-mark (&optional ARG)
-  "Inverse `exchange-point-and-mark' prefix argument
- when mark is not active (`mark-active')"
+(defun my:exchange-point-and-mark (&optional arg)
+  "Inverses prefix ARG of `exchange-point-and-mark'when mark is not active (see `mark-active')."
   (interactive "P")
   (exchange-point-and-mark
-   (if mark-active ARG (not ARG))))
+   (if mark-active arg (not arg))))
 
 (defun my:kill-line-to-indent ()
-  "Kills line backward (opposite to `kill-line')
-and indents after that"
+  "Kill line backward (opposite to `kill-line') and indent after that."
   (interactive)
   (kill-line 0)
   (indent-according-to-mode))
 
 ;; Region dependent choices
 (defun my:kill-region-or-word (arg)
-  "Call `kill-region' or `backward-kill-word'
-depending on whether or not a region is selected."
+  "Call `kill-region' or `backward-kill-word' when regin is active or not.
+ARG sets number of words to kill backward when region is not active."
   (interactive "*p")
   (if (use-region-p)
       (kill-region (region-beginning) (region-end))
@@ -40,6 +38,8 @@ With argument ARG, do this that many times."
   (delete-region (point) (progn (forward-word arg) (point))))
 
 (defun my:backward-delete-word (arg)
+  "Delete word backward until encountering end of previous word.
+With argument ARG, do this many times."
   (interactive "p")
   (my:delete-word (- arg)))
 
@@ -73,7 +73,7 @@ depending on whether or not a region is selected."
 (defun my:join-line (&optional ARG)
   "Backward from `delete-indentation'.
 Joins this line to following line.
-With argument, join this line to previous line"
+With ARG join this line to previous line"
   (interactive "P")
   (delete-indentation (unless ARG t)))
 
@@ -93,9 +93,9 @@ With argument, join this line to previous line"
   (indent-according-to-mode))
 
 (defun my:minibuffer-keyboard-quit ()
-  "Abort recursive edit. In Delete Selection mode,
- if the mark is active, just deactivate it;
-then it takes a second \\[keyboard-quit] to abort the minibuffer."
+  "Abort recursive edit.
+In Delete Selection mode, if the mark is active, just deactivate it;
+then take a second `keyboard-quit' to abort the minibuffer."
   (interactive)
   (if (and delete-selection-mode transient-mark-mode mark-active)
       (deactivate-mark)
@@ -104,12 +104,12 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     (abort-recursive-edit)))
 
 (defun my:kill-buffer ()
-  "Kills current active buffer without prompt"
+  "Kill current active buffer without prompt."
   (interactive)
   (kill-buffer (current-buffer)))
 
 (defun my:kill-buffer-and-window ()
-  "Kills current active buffer without prompt, closes window too"
+  "Kill current active buffer without prompt then close current window."
   (interactive)
   (let ((buf (current-buffer)))
     (unless (one-window-p)
@@ -117,11 +117,13 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     (kill-buffer buf)))
 
 (defun my:hippie-expand-no-case-fold ()
+  "Call `hippie-expand' but without `case-fold-search'."
   (interactive)
   (let ((case-fold-search nil))
     (call-interactively #'hippie-expand)))
 
 (defun my:hippie-expand-files ()
+  "Call `hippie-expand' for filename completion."
   (interactive)
   (let ((hippie-expand-try-functions-list
          '(try-complete-file-name-partially

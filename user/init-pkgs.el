@@ -1,10 +1,10 @@
-;;; init-packages.el --- Main config file  -*- lexical-binding: t -*-
+;;; init-pkgs.el --- Main config file  -*- lexical-binding: t -*-
 
 ;;; Commentary:
 
 ;;; Code:
 
-(require 'init-macro)
+(require 'init-package)
 (require 'init-keybind)
 
 (defconst my:user-dir (file-name-directory
@@ -170,10 +170,10 @@
             (setq-default helm-display-function
                           #'my:helm-display-buffer)
             ;; Bindings, C-c ; to work in terminal
-            (my:with-eval-after-load semantic
+            (with-eval-after-load 'semantic
               (my:kmap "C-; i" "C-c ; i" #'helm-semantic-or-imenu))
             ;; Free for backward-kill-word
-            (my:with-eval-after-load helm-files
+            (with-eval-after-load 'helm-files
               (my:kmap* helm-find-files-map ("C-<backspace>" nil)))
             (my:kmap* helm-map
                       ("C-i" #'helm-execute-persistent-action)
@@ -195,7 +195,7 @@
                           ;; Put semantic backend on separate key
                           company-backends
                           (remove 'company-semantic company-backends))
-            (my:with-eval-after-load semantic
+            (with-eval-after-load 'semantic
               (defun my:company-semantic-setup ()
                 "Sets `company-semantic' keybind locally"
                 (local-set-key (kbd "C-<return>") #'company-semantic))
@@ -216,7 +216,7 @@
              '(yas-ido-prompt yas-completing-prompt yas-no-prompt))
             ;; Just custom snippet dir
             (add-to-list 'yas-snippet-dirs my:snippets-dir)
-            (my:with-eval-after-load smartparens
+            (with-eval-after-load 'smartparens
               (advice-add #'yas-expand :before
                           #'(lambda ()
                               "Escape from `smartparens-mode' overlay"
@@ -274,7 +274,7 @@
   :init (projectile-global-mode)
   :config (progn
             ;; Try to emulate ede (from CEDET) project
-            (my:with-eval-after-load semanticdb
+            (with-eval-after-load 'semanticdb
               (setq-default semanticdb-project-root-functions
                             projectile-project-root-files-functions))))
 
@@ -301,14 +301,14 @@
 
 (my:with-package company-anaconda
   :ensure t
-  :init (my:with-eval-after-load anaconda-mode
+  :init (with-eval-after-load 'anaconda-mode
           (add-to-list 'company-backends #'company-anaconda)))
 
 (my:with-package company-c-headers
   :ensure t
   :config (progn
             ;; Get include path from Semantic
-            (my:with-eval-after-load semantic/dep
+            (with-eval-after-load 'semantic/dep
               (setq company-c-headers-path-system #'my:system-include-path))
             (add-to-list 'company-backends #'company-c-headers)))
 
@@ -354,7 +354,7 @@
                                  (list #'company-c-headers #'company-irony)))
             (my:with-package flycheck-irony
               :ensure t
-              :init (my:with-eval-after-load flycheck
+              :init (with-eval-after-load 'flycheck
                       (flycheck-irony-setup)))
             (my:with-package irony-eldoc
               :ensure t
@@ -370,6 +370,6 @@
   :config (progn
             (add-hook 'cider-repl-mode-hook #'my:lisp-setup-paredit)))
 
-(provide 'init-packages)
+(provide 'init-pkgs)
 
-;;; init-packages.el ends here
+;;; init-pkgs.el ends here

@@ -4,14 +4,14 @@
 
 ;;; Code:
 
-(require 'init-macro)
+(require 'init-package)
 (require 'init-keybind)
 (require 'init-wm)
 (require 'init-project)
 (require 'init-edit)
 (require 'init-spellcheck)
 
-(my:with-eval-after-load package
+(with-eval-after-load 'package
   (add-to-list 'package-archives
                '("marmelade" . "https://marmalade-repo.org/packages/"))
   (add-to-list 'package-archives
@@ -217,7 +217,7 @@
                 try-complete-lisp-symbol))
 
 ;; Ediff
-(my:with-eval-after-load ediff
+(with-eval-after-load 'ediff
   (setq-default
    ;; run control panel in same frame
    ediff-window-setup-function #'ediff-setup-windows-plain))
@@ -237,7 +237,7 @@
               comint-process-echoes t
               comint-scroll-to-bottom-on-input t)
 
-(my:with-eval-after-load comint
+(with-eval-after-load 'comint
   ;; We have `my:kill-region-or-word' already
   (my:kmap* comint-mode-map ("C-c C-w" nil)))
 
@@ -271,7 +271,7 @@
 
 
 (package-initialize)
-(require 'init-packages)
+(require 'init-pkgs)
 (require 'init-org)
 
 (provide 'init-main)
