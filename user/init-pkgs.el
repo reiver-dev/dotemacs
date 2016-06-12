@@ -133,50 +133,19 @@
              ("C-c C-o d" #'ace-delete-window))))
 
 
-(my:with-package helm
+(my:with-package ivy
   :ensure t
-  :init (progn
-          (setq-default helm-command-prefix-key (kbd "C-c h")
-                        helm-buffers-fuzzy-matching t
-                        helm-candidate-number-limit 500)
-          (autoload 'helm--completion-in-region "helm-mode")
-          (setq-default completion-in-region-function
-                        #'helm--completion-in-region)
-          (my:kmap ("M-x" #'helm-M-x)
-                   ("M-X" #'execute-extended-command)
-                   ("C-M-y" #'helm-show-kill-ring)
-                   ([remap describe-function] #'helm-apropos) ; Help-f
-                   ([remap switch-to-buffer] #'helm-mini) ; C-x b
-                   ("C-x C-c" #'helm-buffers-list)
-                   ("C-x C-f" #'helm-find-files)
-                   ("C-; i" "C-c ; i" #'helm-imenu)
-                   ("C-; t" "C-c ; t" #'helm-etags-select)
-                   ("C-; m" "C-c ; m" #'helm-all-mark-rings)
-                   ("C-; e" "C-c ; e" #'helm-list-emacs-process)
-                   ("C-; r" "C-c ; r" #'helm-resume))
-          (require 'helm-config))
-  :config (progn
-            ;; Prevent winner from restoring helm buffers
-            (defun my:helm-display-buffer (buffer)
-              "Adds buffer name to `winner-boring-buffers' before openning"
-              (if (boundp 'winner-boring-buffers)
-                  (add-to-list 'winner-boring-buffers buffer))
-              (let* ((height (min (/ (frame-height) 2) 16))
-                     (win (split-window (frame-root-window)
-                                        (- height) 'below)))
-                (set-window-buffer win buffer)))
-            (setq-default helm-display-function
-                          #'my:helm-display-buffer)
-            ;; Bindings, C-c ; to work in terminal
-            (with-eval-after-load 'semantic
-              (my:kmap "C-; i" "C-c ; i" #'helm-semantic-or-imenu))
-            ;; Free for backward-kill-word
-            (with-eval-after-load 'helm-files
-              (my:kmap* helm-find-files-map ("C-<backspace>" nil)))
-            (my:kmap* helm-map
-                      ("C-i" #'helm-execute-persistent-action)
-                      ("<tab>" #'helm-execute-persistent-action)
-                      ("C-z" #'helm-select-action))))
+  :init (ivy-mode t))
+
+
+(my:with-package counsel
+  :ensure t
+  :init (counsel-mode t)
+  :config (my:kmap*
+           counsel-mode-map
+           ([remap yank-pop] nil)
+           ("C-M-y" #'counsel-yank-pop)))
+
 
 ;; Completion
 (my:with-package company
@@ -269,20 +238,15 @@
 
 (my:with-package projectile
   :ensure t
-  :init (projectile-global-mode)
+  :init (progn
+          (setq-default projectile-completion-system 'ivy)
+          (projectile-global-mode))
   :config (progn
             ;; Try to emulate ede (from CEDET) project
             (with-eval-after-load 'semanticdb
               (setq-default semanticdb-project-root-functions
                             projectile-project-root-files-functions))))
 
-(my:with-package helm-projectile
-  :ensure t
-  :defer t
-  :init (progn
-          (my:kmap "C-; p" "C-c ; p" #'helm-projectile)
-          (helm-projectile-on)
-          (fset #'helm-projectile-ag #'projectile-ag)))
 
 ;; Language specific
 (my:with-package anaconda-mode
