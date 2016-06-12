@@ -77,6 +77,25 @@ With ARG join this line to previous line"
   (interactive "P")
   (delete-indentation (unless ARG t)))
 
+(defun my:open-line (arg)
+  "Move to the next line and then opens a line.
+See also `newline-and-indent'."
+  (interactive "p")
+  (if (>= arg 0)
+      (progn
+        (end-of-line)
+        (newline arg 'interactive))
+    (progn (beginning-of-line)
+           (newline (abs arg) 'interactive)
+           (forward-line -1)
+           (indent-according-to-mode))))
+
+(defun my:open-line-back (arg)
+  "Open a new line before the current one.
+See also `newline-and-indent'."
+  (interactive "p")
+  (my:open-line (- arg)))
+
 (defun my:move-line-up ()
   "Move up the current line."
   (interactive)

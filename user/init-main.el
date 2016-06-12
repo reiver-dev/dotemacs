@@ -125,6 +125,8 @@
 (global-unset-key (kbd "C-z"))
 ;; Use that for instant bindings
 (global-unset-key (kbd "<menu>"))
+;; Free face modification group as it is never used
+(global-unset-key (kbd "M-o"))
 
 (mapc #'my:global-unset-command
       '(upcase-region downcase-region capitalize-region))
@@ -139,7 +141,7 @@
  ;; Jumping
  ([remap exchange-point-and-mark] #'my:exchange-point-and-mark) ; "C-x C-x"
  ("C-x m" #'my:push-mark-no-activate)
- ("C-c o" #'ff-find-other-file)
+ ("C-; o" #'ff-find-other-file)
  ("C-; i" #'imenu)
 
  ;; Vim's word jumping
@@ -172,27 +174,25 @@
 
  ("M-k" #'kill-whole-line)
  ("M-j" #'my:join-line)
+ ([remap open-line] #'my:open-line)
+ ("M-o" #'my:open-line-back)
 
  ([remap capitalize-word] #'capitalize-dwim)
  ([remap upcase-word] #'upcase-dwim)
  ([remap downcase-word] #'downcase-dwim)
 
  ;; Window management
- ("C-c w <left>"  #'windmove-left)
- ("C-c w <down>"  #'windmove-down)
- ("C-c w <up>"    #'windmove-up)
- ("C-c w <right>" #'windmove-right)
+ ("C-c C-o h" "C-c C-o <left>" #'windmove-left)
+ ("C-c C-o j" "C-c C-o <down>" #'windmove-down)
+ ("C-c C-o k" "C-c C-o <up>" #'windmove-up)
+ ("C-c C-o l" "C-c C-o <right>" #'windmove-right)
 
- ("C-c w h" #'windmove-left)
- ("C-c w j" #'windmove-down)
- ("C-c w k" #'windmove-up)
- ("C-c w l" #'windmove-right)
-
- ("C-c w r" #'my:resize-window)
- ("C-c w n" #'my:detach-window)
+ ("C-c C-o r" #'my:resize-window)
+ ("C-c C-o n" #'my:detach-window)
 
  ("<f9>" #'my:toggle-window-dedicated)
- ("<f8>" #'compile))
+ ("<f8>" #'compile)
+ ("<f5>" #'revert-buffer))
 
 (if (eq (lookup-key (current-global-map) (kbd "M-*"))
         'pop-tag-mark)

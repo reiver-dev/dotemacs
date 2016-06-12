@@ -111,7 +111,9 @@
 
 (my:with-package avy
   :ensure t
-  :init (my:kmap "C-:" #'avy-goto-word-1))
+  :init (progn
+          (setq-default avy-background t)
+          (my:kmap "C-; p" #'avy-goto-word-1)))
 
 (my:with-package ace-window
   :ensure t
@@ -125,10 +127,10 @@
     (defun my:ace-move-window ()
       (interactive)
       (aw-select " Ace - Move Window" #'my:aw-put-window))
-    (my:kmap ("C-c C-w" "C-c w w" #'ace-window)
-             ("C-c w m" #'my:ace-move-window)
-             ("C-c w s" #'ace-swap-window)
-             ("C-c w d" #'ace-delete-window))))
+    (my:kmap ("C-c o" #'ace-window)
+             ("C-c C-o m" #'my:ace-move-window)
+             ("C-c C-o s" #'ace-swap-window)
+             ("C-c C-o d" #'ace-delete-window))))
 
 
 (my:with-package helm
@@ -232,7 +234,7 @@
 (my:with-package magit
   :ensure t
   :init (my:kmap
-         ("<f5>" #'magit-status))
+         ("<f6>" #'magit-status))
   :config (setq-default
            ;; by-word diff
            magit-diff-refine-hunk t))
