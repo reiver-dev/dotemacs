@@ -51,10 +51,6 @@
            ;; kill-region do not work with `multiple-cursors-mode'
            iy-go-to-char-override-local-map nil))
 
-(my:with-package which-key
-  :ensure t
-  :init (which-key-mode t))
-
 (defvar my:paredit-extended-mode-map (make-sparse-keymap)
   "Keymap for `my:paredit-exteded-mode'")
 (define-minor-mode my:paredit-extended-mode
