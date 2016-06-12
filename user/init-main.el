@@ -242,7 +242,7 @@
   (my:kmap* comint-mode-map ("C-c C-w" nil)))
 
 
-(defun my:large-file? ()
+(defun my:large-file-p ()
   (< large-file-warning-threshold (buffer-size)))
 
 (define-derived-mode my:large-file-mode fundamental-mode "LargeFile"
@@ -250,7 +250,7 @@
   (setq bidi-display-reordering nil))
 
 (add-to-list 'magic-mode-alist
-             (cons #'my:large-file? #'my:large-file-mode))
+             (cons #'my:large-file-p #'my:large-file-mode))
 
 ;; C/C++
 (defconst my:c-style
