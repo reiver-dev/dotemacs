@@ -39,7 +39,7 @@
          ("M-s m" #'vr/mc-mark))
   :config (progn
             (setq-default vr/auto-show-help nil)
-            (my:kmap* vr/minibuffer-replace-keymap
+            (my:kmap* vr/minibuffer-keymap
                       ("C-c p" nil) ;; Will be shadowed by projectile
                       ("C-c v" #'vr--shortcut-toggle-preview))))
 
