@@ -18,7 +18,7 @@
 
 (defun my:kill-line-to-indent ()
   "Kill line backward (opposite to `kill-line') and indent after that."
-  (interactive)
+  (interactive "*")
   (kill-line 0)
   (indent-according-to-mode))
 
@@ -34,13 +34,13 @@ ARG sets number of words to kill backward when region is not active."
 (defun my:delete-word (arg)
   "Delete characters forward until encountering the end of a word.
 With argument ARG, do this that many times."
-  (interactive "p")
+  (interactive "*p")
   (delete-region (point) (progn (forward-word arg) (point))))
 
 (defun my:backward-delete-word (arg)
   "Delete word backward until encountering end of previous word.
 With argument ARG, do this many times."
-  (interactive "p")
+  (interactive "*p")
   (my:delete-word (- arg)))
 
 (unless (fboundp 'upcase-dwim)
@@ -70,42 +70,46 @@ depending on whether or not a region is selected."
         (capitalize-region (region-beginning) (region-end))
       (capitalize-word arg))))
 
-(defun my:join-line (&optional ARG)
+(defun my:join-line (arg)
   "Backward from `delete-indentation'.
 Joins this line to following line.
 With ARG join this line to previous line"
-  (interactive "P")
-  (delete-indentation (unless ARG t)))
+  (interactive "*p")
+  (let ((join? (if (>= arg 0) t nil))
+        (counter (abs arg)))
+    (while (> counter 0)
+      (delete-indentation join?)
+      (setq counter (1- counter)))))
 
 (defun my:open-line (arg)
   "Move to the next line and then opens a line.
 See also `newline-and-indent'."
-  (interactive "p")
-  (if (>= arg 0)
-      (progn
-        (end-of-line)
-        (newline arg 'interactive))
-    (progn (beginning-of-line)
-           (newline (abs arg) 'interactive)
-           (forward-line -1)
-           (indent-according-to-mode))))
+  (interactive "*p")
+  (cond ((> arg 0)
+         (end-of-line)
+         (newline arg 'interactive))
+        ((< arg 0)
+         (beginning-of-line)
+         (newline (abs arg) 'interactive)
+         (forward-line -1)
+         (indent-according-to-mode))))
 
 (defun my:open-line-back (arg)
   "Open a new line before the current one.
 See also `newline-and-indent'."
-  (interactive "p")
+  (interactive "*p")
   (my:open-line (- arg)))
 
 (defun my:move-line-up ()
   "Move up the current line."
-  (interactive)
+  (interactive "*")
   (transpose-lines 1)
   (forward-line -2)
   (indent-according-to-mode))
 
 (defun my:move-line-down ()
   "Move down the current line."
-  (interactive)
+  (interactive "*")
   (forward-line 1)
   (transpose-lines 1)
   (forward-line -1)
