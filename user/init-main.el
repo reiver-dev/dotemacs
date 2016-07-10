@@ -219,11 +219,28 @@
 ;; Comint
 (setq-default comint-prompt-read-only t
               comint-process-echoes t
-              comint-scroll-to-bottom-on-input t)
+              comint-scroll-to-bottom-on-input t
+              comint-scroll-to-bottom-on-output t
+              comint-input-ignoredups t)
 
 (with-eval-after-load 'comint
   ;; We have `my:kill-region-or-word' already
   (my:kmap* comint-mode-map ("C-c C-w" nil)))
+
+
+;; Eshell
+(setq-default eshell-scroll-to-bottom-on-input t)
+
+(defun eshell/ff (&rest args)
+ (dolist (f args)
+   (find-file f t)))
+
+(defun eshell/fo (&rest args)
+  (dolist (f args)
+    (find-file-other-window f t)))
+
+(defun eshell/d (&rest args)
+  (dired (pop dir) "."))
 
 
 (defun my:large-file-p ()
