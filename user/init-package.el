@@ -16,7 +16,33 @@ re-downloaded in order to locate PACKAGE."
         (package-install package)
       (progn
         (package-refresh-contents)
-        (require-package package min-version t)))))
+        (my:require-package package min-version t)))))
+
+
+(defun my:macro-require (form)
+  "Try to load FORM.
+Form can be symbol, string or (quote form)."
+  (if (with-no-warnings
+        (cond ((symbolp form) (require form nil t))
+              ((stringp form) (load form t t))
+              ((and (consp form) (eq (car form) 'quote))
+               (require (car (cdr form)) nil t))
+              (t (error "Macro-require: cannot load form %s" form))))
+      (progn (message "Macro-require: loaded %s" form) t)
+    (progn (message "Macro-require: failed to load %s" form) nil)))
+
+
+(defmacro with-eval-after-load (file &rest body)
+  "Wait until FILE loaded to execute BODY.
+FILE is normally a feature name, but it can also be a file name,
+in case that file does not provide any feature.  See `eval-after-load'
+for more details about the different forms of FILE and their semantics."
+  (declare (indent 1) (debug t))
+  `(,(if (or (not (boundp 'byte-compile-current-file))
+             (not byte-compile-current-file)
+             (my:macro-require file))
+         'progn 'with-no-warnings)
+    (eval-after-load ,file (lambda () ,@body))))
 
 
 (defmacro my:with-package (name &rest args)

@@ -135,20 +135,6 @@ then take a second `keyboard-quit' to abort the minibuffer."
       (delete-window))
     (kill-buffer buf)))
 
-(defun my:hippie-expand-no-case-fold ()
-  "Call `hippie-expand' but without `case-fold-search'."
-  (interactive)
-  (let ((case-fold-search nil))
-    (call-interactively #'hippie-expand)))
-
-(defun my:hippie-expand-files ()
-  "Call `hippie-expand' for filename completion."
-  (interactive)
-  (let ((hippie-expand-try-functions-list
-         '(try-complete-file-name-partially
-           try-complete-file-name)))
-    (call-interactively #'hippie-expand)))
-
 
 (provide 'init-edit)
 

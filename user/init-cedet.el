@@ -7,7 +7,7 @@
 (require 'init-package)
 
 
-(with-eval-after-load semantic
+(with-eval-after-load 'semantic
 
   (defun my:cedet-setup ()
     "Local settings for function `semantic-mode'."
@@ -31,11 +31,14 @@
   (add-hook 'c-mode-hook 'my:cedet-setup)
   (add-hook 'c++-mode-hook 'my:cedet-setup))
 
-(with-eval-after-load semantic/dep
+(with-eval-after-load 'semantic/dep
   (defun my:system-include-path ()
     "Just returns `semantic-dependency-system-include-path'
 to feed to other packages"
-    semantic-dependency-system-include-path))
+    semantic-dependency-system-include-path)
+  (with-eval-after-load 'company-c-headers
+    (setq company-c-headers-path-system 'my:system-include-path)))
+
 
 (provide 'init-cedet)
 

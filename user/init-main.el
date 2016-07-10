@@ -132,9 +132,6 @@
       '(upcase-region downcase-region capitalize-region))
 
 (my:kmap
- ([remap dabbrev-expand] #'hippie-expand) ; "M-/"
- ([remap dabbrev-completion] #'my:hippie-expand-files) ; "C-M-/"
-
  ;; To always keep M-x available
  ("M-X" #'execute-extended-command)
 
@@ -203,19 +200,6 @@
 
 ;;; Mode Settings
 
-;; hippie settings from Prelude
-(setq-default hippie-expand-try-functions-list
-              '(try-expand-dabbrev
-                try-expand-dabbrev-all-buffers
-                try-expand-dabbrev-from-kill
-                try-complete-file-name-partially
-                try-complete-file-name
-                try-expand-all-abbrevs
-                try-expand-list
-                try-expand-line
-                try-complete-lisp-symbol-partially
-                try-complete-lisp-symbol))
-
 ;; Ediff
 (with-eval-after-load 'ediff
   (setq-default
@@ -252,27 +236,35 @@
 (add-to-list 'magic-mode-alist
              (cons #'my:large-file-p #'my:large-file-mode))
 
-;; C/C++
-(defconst my:c-style
-  '("linux"
-    (c-basic-offset . 4)
-    (c-offsets-alist
-     (innamespace . 0)
-     (inline-open . 0))))
 
-(with-eval-after-load 'cc-mode
-  (c-add-style "reiver" my:c-style)
-  (setq-default c-default-style
-                '((c-mode . "reiver")
-                  (c++-mode . "reiver")
-                  (java-mode . "java")
-                  (awk-mode . "awk")
-                  (other . "gnu"))))
+(defun my:process-region-with-command (command)
+  (let ((begin (if (region-active-p) (region-beginning) (point-min)))
+        (end (if (region-active-p) (region-end) (point-max))))
+    (shell-command-on-region begin end command nil t)))
+
+
+(defun my:reindent-xml ()
+  (interactive)
+  (my:process-region-with-command "xmllint --format -"))
+
+
+(defun my:reindent-json ()
+  (interactive)
+  (my:process-region-with-command "python -m json.tool"))
 
 
 (package-initialize)
+
 (require 'init-pkgs)
+(require 'init-parens)
+(require 'init-completion)
+(require 'init-cc)
+(require 'init-python)
+(require 'init-clojure)
 (require 'init-org)
+(require 'init-haskell)
+(require 'init-spellcheck)
+
 
 (provide 'init-main)
 
