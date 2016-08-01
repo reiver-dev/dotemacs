@@ -15,7 +15,9 @@
   (add-to-list 'package-archives
                '("marmelade" . "https://marmalade-repo.org/packages/"))
   (add-to-list 'package-archives
-               '("melpa" . "http://melpa.org/packages/")))
+               '("melpa" . "http://melpa.org/packages/"))
+  (add-to-list 'package-archives
+               '("org" . "http://orgmode.org/elpa/")))
 
 ;;; Appearance
 (require 'init-theme)
