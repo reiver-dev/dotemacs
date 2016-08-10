@@ -144,9 +144,7 @@
  ("C-; i" #'imenu)
 
  ;; Vim's word jumping
- ("M-a" (lambda (ARG)
-          (interactive "^p")
-          (forward-same-syntax (- ARG))))
+ ("M-a" #'my:backward-same-syntax)
  ("M-e" #'forward-same-syntax)
 
  ;; Buffers

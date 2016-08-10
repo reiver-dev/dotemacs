@@ -94,6 +94,11 @@ See also `newline-and-indent'."
          (forward-line -1)
          (indent-according-to-mode))))
 
+(defun my:backward-same-syntax (arg)
+  "Inverse ARG and call `forward-same-syntax'."
+  (interactive "^p")
+  (forward-same-syntax (- arg)))
+
 (defun my:open-line-back (arg)
   "Open a new line before the current one.
 See also `newline-and-indent'."
