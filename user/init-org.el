@@ -17,6 +17,20 @@
               org-adapt-indentation nil)
 
 
+(with-eval-after-load 'org
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((python . t))))
+
+
+(my:with-package ob-ipython
+  :ensure t
+  :init (with-eval-after-load 'org
+          (org-babel-do-load-languages
+           'org-babel-load-languages
+           '((ipython . t)))))
+
+
 (provide 'init-org)
 
 ;;; init-org.el ends here
