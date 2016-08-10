@@ -89,6 +89,9 @@
               sentence-end-double-space nil
               require-final-newline t)
 
+(show-paren-mode t)
+(electric-pair-mode t)
+
 (setq-default
  truncate-lines t ;; do not wrap lines
  bidi-display-reordering nil) ;; disable bidirectional text
