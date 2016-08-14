@@ -12,7 +12,6 @@
 (defconst my:user-dir (file-name-directory
                        (or load-file-name buffer-file-name)))
 
-(defconst my:snippets-dir (expand-file-name "snippets" user-emacs-directory))
 
 ;; hippie settings from Prelude
 (setq-default hippie-expand-try-functions-list
@@ -96,26 +95,13 @@
 (my:with-package yasnippet
   :ensure t
   :defer t
-  :init (progn
-          (unless (file-directory-p my:snippets-dir)
-            (make-directory my:snippets-dir))
-          (yas-global-mode t))
+  :init (yas-global-mode t)
   :config (progn
             ;; No more toolkit popups
             (setq-default
              yas-prompt-functions
              '(yas-ido-prompt yas-completing-prompt yas-no-prompt))
             ;; Just custom snippet dir
-            (add-to-list 'yas-snippet-dirs my:snippets-dir)
-            ;; (with-eval-after-load 'smartparens
-            ;;   (advice-add #'yas-expand :before
-            ;;               #'(lambda ()
-            ;;                   "Escape from `smartparens-mode' overlay"
-            ;;                   (let ((times 5))
-            ;;                     (while (and (> times 0)
-            ;;                                 (sp--get-active-overlay))
-            ;;                       (sp-remove-active-pair-overlay)
-            ;;                       (setq times (- times 1)))))))
             (add-hook 'term-mode-hook
                       (lambda () (yas-minor-mode -1)))))
 
