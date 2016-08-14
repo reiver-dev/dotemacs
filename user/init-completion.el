@@ -79,7 +79,6 @@
             (my:kmap* company-active-map
                       ("C-p" #'company-select-previous)
                       ("C-n" #'company-select-next))
-            (my:kmap "C-M-/" #'company-files)
             (setq-default company-tooltip-limit 20
                           ;; Put semantic backend on separate key
                           company-backends
