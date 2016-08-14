@@ -191,7 +191,6 @@
  ("C-c C-o n" #'my:detach-window)
 
  ("<f9>" #'my:toggle-window-dedicated)
- ("<f8>" #'compile)
  ("<f5>" #'revert-buffer))
 
 (if (eq (lookup-key (current-global-map) (kbd "M-*"))
@@ -231,6 +230,32 @@
   (my:kmap* comint-mode-map ("C-c C-w" nil)))
 
 
+;;; Compilation
+(setq compilation-ask-about-save nil        ;; save everything
+      compilation-scroll-output 'next-error ;; stop on error
+      compilation-skip-threshold 2)         ;; skip warnings
+
+(defun my:compile (comint)
+  "Compile without confirmation.
+With a prefix argument, use `comint-mode'."
+  (interactive "P")
+  ;; Do the command without a prompt.
+  (save-window-excursion
+    (compile (eval compile-command) (and comint t)))
+  ;; Create a compile window of the desired width.
+  (pop-to-buffer (get-buffer "*compilation*"))
+  (enlarge-window
+   (- (frame-width) 105 (window-width))
+   'horizontal))
+
+(with-eval-after-load 'compile
+  (my:kmap* compilation-shell-minor-mode-map
+            ("<f8>" "<C-<f8>" #'recompile)))
+
+(my:kmap* prog-mode-map
+          ("<f8>" #'my:compile)
+          ("C-<f8>" #'compile))
+
 ;; Eshell
 (setq-default eshell-scroll-to-bottom-on-input t)
 
@@ -245,7 +270,7 @@
 (defun eshell/d (&rest args)
   (dired (pop dir) "."))
 
-
+;; Disable everything for big files
 (defun my:large-file-p ()
   (< large-file-warning-threshold (buffer-size)))
 
@@ -257,6 +282,7 @@
              (cons #'my:large-file-p #'my:large-file-mode))
 
 
+;; External tools
 (defun my:process-region-with-command (command)
   (let ((begin (if (region-active-p) (region-beginning) (point-min)))
         (end (if (region-active-p) (region-end) (point-max))))
