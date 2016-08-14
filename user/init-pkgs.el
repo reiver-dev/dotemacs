@@ -101,7 +101,9 @@
 (my:with-package projectile
   :ensure t
   :init (progn
-          (setq-default projectile-completion-system 'ivy)
+          (setq-default projectile-completion-system 'ivy
+                        projectile-switch-project-action
+                        #'projectile-commander)
           (projectile-global-mode))
   :config (progn
             ;; Try to emulate ede (from CEDET) project
