@@ -19,6 +19,20 @@
   (add-to-list 'package-archives
                '("org" . "http://orgmode.org/elpa/")))
 
+
+(defun package--compile---no-safe (proc &rest args)
+  "Ignore unsaved files during package install"
+  (let ((old (symbol-function 'save-some-buffers)))
+    (unwind-protect
+        (progn (fset 'save-some-buffers 'ignore)
+               (apply proc args))
+      (fset 'save-some-buffers old))))
+
+
+(advice-add 'package--compile :around
+            #'package--compile---no-safe)
+
+
 ;;; Appearance
 (require 'init-theme)
 (enable-theme 'my:theme)
