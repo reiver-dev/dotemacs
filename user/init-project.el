@@ -7,8 +7,8 @@
 (require 'init-list)
 
 (defun my:current-fs-point ()
-  "Returns current `buffer-file-name' or `default-directory'"
-  (if (stringp buffer-file-name) buffer-file-name default-directory))
+  "Get current `buffer-file-name' or `default-directory'."
+  (or (buffer-file-name) default-directory))
 
 (defun my:parent-dir (target)
   "Just gets relative top directory for given TARGET path."
@@ -26,9 +26,10 @@ See `locate-dominating-file' for reference"
       default)))
 
 (defun my:files-in-below-directory (directory pattern &optional ignore)
-  "List the file names in DIRECTORY and in its sub-directories
-equal to PATTERN. Optional IGNORE argument can be list of names to ignore
-in recursive walk or function receiving directory name as single argument"
+  "List the file names in DIRECTORY and in its sub-dirs equal to PATTERN.
+Optional IGNORE argument can be list of names to ignore in recursive walk
+or function receiving directory name as single argument.
+See `directory-files-recursively' (since 25)."
   (let (el-files-list
         (current-directory-list
          (with-demoted-errors
@@ -51,37 +52,38 @@ in recursive walk or function receiving directory name as single argument"
       (setq current-directory-list (cdr current-directory-list)))
     el-files-list))
 
-(defun my:find-dir-locals ()
-  "Find directory local (.dir-locals.el) settings location;
+(defun my:dir-locals ()
+    "Find directory local (.dir-locals.el) settings location;
 raises error if not found"
-  (let ((dl-path
-         (locate-dominating-file (my:current-fs-point) ".dir-locals.el")))
-    (if (stringp dl-path) dl-path
-      (error ".dir-locals.el not found"))))
+    (let* ((dl-path
+            (dir-locals-find-file (my:current-fs-point))))
+      (cond
+       ((stringp dl-path) (file-name-directory dl-path))
+       ((consp dl-path) (car dl-path))
+       (t (error "Dir-locals location is undefined")))))
 
-(defun my:dir-locals-path (&optional relative)
-  "Finds directory local (.dir-locals.el) settings location
-with RELATIVE argument returns path relative to dir-locals location,
-FORCE-DIR sets return value to be directory path"
-  (if (stringp relative)
-      (expand-file-name relative (my:find-dir-locals))
-    (expand-file-name (my:find-dir-locals))))
+
+(defun my:dir-locals-path (relative)
+  "Get filepath from directory local settings location.
+Path is pecified by RELATIVE argument.  See `expand-file-name'."
+  (expand-file-name relative (my:dir-locals)))
+
 
 (defmacro my:with-local-dir (relative &rest body)
-  "Macro for running commands from location relative to \".dir-locals.el\""
+  "Macro for running commands from location relative to \".dir-locals.el\"."
   `(let ((default-directory
            (file-name-as-directory (my:dir-locals-path ,relative))))
      ,@body))
 
 (defun my:add-to-path (&rest paths)
-  "Add PATHS values to `exec-path' and environment variable $PATH"
+  "Add PATHS values to `exec-path' and environment variable $PATH."
   (let ((env-path (getenv "PATH"))
         (value (mapconcat #'identity paths path-separator)))
     (setenv "PATH" (concat env-path path-separator value)))
   (setq exec-path (append exec-path paths)))
 
 (defun my:add-to-path-front (&rest paths)
-  "Add PATHS values to `exec-path' and environment variable $PATH"
+  "Add PATHS values to `exec-path' and environment variable $PATH."
   (let ((env-path (getenv "PATH"))
         (value (mapconcat #'identity paths path-separator)))
     (setenv "PATH" (concat value path-separator env-path)))
