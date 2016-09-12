@@ -235,9 +235,21 @@
 ;; Comint
 (setq-default comint-prompt-read-only t
               comint-process-echoes t
+              comint-input-ignoredups t
+              comint-scroll-show-maximum-output t
               comint-scroll-to-bottom-on-input t
-              comint-scroll-to-bottom-on-output t
-              comint-input-ignoredups t)
+              comint-scroll-to-bottom-on-output nil
+              comint-buffer-maximum-size 8196)
+
+(defun my:-comint-text-readonly (text)
+  (let ((inhibit-read-only t)
+        (output-end (process-mark (get-buffer-process (current-buffer)))))
+    (put-text-property comint-last-output-start output-end 'read-only t)))
+
+(add-hook 'comint-output-filter-functions 'comint-truncate-buffer)
+(add-hook 'comint-output-filter-functions 'my:-comint-text-readonly)
+(add-hook 'shell-mode-hook 'ansi-color-for-comint-mode-on)
+
 
 (with-eval-after-load 'comint
   ;; We have `my:kill-region-or-word' already
