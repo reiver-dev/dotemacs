@@ -14,7 +14,8 @@
     (c-basic-offset . 4)
     (c-offsets-alist
      (innamespace . 0)
-     (inline-open . 0))))
+     (inline-open . 0)
+     (inextern-lang . 0))))
 
 
 (with-eval-after-load 'cc-mode

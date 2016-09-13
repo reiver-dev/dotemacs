@@ -4,6 +4,8 @@
 # Except init.el and user folder
 !init.el
 !user
+!/snippets
+!.gitignore
 
 # But ignore compiled too
 *.elc
