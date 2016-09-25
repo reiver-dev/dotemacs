@@ -75,20 +75,6 @@ Path is pecified by RELATIVE argument.  See `expand-file-name'."
            (file-name-as-directory (my:dir-locals-path ,relative))))
      ,@body))
 
-(defun my:add-to-path (&rest paths)
-  "Add PATHS values to `exec-path' and environment variable $PATH."
-  (let ((env-path (getenv "PATH"))
-        (value (mapconcat #'identity paths path-separator)))
-    (setenv "PATH" (concat env-path path-separator value)))
-  (setq exec-path (append exec-path paths)))
-
-(defun my:add-to-path-front (&rest paths)
-  "Add PATHS values to `exec-path' and environment variable $PATH."
-  (let ((env-path (getenv "PATH"))
-        (value (mapconcat #'identity paths path-separator)))
-    (setenv "PATH" (concat value path-separator env-path)))
-  (setq exec-path (nconc paths exec-path)))
-
 
 (provide 'init-project)
 

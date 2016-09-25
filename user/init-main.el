@@ -9,6 +9,7 @@
 (require 'init-wm)
 (require 'init-project)
 (require 'init-edit)
+(require 'init-environ)
 (require 'init-spellcheck)
 
 (with-eval-after-load 'package
