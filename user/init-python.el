@@ -38,6 +38,7 @@ appends `python-shell-remote-exec-path' instead of `exec-path'."
 
 
 (my:with-package anaconda-mode
+  :disabled t
   :ensure t
   :init (add-hook 'python-mode-hook #'anaconda-mode)
   :config (progn
@@ -51,9 +52,28 @@ appends `python-shell-remote-exec-path' instead of `exec-path'."
 
 
 (my:with-package company-anaconda
+  :disabeled t
   :ensure t
   :init (with-eval-after-load 'anaconda-mode
           (add-to-list 'company-backends #'company-anaconda)))
+
+(my:with-package python-environment
+  :ensure t
+  :config (progn
+            (setq python-environment-virtualenv
+                  (append (list "python" "-m") python-environment-virtualenv))))
+
+(my:with-package jedi-core
+  :ensure t
+  :init (add-hook 'python-mode-hook 'jedi:setup)
+  :config (my:kmap* jedi-mode-map
+                    ("M-." #'jedi:goto-definition)
+                    ("M-," #'jedi:goto-definition-pop-marker)))
+
+(my:with-package company-jedi
+  :ensure t
+  :init (with-eval-after-load 'jedi-core
+          (add-to-list 'company-backends #'company-jedi)))
 
 
 (provide 'init-python)
