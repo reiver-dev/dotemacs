@@ -10,9 +10,10 @@
  'my:theme
  ;; Line numbers appearance
  '(linum ((t (:bold t :italic nil))))
- '(vertical-border
-   ((((type graphic))
-     (:foreground nil :backround nil :inherit fringe :inverse-video t))))
+
+ ;; '(vertical-border
+ ;;   ((((type graphic))
+ ;;     (:foreground nil :backround nil :inherit fringe :inverse-video t))))
 
  ;; Modeline highligh box is ugly
  '(mode-line-highlight ((t (:box nil :inverse-video t))))
