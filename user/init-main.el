@@ -59,7 +59,7 @@
 
 ;; Fringe
 (setq-default indicate-empty-lines t)
-(fringe-mode '(8 . 0))
+(fringe-mode '(nil . 0))
 
 ;; Whitespace
 (setq-default whitespace-line-column 79
