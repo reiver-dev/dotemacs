@@ -29,7 +29,8 @@ If VARNAMES list is specified, filter only those variables."
                      (let ((val (getenv-internal name env)))
                        (when val (cons name val))))
                    varnames)
-                (mapcar #'my:env-split-entry env))))
+                (mapcar #'my:env-split-entry
+                        (split-string env "\n")))))
 
 
 (defun my:env-apply-entries (pairs)
@@ -64,7 +65,7 @@ VERSION and ARGV definition are same as for `my:env-w32-collect-vcvars'"
 
 
 (defconst my:env-w32-choco-refresh
-  "refreshenv > $null; ls Env: | %{ echo $($_.Name,$_.Value -join \"=\") }")
+  "refreshenv > $null; ls Env: | %{ $_.Name,$_.Value -join \"=\" }")
 
 
 (defun my:env-w32-get-registry-values ()
@@ -72,8 +73,8 @@ VERSION and ARGV definition are same as for `my:env-w32-collect-vcvars'"
 Uses 'Update-SessionEnvironment.ps1' script from Chocolatey.
 See `my:env-w32-choco-refresh'"
   (with-output-to-string
-    (call-process "powershell" my:env-w32-choco-refresh
-                  standard-output nil "-")))
+    (call-process "powershell" nil standard-output nil
+                  "-Command" my:env-w32-choco-refresh)))
 
 
 (defun my:env-w32-refresh ()
