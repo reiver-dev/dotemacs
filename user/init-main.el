@@ -68,6 +68,13 @@
                      space-before-tab space-after-tab))
 
 
+(defun my:whitespace-mode-diff-setup ()
+  (setq-local whitespace-style
+              '(face tabs tab-mark spaces space-mark trailing
+                     indentation::space indentation::tab
+                     newline newline-mark)))
+
+
 ;; Misc settings
 (defun my:bell-function ()
   (unless (memq this-command
@@ -119,6 +126,7 @@
   (setq show-trailing-whitespace t)
   (whitespace-mode t))
 
+(add-hook 'diff-mode-hook #'my:whitespace-mode-diff-setup)
 
 (setq-default dired-listing-switches "-lhvA"
               dired-clean-up-buffers-too t
