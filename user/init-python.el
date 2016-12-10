@@ -13,8 +13,12 @@
 (defconst -my:python-venv-bin (if (eq system-type 'windows-nt)
                                   "Scripts" "bin"))
 
-(with-eval-after-load 'python
-  (defun -my:python-shell-calculate-exec-path ()
+
+(setq-default python-shell-completion-native-enable
+              (not (eq system-type 'windows-nt)))
+
+
+(defun -my:python-shell-calculate-exec-path ()
     "Calculate `exec-path'.
 Prepends `python-shell-exec-path' and adds the binary directory
 for virtualenv if `python-shell-virtualenv-root' is set.  If
@@ -33,8 +37,24 @@ appends `python-shell-remote-exec-path' instead of `exec-path'."
          (list (expand-file-name -my:python-venv-bin
                                  python-shell-virtualenv-root)))
         new-path)))
+
+
+(defun -my:python-shell-completion-native-try ()
+  "Return non-nil if can trigger native completion."
+  (let ((python-shell-completion-native-enable t)
+        (python-shell-completion-native-output-timeout
+         python-shell-completion-native-try-output-timeout))
+    (python-shell-completion-native-get-completions
+     (get-buffer-process (current-buffer))
+     nil "_")))
+
+
+(with-eval-after-load 'python
   (fset 'python-shell-calculate-exec-path
-        '-my:python-shell-calculate-exec-path))
+        '-my:python-shell-calculate-exec-path)
+  (fset 'python-shell-completion-native-try
+        '-my:python-shell-completion-native-try))
+
 
 
 (my:with-package anaconda-mode
