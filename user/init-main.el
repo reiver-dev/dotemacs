@@ -64,8 +64,7 @@
 ;; Whitespace
 (setq-default whitespace-line-column 79
               whitespace-style
-              '(face trailing empty indentation
-                     space-before-tab space-after-tab))
+              '(face indentation space-before-tab trailing lines-tail))
 
 
 (defun my:whitespace-mode-diff-setup ()
