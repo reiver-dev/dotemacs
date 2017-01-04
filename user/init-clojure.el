@@ -17,7 +17,10 @@
   :if (executable-find "lein")
   :ensure t
   :config (progn
-            (add-hook 'cider-repl-mode-hook #'my:paredit-extended-mode)))
+            (add-hook 'cider-repl-mode-hook
+                      #'my:paredit-mode)
+            (add-hook 'cider-repl-mode-hook
+                      #'my:paredit-extended-mode)))
 
 
 (provide 'init-clojure)
