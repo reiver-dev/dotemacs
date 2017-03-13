@@ -118,7 +118,7 @@ Here \"visible\" frame is current frame or any graphical frame"
   (let ((window (window-normalize-window window)))
     (if (my:one-window-p window)
         (error "Can't detach single window"))
-    (switch-to-buffer-other-frame (window-buffer window))
+    (display-buffer-pop-up-frame (window-buffer window) nil)
     (delete-window window)))
 
 (provide 'init-wm)

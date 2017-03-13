@@ -204,13 +204,13 @@
  ([remap downcase-word] #'downcase-dwim)
 
  ;; Window management
- ("C-c C-o h" "C-c C-o <left>" #'windmove-left)
- ("C-c C-o j" "C-c C-o <down>" #'windmove-down)
- ("C-c C-o k" "C-c C-o <up>" #'windmove-up)
- ("C-c C-o l" "C-c C-o <right>" #'windmove-right)
+ ("C-c w h" "C-c w <left>" #'windmove-left)
+ ("C-c w j" "C-c w <down>" #'windmove-down)
+ ("C-c w k" "C-c w <up>" #'windmove-up)
+ ("C-c w l" "C-c w <right>" #'windmove-right)
 
- ("C-c C-o r" #'my:resize-window)
- ("C-c C-o n" #'my:detach-window)
+ ("C-c w r" #'my:resize-window)
+ ("C-c w n" #'my:detach-window)
 
  ("<f9>" #'my:toggle-window-dedicated)
  ("<f5>" #'revert-buffer))
