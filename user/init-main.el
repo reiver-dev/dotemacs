@@ -170,7 +170,7 @@
 
  ;; Vim's word jumping
  ("M-a" #'my:backward-same-syntax)
- ("M-e" #'forward-same-syntax)
+ ("M-e" #'my:forward-same-syntax)
 
  ;; Buffers
  ([remap list-buffers] #'ibuffer) ; "C-x C-b"
