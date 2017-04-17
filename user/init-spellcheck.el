@@ -6,11 +6,20 @@
 
 (require 'init-package)
 
+
+(defconst -my:hunspell-path (executable-find "hunspell"))
+
 (my:with-package ispell
-  :if (executable-find "hunspell")
+  :if -my:hunspell-path
+  :init (progn
+          (setq-default ispell-program-name "hunspell"
+                        flyspell-issue-message-flag nil)
+          (setenv "DICPATH"
+                  (expand-file-name "../share/hunspell"
+                                    (file-name-directory -my:hunspell-path)))
+          (setenv "DICTIONARY" "default"))
   :config
   (progn
-    (setq-default flyspell-issue-message-flag nil)
     (add-to-list 'ispell-local-dictionary-alist
                  '("russian"
                    "[Ё-ё]"  ;; Word characters
@@ -29,10 +38,7 @@
                    ("-d" "en_US")
                    nil
                    iso-8859-1))
-    (setq ispell-really-aspell nil
-          ispell-really-hunspell t)
-    (setq-default ispell-program-name "hunspell")
-    (ispell-hunspell-add-multi-dic "english,russian")))
+    (ispell-set-spellchecker-params)))
 
 (provide 'init-spellcheck)
 
