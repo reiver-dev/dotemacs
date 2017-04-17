@@ -341,6 +341,7 @@ With a prefix argument, use `comint-mode'."
 (require 'init-cc)
 (require 'init-python)
 (require 'init-clojure)
+(require 'init-rust)
 (require 'init-org)
 (require 'init-haskell)
 (require 'init-spellcheck)
