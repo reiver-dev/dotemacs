@@ -12,7 +12,7 @@
   (progn
     (setq-default flyspell-issue-message-flag nil)
     (add-to-list 'ispell-local-dictionary-alist
-                 '("russian-hunspell"
+                 '("russian"
                    "[Ё-ё]"  ;; Word characters
                    "[^Ё-ё]" ;; Non-word characters
                    "[-]"    ;; Non-word characters in words
@@ -21,7 +21,7 @@
                    nil      ;; Ispell-related extenden char mode
                    utf-8))  ;; Charset checker uses
     (add-to-list 'ispell-local-dictionary-alist
-                 '("english-hunspell"
+                 '("english"
                    "[A-z]"
                    "[^A-z]"
                    "[']"
@@ -29,7 +29,10 @@
                    ("-d" "en_US")
                    nil
                    iso-8859-1))
-    (setq-default ispell-program-name "hunspell")))
+    (setq ispell-really-aspell nil
+          ispell-really-hunspell t)
+    (setq-default ispell-program-name "hunspell")
+    (ispell-hunspell-add-multi-dic "english,russian")))
 
 (provide 'init-spellcheck)
 
