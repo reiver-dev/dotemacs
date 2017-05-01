@@ -4,9 +4,32 @@
 
 ;;; Code:
 
-;; (package-initialize)
-
 (prefer-coding-system 'utf-8-unix)
+
+
+(with-eval-after-load 'package
+  (add-to-list 'package-archives
+               '("marmelade" . "https://marmalade-repo.org/packages/"))
+  (add-to-list 'package-archives
+               '("melpa" . "http://melpa.org/packages/"))
+  (add-to-list 'package-archives
+               '("org" . "http://orgmode.org/elpa/")))
+
+
+(defun package--compile---no-safe (proc &rest args)
+  "Ignore unsaved files during package install."
+  (let ((old (symbol-function 'save-some-buffers)))
+    (unwind-protect
+        (progn (fset 'save-some-buffers 'ignore)
+               (apply proc args))
+      (fset 'save-some-buffers old))))
+
+
+(advice-add 'package--compile :around
+            #'package--compile---no-safe)
+
+
+(package-initialize)
 
 (defun -in-dir (name &optional root)
   "Convert name to absolute path.

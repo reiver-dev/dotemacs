@@ -12,28 +12,6 @@
 (require 'init-environ)
 
 
-(with-eval-after-load 'package
-  (add-to-list 'package-archives
-               '("marmelade" . "https://marmalade-repo.org/packages/"))
-  (add-to-list 'package-archives
-               '("melpa" . "http://melpa.org/packages/"))
-  (add-to-list 'package-archives
-               '("org" . "http://orgmode.org/elpa/")))
-
-
-(defun package--compile---no-safe (proc &rest args)
-  "Ignore unsaved files during package install"
-  (let ((old (symbol-function 'save-some-buffers)))
-    (unwind-protect
-        (progn (fset 'save-some-buffers 'ignore)
-               (apply proc args))
-      (fset 'save-some-buffers old))))
-
-
-(advice-add 'package--compile :around
-            #'package--compile---no-safe)
-
-
 ;;; Appearance
 (require 'init-theme)
 (enable-theme 'my:theme)
@@ -332,8 +310,6 @@ With a prefix argument, use `comint-mode'."
   (interactive)
   (my:process-region-with-command "python -m json.tool"))
 
-
-(package-initialize)
 
 (require 'init-pkgs)
 (require 'init-parens)
