@@ -271,19 +271,20 @@ With a prefix argument, use `comint-mode'."
 ;; Eshell
 (setq-default eshell-scroll-to-bottom-on-input t)
 
-(defun eshell/ff (&rest args)
- (dolist (f args)
-   (find-file f t)))
+(defun eshell/ff (&rest files)
+  "Alias for `eshell' to `find-file' FILES."
+  (dolist (f files)
+    (find-file f t)))
 
-(defun eshell/fo (&rest args)
-  (dolist (f args)
+(defun eshell/fo (&rest files)
+  "Alias for `eshell' to `find-file-other-window' for FILES."
+  (dolist (f files)
     (find-file-other-window f t)))
-
-(defun eshell/d (&rest args)
-  (dired (pop dir) "."))
 
 ;; Disable everything for big files
 (defun my:large-file-p ()
+  "Check if current buffer is considered large.
+See `large-file-warning-threshold'."
   (< large-file-warning-threshold (buffer-size)))
 
 (define-derived-mode my:large-file-mode fundamental-mode "LargeFile"
@@ -296,17 +297,20 @@ With a prefix argument, use `comint-mode'."
 
 ;; External tools
 (defun my:process-region-with-command (command)
+  "Execute COMMAND string over active region or entire buffer."
   (let ((begin (if (region-active-p) (region-beginning) (point-min)))
         (end (if (region-active-p) (region-end) (point-max))))
     (shell-command-on-region begin end command nil t)))
 
 
 (defun my:reindent-xml ()
+  "Use xmllint to format XML."
   (interactive)
   (my:process-region-with-command "xmllint --format -"))
 
 
 (defun my:reindent-json ()
+  "Use python to format json."
   (interactive)
   (my:process-region-with-command "python -m json.tool"))
 

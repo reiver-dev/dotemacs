@@ -87,7 +87,7 @@ With ARG join this line to previous line"
       (setq counter (1- counter)))))
 
 (defun my:open-line (arg)
-  "Move to the next line and then opens a line.
+  "Move to the next line and then opens a line. Do ARG times.
 See also `newline-and-indent'."
   (interactive "*p")
   (cond ((> arg 0)
@@ -100,19 +100,19 @@ See also `newline-and-indent'."
          (indent-according-to-mode))))
 
 (defun my:forward-same-syntax (arg)
-  "Same as `forward-same-syntax', but ignores errors."
+  "Same as `forward-same-syntax', but ignore errors. Do ARG times."
   (interactive "^p")
   (ignore-errors (forward-same-syntax arg)))
 
 (defun my:backward-same-syntax (arg)
-  "Same as `forward-same-syntax', ignores errors and
-inverts ARG. See `my:forward-same-syntax'"
+  "Same as `forward-same-syntax', ignore errors and invert ARG.
+See `my:forward-same-syntax'"
   (interactive "^p")
   (ignore-errors (forward-same-syntax (- arg))))
 
 (defun my:open-line-back (arg)
-  "Open a new line before the current one.
-See also `newline-and-indent'."
+  "Open a new line before the current one. Do ARG times.
+See also `my:open-line' and `newline-and-indent'."
   (interactive "*p")
   (my:open-line (- arg)))
 
