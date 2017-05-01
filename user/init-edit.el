@@ -4,6 +4,11 @@
 
 ;;; Code:
 
+;; No-op for region operations if region is active but empty
+;; useful for macros consistency
+(setq-default use-empty-active-region t)
+
+
 (defun my:push-mark-no-activate ()
   "Call `push-mark' like `push-mark-command' but without activation."
   (interactive)
