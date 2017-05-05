@@ -80,6 +80,7 @@
                       ("C-p" #'company-select-previous)
                       ("C-n" #'company-select-next))
             (setq-default company-tooltip-limit 20
+                          company-tooltip-align-annotations t
                           ;; Put semantic backend on separate key
                           company-backends
                           (remove 'company-semantic company-backends))
