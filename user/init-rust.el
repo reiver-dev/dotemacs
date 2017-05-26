@@ -9,7 +9,7 @@
 
 
 (defconst -my:rust-has-racer (executable-find "racer"))
-
+(defconst -my:rust-has-cargo (executable-find "cargo"))
 
 (my:with-package racer
   :if -my:rust-has-racer
@@ -25,6 +25,9 @@
   :if -my:rust-has-racer
   :ensure t)
 
+(my:with-package cargo
+  :if -my:rust-has-cargo
+  :ensure t)
 
 
 (provide 'init-rust)
