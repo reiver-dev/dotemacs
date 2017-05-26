@@ -8,8 +8,6 @@
 
 (custom-theme-set-faces
  'my:theme
- ;; Line numbers appearance
- '(linum ((t (:bold t :italic nil))))
 
  ;; '(vertical-border
  ;;   ((((type graphic))
