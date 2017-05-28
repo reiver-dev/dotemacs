@@ -19,29 +19,18 @@ re-downloaded in order to locate PACKAGE."
         (my:require-package package min-version t)))))
 
 
-(defun my:macro-require (form)
-  "Try to load FORM.
-Form can be symbol, string or (quote form)."
-  (if (with-no-warnings
-        (cond ((symbolp form) (require form nil t))
-              ((stringp form) (load form t t))
-              ((and (consp form) (eq (car form) 'quote))
-               (require (car (cdr form)) nil t))
-              (t (error "Macro-require: cannot load form %s" form))))
-      (progn (message "Macro-require: loaded %s" form) t)
-    (progn (message "Macro-require: failed to load %s" form) nil)))
-
-
-(defmacro my:with-eval-after-load (file &rest body)
+(defmacro my:after (file &rest body)
   "Wait until FILE loaded to execute BODY.
 FILE is normally a feature name, but it can also be a file name,
 in case that file does not provide any feature.  See `eval-after-load'
 for more details about the different forms of FILE and their semantics."
-  (declare (indent defun) (debug t))
+  (declare (indent 1) (debug t))
   `(,(if (or (not (boundp 'byte-compile-current-file))
              (not byte-compile-current-file)
-             (my:macro-require file))
-         'progn 'with-no-warnings)
+             (if (symbolp file)
+                 (require file nil :no-error)
+               (load file :no-message :no-error)))
+         #'progn #'with-no-warnings)
     (eval-after-load ,file (lambda () ,@body))))
 
 
@@ -70,7 +59,7 @@ depending on property list pairs in ARGS"
                    (when ensure
                      `(my:require-package (quote ,package)))
                    (when config
-                     `(my:with-eval-after-load (quote ,name)
+                     `(my:after (quote ,name)
                         ,@(macroexp-unprogn config)))
                    (when init
                      (if defer

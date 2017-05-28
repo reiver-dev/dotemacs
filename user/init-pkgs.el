@@ -118,7 +118,7 @@
                 neo-confirm-create-file #'off-p
                 neo-confirm-create-directory #'off-p))
   :config (progn
-            (my:with-eval-after-load 'shackle
+            (my:after 'shackle
               (add-to-list 'shackle-rules '(" *NeoTree*" :align left :size 25)))
             (defun -my:neotree-display (buffer _alist)
               (let ((win (shackle-display-buffer
@@ -141,7 +141,7 @@
           (projectile-global-mode))
   :config (progn
             ;; Try to emulate ede (from CEDET) project
-            (my:with-eval-after-load 'semanticdb
+            (my:after 'semanticdb
               (setq-default semanticdb-project-root-functions
                             projectile-project-root-files-functions))))
 

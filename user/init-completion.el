@@ -54,12 +54,6 @@
 
 
 
-(my:with-eval-after-load (quote counsel)
-  (progn
-    (define-key counsel-mode-map [remap yank-pop] nil)
-    (define-key counsel-mode-map (kbd "C-M-y") (function counsel-yank-pop))))
-
-
 (my:with-package counsel
   :ensure t
   :init (counsel-mode t)
@@ -87,7 +81,7 @@
             (defun my:company-semantic-setup ()
               "Sets `company-semantic' keybind locally"
               (local-set-key (kbd "C-<return>") #'company-semantic))
-            (my:with-eval-after-load 'semantic
+            (my:after 'semantic
               (add-hook 'c-mode-hook 'my:company-semantic-setup)
               (add-hook 'c++-mode-hook 'my:company-semantic-setup))))
 
