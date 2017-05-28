@@ -62,18 +62,6 @@
   :init (add-to-list 'company-backends #'company-c-headers))
 
 
-(my:with-package ggtags
-  :if (executable-find "gtags")
-  :ensure t
-  :init (progn
-          (add-hook 'c-mode-hook 'ggtags-mode)
-          (add-hook 'c++-mode-hook 'ggtags-mode))
-  :config (my:kmap* ggtags-mode-map
-                    ("M-." "C-M-." "M-*" "M-," nil)
-                    ("M-." #'ggtags-find-tag-dwim)
-                    ("C-M-." #'ggtags-find-tag-regexp)))
-
-
 (provide 'init-cc)
 
 ;;; init-cc.el ends here
