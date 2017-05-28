@@ -18,7 +18,7 @@
 (my:with-package company-racer
   :if -my:rust-has-racer
   :ensure t
-  :init (progn
+  :init (my:after 'company-mode
           (add-to-list 'company-backends #'company-racer)))
 
 (my:with-package flycheck-rust
