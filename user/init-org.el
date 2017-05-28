@@ -7,7 +7,7 @@
 (require 'init-package)
 
 
-(setq-default org-ellipsis "⤵"
+(setq-default org-ellipsis "  "
               org-src-fontify-natively t
               org-src-tab-acts-natively t
               org-src-window-setup 'current-window
