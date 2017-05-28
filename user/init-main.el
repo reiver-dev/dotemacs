@@ -39,6 +39,12 @@
 (setq-default indicate-empty-lines t)
 (fringe-mode '(nil . 0))
 
+;; Window border
+(setq window-divider-default-places t
+      window-divider-default-bottom-width 1
+      window-divider-default-right-width 1)
+(window-divider-mode +1)
+
 ;; Whitespace
 (setq-default whitespace-line-column 79
               whitespace-style
