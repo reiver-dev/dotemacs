@@ -32,12 +32,12 @@ Form can be symbol, string or (quote form)."
     (progn (message "Macro-require: failed to load %s" form) nil)))
 
 
-(defmacro with-eval-after-load (file &rest body)
+(defmacro my:with-eval-after-load (file &rest body)
   "Wait until FILE loaded to execute BODY.
 FILE is normally a feature name, but it can also be a file name,
 in case that file does not provide any feature.  See `eval-after-load'
 for more details about the different forms of FILE and their semantics."
-  (declare (indent 1) (debug t))
+  (declare (indent defun) (debug t))
   `(,(if (or (not (boundp 'byte-compile-current-file))
              (not byte-compile-current-file)
              (my:macro-require file))
@@ -70,7 +70,7 @@ depending on property list pairs in ARGS"
                    (when ensure
                      `(my:require-package (quote ,package)))
                    (when config
-                     `(with-eval-after-load (quote ,name)
+                     `(my:with-eval-after-load (quote ,name)
                         ,@(macroexp-unprogn config)))
                    (when init
                      (if defer

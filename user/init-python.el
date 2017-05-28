@@ -49,7 +49,7 @@ appends `python-shell-remote-exec-path' instead of `exec-path'."
      nil "_")))
 
 
-(with-eval-after-load 'python
+(my:with-eval-after-load 'python
   (fset 'python-shell-calculate-exec-path
         '-my:python-shell-calculate-exec-path)
   (fset 'python-shell-completion-native-try
@@ -72,7 +72,7 @@ appends `python-shell-remote-exec-path' instead of `exec-path'."
 
 (my:with-package company-anaconda
   :ensure t
-  :init (with-eval-after-load 'anaconda-mode
+  :init (my:with-eval-after-load 'anaconda-mode
           (add-to-list 'company-backends #'company-anaconda)))
 
 (my:with-package python-environment
@@ -93,7 +93,7 @@ appends `python-shell-remote-exec-path' instead of `exec-path'."
 (my:with-package company-jedi
   :disabled t
   :ensure t
-  :init (with-eval-after-load 'jedi-core
+  :init (my:with-eval-after-load 'jedi-core
           (add-to-list 'company-backends #'company-jedi)))
 
 

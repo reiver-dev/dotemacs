@@ -203,7 +203,7 @@
 ;;; Mode Settings
 
 ;; Ediff
-(with-eval-after-load 'ediff
+(my:with-eval-after-load 'ediff
   (setq-default
    ;; run control panel in same frame
    ediff-window-setup-function #'ediff-setup-windows-plain))
@@ -237,7 +237,7 @@
 (add-hook 'shell-mode-hook 'ansi-color-for-comint-mode-on)
 
 
-(with-eval-after-load 'comint
+(my:with-eval-after-load 'comint
   ;; We have `my:kill-region-or-word' already
   (my:kmap* comint-mode-map ("C-c C-w" nil)))
 
@@ -260,7 +260,7 @@ With a prefix argument, use `comint-mode'."
    (- (frame-width) 105 (window-width))
    'horizontal))
 
-(with-eval-after-load 'compile
+(my:with-eval-after-load 'compile
   (my:kmap* compilation-shell-minor-mode-map
             ("<f8>" "<C-<f8>" #'recompile)))
 

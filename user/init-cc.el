@@ -18,7 +18,7 @@
      (inextern-lang . 0))))
 
 
-(with-eval-after-load 'cc-mode
+(my:with-eval-after-load 'cc-mode
   (c-add-style "reiver" my:c-style)
   (setq-default c-default-style
                 '((c-mode . "reiver")
@@ -48,7 +48,7 @@
 
   (my:with-package flycheck-irony
     :ensure t
-    :init (with-eval-after-load 'flycheck
+    :init (my:with-eval-after-load 'flycheck
             (flycheck-irony-setup)))
 
   (my:with-package irony-eldoc

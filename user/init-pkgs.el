@@ -118,7 +118,7 @@
           (projectile-global-mode))
   :config (progn
             ;; Try to emulate ede (from CEDET) project
-            (with-eval-after-load 'semanticdb
+            (my:with-eval-after-load 'semanticdb
               (setq-default semanticdb-project-root-functions
                             projectile-project-root-files-functions))))
 
