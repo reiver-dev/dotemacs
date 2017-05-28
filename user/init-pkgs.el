@@ -47,6 +47,10 @@
            ;; kill-region do not work with `multiple-cursors-mode'
            iy-go-to-char-override-local-map nil))
 
+(my:with-package shackle
+  :ensure t
+  :init (shackle-mode t))
+
 (my:with-package avy
   :ensure t
   :init (progn
@@ -103,6 +107,25 @@
            diredp-hide-details-initially-flag t
            diredp-hide-details-propagate-flag t)
           (diredp-toggle-find-file-reuse-dir t)))
+
+
+(my:with-package neotree
+  :ensure t
+  :init (progn
+          (setq neo-mode-line-type 'none
+                neo-show-updir-line nil
+                neo-theme 'nerd
+                neo-confirm-create-file #'off-p
+                neo-confirm-create-directory #'off-p))
+  :config (progn
+            (my:with-eval-after-load 'shackle
+              (add-to-list 'shackle-rules '(" *NeoTree*" :align left :size 25)))
+            (defun -my:neotree-display (buffer _alist)
+              (let ((win (shackle-display-buffer
+                          buffer nil '(:align 'left :size 25))))
+                (setq neo-global--buffer (window-buffer win)
+                      neo-global--window win)))
+            (setq neo-display-action '(-my:neotree-display))))
 
 (my:with-package diff-hl
   :ensure t
