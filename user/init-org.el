@@ -7,8 +7,7 @@
 (require 'init-package)
 
 
-(setq-default org-ellipsis "  "
-              org-src-fontify-natively t
+(setq-default org-src-fontify-natively t
               org-src-tab-acts-natively t
               org-src-window-setup 'current-window
               ;; set maximum indentation for description lists
