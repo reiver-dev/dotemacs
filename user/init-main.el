@@ -11,6 +11,7 @@
 (require 'init-edit)
 (require 'init-environ)
 
+(defconst -my:gc-threshold 800000)
 
 ;;; Appearance
 (require 'init-theme)
@@ -79,6 +80,15 @@
   (setq inhibit-compacting-font-caches t
         w32-pipe-read-delay 0
         w32-pipe-buffer-size (* 64 1024)))
+
+(defun -my:gc-disable ()
+  (setq gc-cons-threshold most-positive-fixnum))
+
+(defun -my:gc-enable ()
+  (setq gc-cons-threshold -my:gc-threshold))
+
+(add-hook 'minibuffer-setup-hook #'-my:gc-disable)
+(add-hook 'minibuffer-exit-hook #'-my:gc-enable)
 
 ;; Scroll
 (setq-default
