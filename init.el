@@ -80,8 +80,9 @@ ROOT - relative path, user directory as default"
 (setq custom-file (concat user-emacs-directory "custom.el"))
 
 ;; Persistent common configuration
-(load custom-file t)
-(require 'init-main)
+(let ((gc-cons-threshold most-positive-fixnum))
+  (load custom-file t)
+  (require 'init-main))
 
 (provide 'init-el)
 
