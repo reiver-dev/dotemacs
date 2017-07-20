@@ -17,7 +17,8 @@
 
 
 (defun package--compile---no-safe (proc &rest args)
-  "Ignore unsaved files during package install."
+  "Advice to ignore unsaved files during package install.
+Expects PROC to be `package--compile' with all ARGS used in it's call."
   (let ((old (symbol-function 'save-some-buffers)))
     (unwind-protect
         (progn (fset 'save-some-buffers 'ignore)
@@ -31,34 +32,90 @@
 
 (package-initialize)
 
-(defun -in-dir (name &optional root)
-  "Convert name to absolute path.
-NAME - directory name
-ROOT - relative path, user directory as default"
-  (let ((-root (or root user-emacs-directory)))
-    (file-name-as-directory
-     (expand-file-name name -root))))
 
-(defconst init:user-modules-dir (-in-dir "user"))
-(defconst init:load-path-dir (-in-dir "load-path"))
-(defconst init:themes-dir (-in-dir "themes"))
-(defconst init:recovery-dir (-in-dir "recovery"))
-(defconst init:backup-dir (-in-dir "backup" init:recovery-dir))
-(defconst init:auto-save-list-dir (-in-dir "auto-save-list" init:recovery-dir))
-(defconst init:auto-save-dir (-in-dir "auto-save" init:recovery-dir))
+(defun init:in-dir (name &optional root asfile)
+  "Convert file NAME to absolute path relative to ROOT directory.
+If ROOT is nil uses `user-emacs-directory' instead. If ASFILE is not nil
+returns result as filename, uses `file-name-as-directory' otherwise."
+  (let ((dest (expand-file-name name (or root user-emacs-directory))))
+    (if asfile
+        dest
+      (file-name-as-directory dest))))
 
-(defconst init:auto-dirs (list init:user-modules-dir
-                               init:load-path-dir
-                               init:themes-dir
-                               init:recovery-dir
-                               init:backup-dir
-                               init:auto-save-list-dir
-                               init:auto-save-dir))
+
+(defconst init:user-modules-dir (init:in-dir "user")
+  "Directory for the most of init code.")
+(defconst init:load-path-dir (init:in-dir "load-path")
+  "Directory for deployment-specific manually-installed packages.")
+(defconst init:themes-dir (init:in-dir "themes")
+  "Directory for themes, initializes `custom-theme-directory'.")
+(defconst init:recovery-dir (init:in-dir "recovery")
+  "Directory for backup and auto-save data.")
+(defconst init:snippets-dir (init:in-dir "snippets")
+  "Directory for custom snippets for yasnippet package.")
+
+(defconst init:backup-dir
+  (init:in-dir "backup" init:recovery-dir)
+  "Directory for backup data. Initializes `backup-directory-alist'.")
+(defconst init:auto-save-list-dir
+  (init:in-dir "auto-save-list" init:recovery-dir)
+  "Directory for auto-save lists. Initializes `auto-save-list-file-prefix'.")
+(defconst init:auto-save-dir
+  (init:in-dir "auto-save" init:recovery-dir)
+  "Directory for auto-save data.
+Initializes `auto-save-file-name-transforms'.")
+
+(defconst init:custom-file (init:in-dir "custom.el" nil t)
+  "File for stored 'customize' settings. Initializes `custom-file'.")
+(defconst init:after-file (init:in-dir "after.el" nil t)
+  "File to be executed if present after main init code.")
+
+(defconst init:auto-create-dirs (list init:user-modules-dir
+                                      init:load-path-dir
+                                      init:themes-dir
+                                      init:snippets-dir
+                                      init:recovery-dir
+                                      init:backup-dir
+                                      init:auto-save-list-dir
+                                      init:auto-save-dir)
+  "Directories to create during init.")
+
+(defconst init:auto-create-files (list init:after-file))
+
+
+(defvar init:first-frame-hook nil
+  "Hook to handle init tasks that require frame.
+This is executed at the end of init or, if Emacs
+is executed as daemon, when the first frame is created.
+Called by `init:at-first-frame-function'")
+
+
+(defun init:at-frame-function (frame)
+  "Function to be called after each FRAME creation.
+Handled by `after-make-frame-functions' and called once at the end of init."
+  (unless (display-graphic-p frame)
+    (set-face-background 'default "unspecified-bg" frame)))
+
+
+(defun init:at-first-frame-function (frame)
+  "Function to be called at first FRAME creation.
+Can be used to initialize theme. Executes `init:first-frame-hook'.
+Handled by `after-make-frame-functions' and removes itself from
+function list afterwards."
+  (with-selected-frame frame
+    (run-hooks 'init:first-frame-hook))
+  (remove-hook 'after-make-frame-functions #'init:at-first-frame-function))
+
 
 ;; Create directories
-(dolist (dir init:auto-dirs)
+(dolist (dir init:auto-create-dirs)
   (unless (file-directory-p dir)
     (make-directory dir)))
+
+(dolist (file init:auto-create-files)
+  (unless (file-exists-p file)
+    (with-temp-buffer (write-file file))))
+
 
 ;; Load path for additional modules
 (dolist (default-directory
@@ -67,8 +124,10 @@ ROOT - relative path, user directory as default"
   (normal-top-level-add-to-load-path (list "."))
   (normal-top-level-add-subdirs-to-load-path))
 
+
 ;; Themes directory
 (setq custom-theme-directory init:themes-dir)
+
 
 ;; Backup, autosave, lockfiles
 (setq backup-directory-alist `((".*" . ,init:backup-dir))
@@ -76,13 +135,26 @@ ROOT - relative path, user directory as default"
       auto-save-file-name-transforms `((".*" ,init:auto-save-dir t))
       create-lockfiles nil)
 
+
 ;; Custom and current config
-(setq custom-file (concat user-emacs-directory "custom.el"))
+(setq custom-file init:custom-file)
+
 
 ;; Persistent common configuration
 (let ((gc-cons-threshold most-positive-fixnum))
   (load custom-file t)
-  (require 'init-main))
+  (require 'init-main)
+  (load init:after-file t))
+
+
+(if (daemonp)
+    (add-hook 'after-make-frame-functions #'init:at-first-frame-function)
+  (progn
+    (run-hooks 'init:first-frame-hook)
+    (init:at-frame-function (selected-frame))))
+
+(add-hook 'after-make-frame-functions #'init:at-frame-function)
+
 
 (provide 'init-el)
 
