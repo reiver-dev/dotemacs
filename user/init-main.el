@@ -353,6 +353,7 @@ See `large-file-warning-threshold'."
 (require 'init-python)
 (require 'init-clojure)
 (require 'init-rust)
+(require 'init-tex)
 (require 'init-org)
 (require 'init-haskell)
 (require 'init-spellcheck)
