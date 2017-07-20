@@ -44,8 +44,9 @@
 
   (my:with-package company-irony
     :ensure t
-    :init (my:after 'company-mode
-            (add-to-list 'company-backends 'company-irony)))
+    :init (my:after 'company
+            (my:after 'irony
+              (add-to-list 'company-backends 'company-irony))))
 
   (my:with-package flycheck-irony
     :ensure t
@@ -60,7 +61,7 @@
 
 (my:with-package company-c-headers
   :ensure t
-  :init (my:after 'company-mode
+  :init (my:after 'company
           (add-to-list 'company-backends #'company-c-headers)))
 
 

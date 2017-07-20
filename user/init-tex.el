@@ -21,8 +21,9 @@
 (my:with-package company-auctex
   :if -my:tex-present
   :ensure t
-  :init (my:after 'company-mode
-          (add-to-list 'company-backends #'company-auctex)))
+  :init (my:after 'company
+          (my:after 'tex
+            (company-auctex-init))))
 
 
 (provide 'init-tex)
