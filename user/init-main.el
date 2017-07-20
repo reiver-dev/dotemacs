@@ -232,6 +232,16 @@
 ;; Sync unchanged buffers with filesystem
 (global-auto-revert-mode t)
 
+(defun my:log-tail-handler ()
+  (setq-local auto-revert-interval 1
+              auto-revert-verbose nil)
+  (auto-revert-set-timer)
+  (read-only-mode t)
+  (font-lock-mode 0)
+  (end-of-buffer))
+
+(add-hook 'auto-revert-tail-mode-hook #'my:log-tail-handler)
+
 ;; Show recent files
 (recentf-mode t)
 
