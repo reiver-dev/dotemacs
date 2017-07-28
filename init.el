@@ -80,7 +80,7 @@ Initializes `auto-save-file-name-transforms'.")
                                       init:auto-save-dir)
   "Directories to create during init.")
 
-(defconst init:auto-create-files (list init:after-file))
+(defconst init:auto-create-files nil)
 
 
 (defvar init:first-frame-hook nil
