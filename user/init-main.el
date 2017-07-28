@@ -232,6 +232,9 @@
 ;; Sync unchanged buffers with filesystem
 (global-auto-revert-mode t)
 
+;; Disable `Reverting buffer' messages
+(setq-default auto-revert-verbose nil)
+
 (defun my:log-tail-handler ()
   (setq-local auto-revert-interval 1
               auto-revert-verbose nil)
