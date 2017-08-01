@@ -16,7 +16,7 @@
                '("org" . "http://orgmode.org/elpa/")))
 
 
-(defun package--compile---no-safe (proc &rest args)
+(defun package--compile---no-save (proc &rest args)
   "Advice to ignore unsaved files during package install.
 Expects PROC to be `package--compile' with all ARGS used in it's call."
   (let ((old (symbol-function 'save-some-buffers)))
@@ -27,7 +27,7 @@ Expects PROC to be `package--compile' with all ARGS used in it's call."
 
 
 (advice-add 'package--compile :around
-            #'package--compile---no-safe)
+            #'package--compile---no-save)
 
 
 (package-initialize)
