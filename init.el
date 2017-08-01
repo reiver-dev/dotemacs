@@ -80,8 +80,6 @@ Initializes `auto-save-file-name-transforms'.")
                                       init:auto-save-dir)
   "Directories to create during init.")
 
-(defconst init:auto-create-files nil)
-
 
 (defvar init:first-frame-hook nil
   "Hook to handle init tasks that require frame.
@@ -112,10 +110,6 @@ function list afterwards."
   (unless (file-directory-p dir)
     (make-directory dir)))
 
-(dolist (file init:auto-create-files)
-  (unless (file-exists-p file)
-    (with-temp-buffer (write-file file))))
-
 
 ;; Load path for additional modules
 (dolist (default-directory
@@ -138,6 +132,11 @@ function list afterwards."
 
 ;; Custom and current config
 (setq custom-file init:custom-file)
+
+;; Create after.el if not exist
+(unless (file-exists-p init:after-file)
+  (with-temp-file init:after-file
+    (insert ";;; after.el -*- lexical-binding: t; -*-\n\n")))
 
 
 ;; Persistent common configuration
