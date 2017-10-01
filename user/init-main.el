@@ -236,8 +236,7 @@
 (setq-default auto-revert-verbose nil)
 
 (defun my:log-tail-handler ()
-  (setq-local auto-revert-interval 1
-              auto-revert-verbose nil)
+  (setq-local auto-revert-interval 1)
   (auto-revert-set-timer)
   (read-only-mode t)
   (font-lock-mode 0)
