@@ -39,22 +39,9 @@ appends `python-shell-remote-exec-path' instead of `exec-path'."
         new-path)))
 
 
-(defun -my:python-shell-completion-native-try ()
-  "Return non-nil if can trigger native completion."
-  (let ((python-shell-completion-native-enable t)
-        (python-shell-completion-native-output-timeout
-         python-shell-completion-native-try-output-timeout))
-    (python-shell-completion-native-get-completions
-     (get-buffer-process (current-buffer))
-     nil "_")))
-
-
 (my:after 'python
   (fset 'python-shell-calculate-exec-path
-        '-my:python-shell-calculate-exec-path)
-  (fset 'python-shell-completion-native-try
-        '-my:python-shell-completion-native-try))
-
+        '-my:python-shell-calculate-exec-path))
 
 
 (my:with-package anaconda-mode
