@@ -1,13 +1,11 @@
-;;; init-cc.el --- Environment variables  -*- lexical-binding: t -*-
+;;; init-environ.el --- Environment variables  -*- lexical-binding: t -*-
 
 ;;; Commentary:
 
 ;;; Code:
 
 
-(defconst my:msvc-vars
-  '("PATH" "INCLUDE" "LIB" "LIBPATH"
-    "CL" "_CL_" "LINK" "_LINK_"))
+(require 'init-powershell)
 
 
 (defun my:env-split-entry (entry)
@@ -19,18 +17,14 @@ Entry string should be 'NAME=VALUE'"
       (when value (cons name value)))))
 
 
-(defun my:env-parse-entries (env &optional varnames)
+(defun my:env-parse-entries (env)
   "Collect list of cons pairs (name . var) from ENV list.
 Each entry in ENV list should be 'NAME=VALUE'.
 If VARNAMES list is specified, filter only those variables."
-  (delete nil (if varnames
-                  (mapcar
-                   (lambda (name)
-                     (let ((val (getenv-internal name env)))
-                       (when val (cons name val))))
-                   varnames)
-                (mapcar #'my:env-split-entry
-                        (split-string env "\n")))))
+  (delete nil (mapcar #'my:env-split-entry
+                      (if (stringp env)
+                          (split-string env "\n" t)
+                        env))))
 
 
 (defun my:env-apply-entries (pairs)
@@ -41,81 +35,126 @@ See `setenv'."
         pairs))
 
 
-(defun my:env-w32-collect-vcvars (version &rest args)
+(defun my:env-w32-vs-installation-path (version)
+  "Find Visual Studio installation location for VERSION.
+Try to use vswhere if available."
+  (let* ((program-files (or (getenv "ProgramFiles(x86)")
+                            (getenv "ProgramFiles")))
+         (vswhere (expand-file-name
+                   "Microsoft Visual Studio/Installer/vswhere.exe"
+                   program-files)))
+    (when (file-executable-p vswhere)
+      (let ((version-range (format "[%d.0, %d.0)" version (+ version 1))))
+        (string-trim-right
+         (with-output-to-string
+           (call-process vswhere nil standard-output nil
+                         "-version" version-range
+                         "-legacy"
+                         "-property" "installationPath")))))))
+
+
+(defun my:env-w32-vcvars-location (version)
+  (let ((vspath
+         (or (my:env-w32-vs-installation-path version)
+             (let ((comntools (getenv (format "VS%d0COMNTOOLS" version))))
+               (when comntools
+                 (expand-file-name "../../" comntools))))))
+    (cond
+     ((not vspath) nil)
+     ((>= version 15) (expand-file-name
+                       "VC/Auxiliary/Build/vcvarsall.bat"
+                       vspath))
+     (t (expand-file-name "VC/vcvarsall.bat" vspath)))))
+
+
+(defun my:env-w32-vcvars-collect (version &rest args)
   "Try to get env variables from visual studio vcvarsall.bat.
-One should specify VERSION (90 | 120 | 130 | 140) that will be substituted
+One should specify VERSION (12 | 13 | 14 | 15) that will be substituted
 as env var name like VS140COMNTOOLS.
 ARGS specify additional batch file arguments such as architecture (i.e. x64)"
-  (let* ((vcvarsall
-          (expand-file-name
-           "vcvarsall.bat"
-           (concat (getenv (format "VS%sCOMNTOOLS" version)) "/../../VC")))
+  (let* ((vcvarsall (my:env-w32-vcvars-location version))
          (command0 (combine-and-quote-strings (cons vcvarsall args)))
          (command1 (format "%s > nul 2>&1 && set" command0)))
     (split-string (shell-command-to-string command1) "\n" t)))
 
 
-
-(defun my:env-w32-apply-vcvarsall (version &rest argv)
+(defun my:env-w32-vcvars-apply (version &rest argv)
   "Apply vcvarsall.bat variables to currentb `process-environment'.
 VERSION and ARGV definition are same as for `my:env-w32-collect-vcvars'"
   (my:env-apply-entries
-   (my:env-parse-entries (apply #'my:env-w32-collect-vcvars version argv)
-                         my:msvc-vars)))
-
-
-(defconst my:env-w32-choco-refresh
-  "refreshenv > $null; ls Env: | %{ $_.Name,$_.Value -join \"=\" }")
+   (my:env-parse-entries
+    (apply #'my:env-w32-vcvars-collect version argv))))
 
 
 (defun my:env-w32-get-registry-values ()
   "Gather current windows registry environment variables.
-Uses 'Update-SessionEnvironment.ps1' script from Chocolatey.
-See `my:env-w32-choco-refresh'"
-  (with-output-to-string
-    (call-process "powershell" nil standard-output nil
-                  "-Command" my:env-w32-choco-refresh)))
+Execute `my:env-w32-ps-from-registry' using powershell."
+  (my:poweshell-exec-command my:powershell-env-from-registry))
 
 
 (defun my:env-w32-refresh ()
   "Apply current windows registry environment variables."
   (interactive)
-  (my:env-apply-entries (my:env-parse-entries (my:env-w32-get-registry-values))))
-
-
-(defun my:env-get-copy ()
-  "Return unrelated copy of `process-environment'."
-  (mapcar #'concat process-environment))
+  (my:env-apply-entries
+   (my:env-parse-entries
+    (my:env-w32-get-registry-values))))
 
 
 (defun my:env-make-local ()
   "Create buffer-local copy of `process-environment'."
   (interactive)
-  (set (make-local-variable 'process-environment)
-       (my:env-get-copy)))
+  (let ((value (copy-sequence process-environment)))
+    (set (make-local-variable 'process-environment) value)))
+
+(defun my:env-make-exec-path-local ()
+  "Create buffer-local copy of `process-environment'."
+  (interactive)
+  (let ((value (copy-sequence exec-path)))
+    (set (make-local-variable 'exec-path) exec-path)))
 
 
 (defun my:env-restore-initial ()
   "Replace current `process-environment' with copy of `initial-environment'."
   (interactive)
-  (setq process-environment (mapcar #'concat initial-environment)))
+  (setq process-environment (copy-sequence initial-environment)))
 
 
-(defun my:add-to-path (&rest paths)
-  "Add PATHS values to `exec-path' and environment variable $PATH."
-  (let ((env-path (getenv "PATH"))
-        (value (mapconcat #'identity paths path-separator)))
-    (setenv "PATH" (concat env-path path-separator value)))
-  (setq exec-path (append exec-path paths)))
+(defun my:env-path-split (value)
+  "Split VALUE containing list of paths using `path-separator'."
+  (split-string value path-separator t "\s-"))
 
+(defun my:env-path-get ()
+  "Get $PATH entries as list."
+  (my:env-split-path (getenv "PATH")))
 
-(defun my:add-to-path-front (&rest paths)
-  "Add PATHS values to `exec-path' and environment variable $PATH."
-  (let ((env-path (getenv "PATH"))
-        (value (mapconcat #'identity paths path-separator)))
-    (setenv "PATH" (concat value path-separator env-path)))
-  (setq exec-path (nconc paths exec-path)))
+(defun my:env-path-set (paths)
+  "Join list of filesyste PATHS and set it to `process-environment'."
+  (setenv "PATH" (mapconcat #'identity (delete-dups paths) path-separator)))
 
+(defun my:env-path-prepend (&rest paths)
+  "Add PATHS values to environment variable $PATH."
+  (my:env-path-set (append paths (my:env-path-get))))
+
+(defun my:env-path-append (&rest paths)
+  "Add PATHS values to environment variable $PATH."
+  (my:env-path-set (append (my:env-path-get) paths)))
+
+(defun my:env-exec-path-prepend (&rest paths)
+  "Add PATHS to `exec-path'."
+  (setq exec-path (delete-dups (append paths exec-path))))
+
+(defun my:env-exec-path-append (&rest paths)
+  "Add PATHS to `exec-path'."
+  (setq exec-path (delete-dups (append exec-path paths))))
+
+(defun my:env-exec-path-update (&optional path force)
+  "Reset `exec-path' from PATH value using one from `process-environment'.
+If FORCE non-nil, current `exec-path' value will be discarded."
+  (let ((p (my:env-split-path (or path (getenv "PATH")))))
+    (setq exec-path
+          (delete-dups (if force
+                           (append path (list "." exec-directory))
+                         (append path exec-path))))))
 
 
 (provide 'init-environ)
