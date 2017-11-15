@@ -10,21 +10,28 @@ Applies FUNC to SEQUENCE to join results."
   (apply #'nconc (mapcar func sequence)))
 
 
+(defconst --filter-marker-- (make-symbol "--filter-marker--"))
+
+
 (defun my:remove-if (func sequence)
   "Replacement for `remove-if' to not use `cl.el'.
 Applies FUNC to SEQUENCE elements and removes elements
 from it if result is not true."
-  (delq nil (mapcar
-             (lambda (x) (if (funcall func x) nil x))
-             sequence)))
+  (delq --filter-marker--
+        (mapcar
+         (lambda (x)
+           (if (funcall func x) --filter-marker-- x))
+         sequence)))
 
 (defun my:remove-if-not (func sequence)
   "Reiplacement for `remove-if-not' to not use \"cl.el\".
 Applies FUNC to SEQUENCE elements and removes elements
 from it if result is true."
-  (delq nil (mapcar
-             (lambda (x) (if (funcall func x) x nil))
-             sequence)))
+  (delq --filter-marker--
+        (mapcar
+         (lambda (x)
+           (if (funcall func x) x --filter-marker--))
+         sequence)))
 
 
 
