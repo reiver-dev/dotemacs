@@ -121,11 +121,11 @@ Execute `my:env-w32-ps-from-registry' using powershell."
 
 (defun my:env-path-split (value)
   "Split VALUE containing list of paths using `path-separator'."
-  (split-string value path-separator t "\s-"))
+  (split-string value path-separator t "\\s-"))
 
 (defun my:env-path-get ()
   "Get $PATH entries as list."
-  (my:env-split-path (getenv "PATH")))
+  (my:env-path-split (getenv "PATH")))
 
 (defun my:env-path-set (paths)
   "Join list of filesyste PATHS and set it to `process-environment'."
@@ -150,11 +150,11 @@ Execute `my:env-w32-ps-from-registry' using powershell."
 (defun my:env-exec-path-update (&optional path force)
   "Reset `exec-path' from PATH value using one from `process-environment'.
 If FORCE non-nil, current `exec-path' value will be discarded."
-  (let ((p (my:env-split-path (or path (getenv "PATH")))))
+  (let ((path-entries (my:env-path-split (or path (getenv "PATH")))))
     (setq exec-path
           (delete-dups (if force
-                           (append path (list "." exec-directory))
-                         (append path exec-path))))))
+                           (append path-entries (list "." exec-directory))
+                         (append path-entries exec-path))))))
 
 
 (provide 'init-environ)
