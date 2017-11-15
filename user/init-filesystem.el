@@ -1,6 +1,9 @@
-;;; init-project.el --- Helpers for .dir-locals.el -*- lexical-binding: t -*-
+;;; init-filesystem.el --- Filesystem functions -*- lexical-binding: t -*-
 
 ;;; Commentary:
+;;
+;; This file provides functions to work with filesystem,
+;; paths, files; helpers with .dir-locals.el
 
 ;;; Code:
 
@@ -77,6 +80,41 @@ Path is pecified by RELATIVE argument.  See `expand-file-name'."
      ,@body))
 
 
-(provide 'init-project)
+(defconst my:path-regexp
+  (let* ((root (if (eq system-type 'windows-nt)
+                   "[a-zA-Z]:/"
+                 "/"))
+         (begin (concat "\\(?:\\.\\{1,2\\}/\\|~/\\|" root "\\)")))
+    (list (concat "\"\\(" begin "[^\"\n]*\\)")
+          (concat "\'\\(" begin "[^\'\n]*\\)")
+          (concat "\\(?:[ \t=]\\|^\\)\\(" begin "[^ \t\n]*\\)"))))
 
-;;; init-project.el ends here
+
+(defun my:regexp-find-current-line (regexp &optional expression limit)
+  (let ((inhibit-field-text-motion t)
+        (group (or expression 0)))
+    (when (looking-back regexp limit)
+      (or (match-string-no-properties group) ""))))
+
+
+(defun my:file-connected-p (file)
+  (or (not (file-remote-p file))
+      (file-remote-p file nil t)))
+
+
+(defun my:find-path-at-point ()
+  (let ((file (my:find-first
+               (lambda (re)
+                 (my:regexp-find-current-line re 1 (point-at-bol)))
+               my:path-regexp)))
+    (when (and file (my:file-connected-p file))
+      (let ((dir (file-name-directory file)))
+        (when (and dir
+                   (not (string-match "//" dir))
+                   (file-exists-p dir))
+          file)))))
+
+
+(provide 'init-filesystem)
+
+;;; init-filesystem.el ends here

@@ -7,7 +7,7 @@
 (require 'init-package)
 (require 'init-keybind)
 (require 'init-wm)
-(require 'init-project)
+(require 'init-filesystem)
 (require 'init-edit)
 (require 'init-environ)
 
@@ -35,6 +35,8 @@
 (line-number-mode t)
 (column-number-mode t)
 (size-indication-mode t)
+(minibuffer-depth-indicate-mode t)
+(setq-default enable-recursive-minibuffers t)
 
 ;; Fringe
 (setq-default indicate-empty-lines t)
