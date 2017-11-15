@@ -62,14 +62,51 @@
 
 
 ;; Misc settings
+
+(defvar my:bell-modeline-face 'error)
+
+(defvar -my:bell-active-p nil)
+
+(defun -my:bell-modeline-face-remap ()
+  (let ((face-remapping-alist-backup
+         (copy-alist face-remapping-alist)))
+    (setq -my:bell-active-p t)
+    (setq face-remapping-alist
+          (append
+           (delete (assq 'mode-line face-remapping-alist)
+                   face-remapping-alist)
+           (list
+            (cons 'mode-line my:bell-modeline-face))))
+    (force-mode-line-update)
+    face-remapping-alist-backup))
+
+
+(defun -my:bell-modeline-face-remap-restore (face-remap buffer)
+  (with-current-buffer buffer
+    (setq face-remapping-alist face-remap)
+    (setq -my:bell-active-p nil)
+    (force-mode-line-update)))
+
+
+(defun -my:bell-impl ()
+  "Blink modeline."
+  (unless -my:bell-active-p
+    (run-with-timer
+     0.15 nil
+     #'-my:bell-modeline-face-remap-restore
+     (-my:bell-modeline-face-remap)
+     (current-buffer))))
+
+
 (defun my:bell-function ()
   (unless (memq this-command
                 '(isearch-abort
                   abort-recursive-edit
                   exit-minibuffer
+                  minibuffer-keyboard-quit
                   keyboard-quit
                   helm-keyboard-quit))
-    (ding)))
+    (-my:bell-impl)))
 
 
 (setq-default inhibit-startup-screen t
@@ -315,6 +352,9 @@ With a prefix argument, use `comint-mode'."
   "Alias for `eshell' to `find-file-other-window' for FILES."
   (dolist (f files)
     (find-file-other-window f t)))
+
+(defun eshell/compile (&rest args)
+  (compile (combine-and-quote-strings args)))
 
 ;; Disable everything for big files
 (defun my:large-file-p ()
