@@ -370,12 +370,21 @@ See `large-file-warning-threshold'."
              (cons #'my:large-file-p #'my:large-file-mode))
 
 
+(setq shell-command-default-error-buffer "*Shell Command STDERR*")
+
 ;; External tools
 (defun my:process-region-with-command (command)
   "Execute COMMAND string over active region or entire buffer."
   (let ((begin (if (region-active-p) (region-beginning) (point-min)))
         (end (if (region-active-p) (region-end) (point-max))))
-    (shell-command-on-region begin end command nil t)))
+    (when (< begin end)
+      (shell-command-on-region
+       begin end command
+       ;; no buffer set, replace in current
+       nil t
+       ;; display error-bufffer
+       shell-command-default-error-buffer t
+       (region-noncontiguous-p)))))
 
 
 (defun my:reindent-xml ()
