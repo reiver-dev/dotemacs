@@ -4,10 +4,11 @@
 
 ;;; Code:
 
-(defmacro my:mapcan (func sequence)
+(defun my:mapcan (func sequence)
   "Replacement for `mapcan' to not require \"cl.el\".
-Applies FUNC to SEQUENCE to joins results."
-  `(apply #'nconc (mapcar ,func ,sequence)))
+Applies FUNC to SEQUENCE to join results."
+  (apply #'nconc (mapcar func sequence)))
+
 
 (defun my:remove-if (func sequence)
   "Replacement for `remove-if' to not use `cl.el'.
