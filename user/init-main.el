@@ -63,9 +63,17 @@
 
 ;; Misc settings
 
-(defvar my:bell-modeline-face 'error)
 
-(defvar -my:bell-active-p nil)
+(defface -my:bell-modeline-face '((t (:inherit error :inverse-video t)))
+  "Face to be used for blining modeline as visual-bell")
+
+
+(defvar -my:bell-active-p nil
+  "Flag used as mutex for `ring-bell-function' calls.")
+
+
+(defvar my:bell-modeline-face '-my:bell-modeline-face)
+
 
 (defun -my:bell-modeline-face-remap ()
   (let ((face-remapping-alist-backup
