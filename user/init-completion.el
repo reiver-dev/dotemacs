@@ -53,14 +53,14 @@
   :init (ivy-mode t))
 
 
-
 (my:with-package counsel
   :ensure t
   :init (counsel-mode t)
-  :config (my:kmap*
-           counsel-mode-map
-           ([remap yank-pop] nil)
-           ("C-M-y" #'counsel-yank-pop)))
+  :config (progn
+            (require 'init-ivy)
+            (my:kmap* counsel-mode-map
+                      ([remap yank-pop] nil)
+                      ("C-M-y" #'counsel-yank-pop))))
 
 
 ;; Completion
@@ -68,22 +68,9 @@
   :ensure t
   :init (global-company-mode t)
   :config (progn
+            (require 'init-company)
             (my:kmap* company-mode-map
-                      ("C-<tab>" #'company-complete))
-            (my:kmap* company-active-map
-                      ("C-p" #'company-select-previous)
-                      ("C-n" #'company-select-next))
-            (setq-default company-tooltip-limit 20
-                          company-tooltip-align-annotations t
-                          ;; Put semantic backend on separate key
-                          company-backends
-                          (remove 'company-semantic company-backends))
-            (defun my:company-semantic-setup ()
-              "Sets `company-semantic' keybind locally"
-              (local-set-key (kbd "C-<return>") #'company-semantic))
-            (my:after 'semantic
-              (add-hook 'c-mode-hook 'my:company-semantic-setup)
-              (add-hook 'c++-mode-hook 'my:company-semantic-setup))))
+                      ("C-<tab>" #'my:counsel-company))))
 
 
 (my:with-package yasnippet
