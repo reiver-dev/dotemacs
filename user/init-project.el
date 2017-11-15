@@ -42,13 +42,14 @@ See `directory-files-recursively' (since 25)."
       (let* ((file (car current-directory-list))
              (filename (file-relative-name file directory)))
         (when (string= pattern filename)
-          (my:add-to el-files-list file))
+          (setq el-files-list (cons file el-files-list)))
         (when (and (file-directory-p (car current-directory-list))
                    (not (equal "." (substring file -1)))
                    (not (funcall ignore-func file)))
-          (my:append-to
+          (setq
            el-files-list
-           (my:files-in-below-directory file pattern))))
+           (append (my:files-in-below-directory file pattern)
+                   el-files-list))))
       (setq current-directory-list (cdr current-directory-list)))
     el-files-list))
 

@@ -25,13 +25,7 @@ from it if result is true."
              (lambda (x) (if (funcall func x) x nil))
              sequence)))
 
-(defmacro my:add-to (list element)
-  "Update LIST by prepending ELEMENT."
-  `(setq ,list (cons ,element ,list)))
 
-(defmacro my:append-to (list &rest sequences)
-  "Update LIST by prepending SEQUENCES."
-  `(setq ,list (append ,@sequences ,list)))
 
 
 (provide 'init-list)
