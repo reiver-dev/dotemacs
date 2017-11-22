@@ -401,6 +401,12 @@ See `large-file-warning-threshold'."
   (my:process-region-with-command "xmllint --format -"))
 
 
+(defun my:reindent-html ()
+  "Use xmllint to format HTML."
+  (interactive)
+  (my:process-region-with-command "xmllint --format --html -"))
+
+
 (defun my:reindent-json ()
   "Use python to format json."
   (interactive)
