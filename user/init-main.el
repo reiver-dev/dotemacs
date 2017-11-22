@@ -430,6 +430,7 @@ See `large-file-warning-threshold'."
 (require 'init-org)
 (require 'init-haskell)
 (require 'init-spellcheck)
+(require 'init-http)
 
 
 (provide 'init-main)
