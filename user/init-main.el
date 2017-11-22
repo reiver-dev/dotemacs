@@ -383,8 +383,14 @@ See `large-file-warning-threshold'."
 ;; External tools
 (defun my:process-region-with-command (command)
   "Execute COMMAND string over active region or entire buffer."
-  (let ((begin (if (region-active-p) (region-beginning) (point-min)))
-        (end (if (region-active-p) (region-end) (point-max))))
+  (let (begin end noncont)
+    (if (region-active-p)
+        (setq begin (region-beginning)
+              end (region-end)
+              noncont (region-noncontiguous-p))
+      (setq begin (point-min)
+            end (point-max)
+            noncont nil))
     (when (< begin end)
       (shell-command-on-region
        begin end command
@@ -392,7 +398,7 @@ See `large-file-warning-threshold'."
        nil t
        ;; display error-bufffer
        shell-command-default-error-buffer t
-       (region-noncontiguous-p)))))
+       noncont))))
 
 
 (defun my:reindent-xml ()
