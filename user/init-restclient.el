@@ -88,35 +88,28 @@ Results will be sent to TARGET-BUFFER. Do not run formatter
 if RAW is non-nil. Do not switch windows focus if STAY-IN-WINDOW is non-nil."
   (setq restclient-within-call nil)
   (setq restclient-request-time-end (current-time))
+  (run-hooks 'restclient-response-received-hook)
+  (let* ((response (plist-get kwargs :response))
+         (url (format "%s" (request-response-url response)))
+         (settings (request-response-settings response))
+         (data (or (plist-get kwargs :data) ""))
+         (method (plist-get settings :type))
+         (headers (request-response--raw-header response))
+         (content-type
+          (request-response-header response "content-type"))
+         (duration (my:restclient-duration)))
+    (with-current-buffer (get-buffer-create target-buffer)
+      (erase-buffer)
+      (let ((guessed-mode
+             (-my:restclient-decode-response data content-type raw)))
+        (when guessed-mode
+          (-my:restclient-insert-footer
+           method url headers duration guessed-mode)))
 
-  (let ((errors (car-safe (plist-get kwargs :error-thrown))))
-    (if errors
-        (signal (car errors) (cdr errors))
-      (progn
-        (run-hooks 'restclient-response-received-hook)
-
-        (let* ((response (plist-get kwargs :response))
-               (url (format "%s" (request-response-url response)))
-               (settings (request-response-settings response))
-               (data (or (plist-get kwargs :data) ""))
-               (method (plist-get settings :type))
-               (headers (request-response--raw-header response))
-               (content-type
-                (request-response-header response "content-type"))
-               (duration (my:restclient-duration)))
-          (with-current-buffer (get-buffer-create target-buffer)
-            (erase-buffer)
-
-            (let ((guessed-mode
-                   (-my:restclient-decode-response data content-type raw)))
-              (when guessed-mode
-                (-my:restclient-insert-footer
-                 method url headers duration guessed-mode)))
-
-            (run-hooks 'restclient-response-loaded-hook)
-            (if stay-in-window
-                (display-buffer (current-buffer) t)
-              (switch-to-buffer-other-window (current-buffer)))))))))
+      (run-hooks 'restclient-response-loaded-hook)
+      (if stay-in-window
+          (display-buffer (current-buffer) t)
+        (switch-to-buffer-other-window (current-buffer))))))
 
 
 (defun my:image-type-from-mime (content-type)
