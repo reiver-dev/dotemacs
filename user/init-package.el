@@ -27,10 +27,13 @@ for more details about the different forms of FILE and their semantics."
   (declare (indent 1) (debug t))
   `(,(if (or (not (boundp 'byte-compile-current-file))
              (not byte-compile-current-file)
-             (if (symbolp file)
-                 (require file nil :no-error)
-               (load file :no-message :no-error)))
-         #'progn #'with-no-warnings)
+             (cond
+              ((eq 'quote (car-safe file))
+               (require (eval file :lexical) nil :no-error))
+              ((stringp file)
+               (load file :no-message :no-error))))
+         #'progn
+       #'with-no-warnings)
     (eval-after-load ,file (lambda () ,@body))))
 
 
@@ -58,13 +61,13 @@ depending on property list pairs in ARGS"
                      `(add-to-list (quote load-path) ,lpath))
                    (when ensure
                      `(my:require-package (quote ,package)))
-                   (when config
-                     `(my:after (quote ,name)
-                        ,@(macroexp-unprogn config)))
                    (when init
                      (if defer
                          `(run-with-idle-timer ,defer nil (lambda () ,init))
-                       init)))))))
+                       init))
+                   (when config
+                     `(my:after (quote ,name)
+                        ,@(macroexp-unprogn config))))))))
       (if condition
           `(if ,condition ,result nil)
         result))))

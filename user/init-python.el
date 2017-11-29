@@ -18,6 +18,12 @@
               (not (eq system-type 'windows-nt)))
 
 
+(defvar python-shell-exec-path)
+(defvar python-shell-remote-exec-path)
+(defvar python-shell-virtualenv-root)
+(declare-function python-shell--add-to-path-with-priority "python")
+
+
 (defun -my:python-shell-calculate-exec-path ()
     "Calculate `exec-path'.
 Prepends `python-shell-exec-path' and adds the binary directory

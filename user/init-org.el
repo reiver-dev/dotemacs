@@ -7,8 +7,9 @@
 
 ;;; Code:
 
-(require 'init-package)
-(require 'init-list)
+(eval-when-compile
+  (require 'init-package)
+  (require 'init-list))
 
 
 (setq-default org-src-fontify-natively t

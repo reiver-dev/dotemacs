@@ -110,7 +110,7 @@ Execute `my:env-w32-ps-from-registry' using powershell."
   "Create buffer-local copy of `process-environment'."
   (interactive)
   (let ((value (copy-sequence exec-path)))
-    (set (make-local-variable 'exec-path) exec-path)))
+    (set (make-local-variable 'exec-path) value)))
 
 
 (defun my:env-restore-initial ()

@@ -4,8 +4,9 @@
 
 ;;; Code:
 
-(require 'init-package)
-(require 'init-completion)
+(eval-when-compile
+  (require 'init-package)
+  (require 'init-completion))
 
 (defconst -my:tex-present (executable-find "tex"))
 
@@ -14,9 +15,9 @@
   :if -my:tex-present
   :ensire t
   :init (progn
-          (setq TeX-auto-parse t
-                TeX-parse-self t)
-          (setq-default TeX-master nil)))
+          (setq-default TeX-auto-parse t
+                        TeX-parse-self t
+                        TeX-master nil)))
 
 (my:with-package company-auctex
   :if -my:tex-present

@@ -42,7 +42,8 @@ returns result as filename, uses `file-name-as-directory' otherwise."
         dest
       (file-name-as-directory dest))))
 
-
+(defconst init:emacs (expand-file-name invocation-name invocation-directory)
+  "Current emacs executable")
 (defconst init:user-modules-dir (init:in-dir "user")
   "Directory for the most of init code.")
 (defconst init:load-path-dir (init:in-dir "load-path")
@@ -111,6 +112,36 @@ function list afterwards."
     (make-directory dir)))
 
 
+(defun init:run-emacs (script &optional buffer)
+  "Execute SCRIPT using current Emacs binary.
+Display result in BUFFER."
+  (let ((buffer (get-buffer-create (or buffer "*Exec Emacs*"))))
+    (with-current-buffer buffer
+      (erase-buffer)
+      (display-buffer buffer)
+      (call-process init:emacs nil buffer t
+                    "--batch" "--quick" "--eval" script))))
+
+
+(defun init:recompile-elpa ()
+  "Recompile packages in elpa directory"
+  (interactive)
+  (init:run-emacs
+   "(progn
+ (package-initialize)
+ (byte-recompile-directory package-user-dir 0 t))"))
+
+
+(defun init:recompile ()
+  (interactive)
+  (init:run-emacs
+   (format
+    "(progn (add-to-list 'load-path \"%s\")
+ (package-initialize)
+ (byte-recompile-directory \"%s\" 0 t))"
+    init:user-modules-dir init:user-modules-dir)))
+
+
 ;; Load path for additional modules
 (dolist (default-directory
           (list init:user-modules-dir
@@ -140,7 +171,8 @@ function list afterwards."
 
 
 ;; Persistent common configuration
-(let ((gc-cons-threshold most-positive-fixnum))
+(let ((gc-cons-threshold most-positive-fixnum)
+      (file-name-handler-alist nil))
   (load custom-file t)
   (require 'init-main)
   (load init:after-file t))

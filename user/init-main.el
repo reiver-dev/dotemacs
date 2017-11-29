@@ -4,6 +4,7 @@
 
 ;;; Code:
 
+(require 'init-defs)
 (require 'init-package)
 (require 'init-keybind)
 (require 'init-wm)
@@ -49,6 +50,9 @@
 (window-divider-mode +1)
 
 ;; Whitespace
+(eval-when-compile
+  (require 'whitespace))
+
 (setq-default whitespace-line-column 79
               whitespace-style
               '(face indentation space-before-tab trailing lines-tail))
@@ -65,7 +69,8 @@
 
 
 (defface -my:bell-modeline-face '((t (:inherit error :inverse-video t)))
-  "Face to be used for blining modeline as visual-bell")
+  "Face to be used for blining modeline as visual-bell"
+  :group 'my:faces)
 
 
 (defvar -my:bell-active-p nil
@@ -282,12 +287,17 @@
 ;; Disable `Reverting buffer' messages
 (setq-default auto-revert-verbose nil)
 
+(eval-when-compile
+  (require 'autorevert))
+
+(declare-function auto-revert-set-timer "autorevert")
+
 (defun my:log-tail-handler ()
   (setq-local auto-revert-interval 1)
   (auto-revert-set-timer)
   (read-only-mode t)
   (font-lock-mode 0)
-  (end-of-buffer))
+  (goto-char (point-max)))
 
 (add-hook 'auto-revert-tail-mode-hook #'my:log-tail-handler)
 
@@ -307,13 +317,13 @@
               comint-scroll-to-bottom-on-output nil
               comint-buffer-maximum-size 8196)
 
-(defun my:-comint-text-readonly (text)
+(defun -my:comint-text-readonly (_text)
   (let ((inhibit-read-only t)
         (output-end (process-mark (get-buffer-process (current-buffer)))))
     (put-text-property comint-last-output-start output-end 'read-only t)))
 
 (add-hook 'comint-output-filter-functions 'comint-truncate-buffer)
-(add-hook 'comint-output-filter-functions 'my:-comint-text-readonly)
+(add-hook 'comint-output-filter-functions '-my:comint-text-readonly)
 (add-hook 'shell-mode-hook 'ansi-color-for-comint-mode-on)
 
 
