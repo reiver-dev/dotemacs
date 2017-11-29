@@ -39,13 +39,6 @@
   (add-to-list 'org-src-lang-modes '("plantuml" . plantuml)))
 
 
-(my:with-package ob-ipython
-  :if (executable-find "jupyter")
-  :ensure t
-  :init (my:after 'org
-          (-my:org-add-language 'ipython)))
-
-
 (provide 'init-org)
 
 ;;; init-org.el ends here
