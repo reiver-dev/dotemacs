@@ -41,7 +41,7 @@
   "Closing tag with CDATA for xhtml script")
 
 (defconst my:html-style
-  ".outline3, .outline4, .outline5, .outline6 { padding-left: 2em; };
+  ".outline-3, .outline-4, .outline-5, .outline-6 { padding-left: 2em; };
 h1 { font-size: 2em; font-weight: bold; }
 h2 { font-size: 1.5em; font-weight: bold; }
 h3 { font-size: 1.5em; font-weight: normal; }
