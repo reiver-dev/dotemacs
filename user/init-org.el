@@ -41,24 +41,30 @@
   "Closing tag with CDATA for xhtml script")
 
 (defconst my:html-style
-  ".outline-3, .outline-4, .outline-5, .outline-6 { padding-left: 2em; };
-h1 { font-size: 2em; font-weight: bold; }
-h2 { font-size: 1.5em; font-weight: bold; }
-h3 { font-size: 1.5em; font-weight: normal; }
-h4 { font-size: 1.25em; font-weight: normal; }
-h5 { font-size: 1.17em; font-weight: normal; }
+  ".outline-2 { margin-left: 2em; }
+.outline-3 { margin-left: 2em; }
+.outline-4 { margin-left: 2em; }
+.outline-5 { margin-left: 2em; }
+.outline-6 { margin-left: 2em; }
+h1 { font-size: 1.5em; font-weight: bold; }
+h2 { font-size: 1.5em; font-weight: normal; }
+h3 { font-size: 1.25em; font-weight: normal; }
+h4 { font-size: 1.12em; font-weight: normal; }
+h5 { font-size: 1em; font-weight: normal; }
 h6 { font-size: 1em; font-weight: normal; }
-table { border-top: 0.08rem solid; border-bottom: 0.08rem solid; }
-table thead { border-bottom: 0.05rem solid; }
+header h1 { font-size: 2em; font-weight: bold; }
+table { border-top: 0.16rem solid; border-bottom: 0.16rem solid; }
+table thead { border-bottom: 0.10rem solid; }
 td, th { padding-left: 1em; padding-right: 1em; }
-.org-svg { width: auto; max-width: 90%; }
+.org-svg { width: auto; max-width: 100%; }
 #table-of-contents { font-variant: small-caps; }
 "
   "Additional style to `org-html-style-default'")
 
 
 (setq-default org-export-headline-levels 6
-              org-html-doctype "html5"
+              org-html-toplevel-hlevel 1
+              org-html-doctype "xhtml5"
               org-html-html5-fancy t
               org-html-postamble nil
               org-html-head (concat my:xhtml-style-begin
