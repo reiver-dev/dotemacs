@@ -11,6 +11,10 @@
 (defconst -my:rust-has-racer (executable-find "racer"))
 (defconst -my:rust-has-cargo (executable-find "cargo"))
 
+(my:with-package rust-mode
+  :ensure t
+  :init (setq-default rust-indent-where-clause t))
+
 (my:with-package racer
   :if -my:rust-has-racer
   :ensure t)
