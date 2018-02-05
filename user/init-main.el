@@ -4,6 +4,7 @@
 
 ;;; Code:
 
+(require 'init-font)
 (require 'init-defs)
 (require 'init-package)
 (require 'init-keybind)
