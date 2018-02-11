@@ -12,9 +12,9 @@
 This way `compose-region' called by function `prettify-symbols-mode'
 will use the correct width of the symbols instead of the width
 measured by `char-width'."
-  (let ((acc (list char)))
+  (let ((acc (list (decode-char 'ucs char))))
     (while (> len 1)
-      (setq acc (cons #X00a0 (cons '(Br . Bl) acc)))
+      (setq acc (cons ?\s (cons '(Br . Bl) acc)))
       (setq len (1- len)))
     acc))
 
