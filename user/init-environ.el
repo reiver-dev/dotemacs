@@ -88,7 +88,7 @@ VERSION and ARGV definition are same as for `my:env-w32-collect-vcvars'"
 
 (defun my:env-w32-get-registry-values ()
   "Gather current windows registry environment variables.
-Execute `my:env-w32-ps-from-registry' using powershell."
+Execute `my:powershell-env-from-registry' using powershell."
   (my:poweshell-exec-command my:powershell-env-from-registry))
 
 
