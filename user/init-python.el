@@ -7,23 +7,34 @@
 (require 'init-package)
 (require 'init-completion)
 
+(eval-when-compile
+  (require 'python))
 
 ;; Replace python.el version to support venv on windows
 
-(defconst -my:python-venv-bin (if (eq system-type 'windows-nt)
-                                  "Scripts" "bin"))
+(defconst -my:python-venv-bin-list
+  (if (eq system-type 'windows-nt)
+      (list "Scripts" ".")
+    (list "bin")))
 
 
 (setq-default python-shell-completion-native-enable
               (not (eq system-type 'windows-nt)))
 
 
-(defvar python-shell-exec-path)
-(defvar python-shell-remote-exec-path)
-(defvar python-shell-virtualenv-root)
-(declare-function python-shell--add-to-path-with-priority "python")
+;; Consider visible frames
+(defun -my:python-shell-switch-to-shell (&optional msg)
+  "Switch to inferior Python process buffer.
+When optional argument MSG is non-nil, forces display of a
+user-friendly message if there's no process running; defaults to
+t when called interactively."
+  (interactive "p")
+  (pop-to-buffer
+   (process-buffer (python-shell-get-process-or-error msg))
+   '(display-buffer-reuse-window (reusable-frames . visible)) t))
 
 
+;; Consider Scripts folder on windows
 (defun -my:python-shell-calculate-exec-path ()
     "Calculate `exec-path'.
 Prepends `python-shell-exec-path' and adds the binary directory
@@ -40,12 +51,15 @@ appends `python-shell-remote-exec-path' instead of `exec-path'."
           new-path
         (python-shell--add-to-path-with-priority
          new-path
-         (list (expand-file-name -my:python-venv-bin
-                                 python-shell-virtualenv-root)))
+         (mapcar (lambda (x)
+                   (expand-file-name x python-shell-virtualenv-root))
+                 -my:python-venv-bin-list))
         new-path)))
 
 
 (my:after 'python
+  (fset 'python-shell-switch-to-shell
+        '-my:python-shell-switch-to-shell)
   (fset 'python-shell-calculate-exec-path
         '-my:python-shell-calculate-exec-path))
 
