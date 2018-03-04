@@ -87,6 +87,10 @@
                       (lambda () (yas-minor-mode -1)))))
 
 
+(my:with-package yasnippet-snippets
+  :ensure t)
+
+
 (provide 'init-completion)
 
 ;;; init-completion.el ends here
