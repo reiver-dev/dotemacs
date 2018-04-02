@@ -22,6 +22,10 @@
               (not (eq system-type 'windows-nt)))
 
 
+(defun -my:python-venv-root-expand (path)
+  (expand-file-name path python-shell-virtualenv-root))
+
+
 ;; Consider visible frames
 (defun -my:python-shell-switch-to-shell (&optional msg)
   "Switch to inferior Python process buffer.
@@ -51,8 +55,7 @@ appends `python-shell-remote-exec-path' instead of `exec-path'."
           new-path
         (python-shell--add-to-path-with-priority
          new-path
-         (mapcar (lambda (x)
-                   (expand-file-name x python-shell-virtualenv-root))
+         (mapcar #'-my:python-venv-root-expand
                  -my:python-venv-bin-list))
         new-path)))
 
@@ -62,6 +65,40 @@ appends `python-shell-remote-exec-path' instead of `exec-path'."
         '-my:python-shell-switch-to-shell)
   (fset 'python-shell-calculate-exec-path
         '-my:python-shell-calculate-exec-path))
+
+
+(defun my:flycheck-python-setup ()
+  "Setup python executable for flycheck python checkers."
+  (interactive)
+  (with-demoted-errors "Error in flycheck-python-setup: %S"
+      (let ((pyexe (python-shell-with-environment
+                     (executable-find python-shell-interpreter))))
+        (setq-local flycheck-python-flake8-executable pyexe)
+        (setq-local flycheck-python-pylint-executable pyexe)
+        (setq-local flycheck-python-pycompile-executable pyexe)
+        pyexe)))
+
+
+(when (eq system-type 'windows-nt)
+  (defun -my:pythonic-executable ()
+    "Python executable."
+    (if python-shell-virtualenv-root
+        (if (tramp-tramp-file-p python-shell-virtualenv-root)
+            (expand-file-name
+             "bin/python"
+             (tramp-file-name-localname
+              (tramp-dissect-file-name python-shell-virtualenv-root)))
+          (locate-file
+           "pythonw"
+           (mapcar #'-my:python-venv-root-expand
+                   -my:python-venv-bin-list)
+           exec-suffixes 1))
+      (if (tramp-tramp-file-p python-shell-interpreter)
+          (tramp-file-name-localname
+           (tramp-dissect-file-name python-shell-interpreter))
+        python-shell-interpreter)))
+  (my:after 'pythonic
+    (fset 'pythonic-executable '-my:pythonic-executable)))
 
 
 (my:with-package anaconda-mode
@@ -82,12 +119,6 @@ appends `python-shell-remote-exec-path' instead of `exec-path'."
   :init (my:after 'anaconda-mode
           (add-to-list 'company-backends #'company-anaconda)))
 
-(my:with-package python-environment
-  :disabled t
-  :ensure t
-  :config (progn
-            (setq python-environment-virtualenv
-                  (append (list "python" "-m") python-environment-virtualenv))))
 
 (my:with-package jedi-core
   :disabled t
