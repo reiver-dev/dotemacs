@@ -276,12 +276,6 @@
 
 ;;; Mode Settings
 
-;; Ediff
-(my:after 'ediff
-  (setq-default
-   ;; run control panel in same frame
-   ediff-window-setup-function #'ediff-setup-windows-plain))
-
 ;; Sync unchanged buffers with filesystem
 (global-auto-revert-mode t)
 
@@ -430,6 +424,7 @@ See `large-file-warning-threshold'."
   (my:process-region-with-command "python -m json.tool"))
 
 
+(require 'init-compare)
 (require 'init-pkgs)
 (require 'init-parens)
 (require 'init-completion)
