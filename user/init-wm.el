@@ -7,22 +7,24 @@
 (require 'init-list)
 
 (defun my:one-window-p (&optional window)
-  "Like `one-window-p', but correctly works with other frame selected"
+  "Check if WINDOW (current as defalt) is single window on frame.
+Like `one-window-p', but correctly works with other frame selected."
   (let ((frame (window-frame window)))
     (eq window
         (next-window window 'no-minibuf frame))))
 
 (defun my:delete-window (window)
-  "Like `delete-window' but closes frame if WINDOW is only window left"
+  "Delete WINDOW. Delete frame too if sole window on frame.
+Like `delete-window' but closes frame if WINDOW is only window left"
   (let ((frame (window-frame window)))
     (if (my:one-window-p frame)
         (delete-frame frame)
       (delete-window window))))
 
 (defun my:visible-frame-list (&optional from-current-frame)
-  "Returns list of \"visible\" frames starting from current frame
-if FROM-CURRENT-FRAME is not nil.
-Here \"visible\" frame is current frame or any graphical frame"
+  "Return list of \"visible\" frames.
+Starting from current frame if FROM-CURRENT-FRAME is not nil.
+Here \"visible\" frame is current frame or any graphical frame."
   (let* ((current-frame (selected-frame))
          (frames (my:remove-if-not
                   (lambda (frame)
@@ -33,12 +35,18 @@ Here \"visible\" frame is current frame or any graphical frame"
         (cons current-frame (remove current-frame frames))
       frames)))
 
+(defun my:window-list (frame)
+  "Return a list of windows on FRAME.
+Result starts with topmost, leftmost live window."
+  (window-list frame nil (frame-first-window frame)))
+
 (defun my:visible-window-list ()
-  "Return windows from all visible frames"
-  (my:mapcan #'window-list (my:visible-frame-list)))
+  "Return windows from all visible frames."
+  (my:mapcan #'my:window-list (my:visible-frame-list)))
 
 (defun my:apply-to-window (action window &rest args)
-  "Calls ACTION with argument WINDOW, switches frame focus if required"
+  "Call ACTION with argument WINDOW, switch frame focus if required.
+Additional ARGS are passed to ACTION using `apply'."
   (when (window-live-p window)
     (let ((frame (window-frame window)))
       (when (and (frame-live-p frame)
@@ -49,7 +57,8 @@ Here \"visible\" frame is current frame or any graphical frame"
       (funcall action window))))
 
 (defun my:move-window-to-other-window (target-window current-window side)
-  "Moves buffer to other window's split"
+  "Move buffer to TARGET-WINDOW from CURRENT-WINDOW to split on SIDE.
+For possible SIDE values see `split-window'."
   (when (eq target-window current-window)
     (error "Can't move to same window"))
   (let ((current-frame (window-frame current-window))
@@ -64,7 +73,8 @@ Here \"visible\" frame is current frame or any graphical frame"
         (select-window new-window)))))
 
 (defun my:query-move-to-window (target-window current-window)
-  "Function to interactevely choose side for `my:move-window-to-other-window'"
+  "Move buffer to TARGET-WINDOW from CURRENT-WINDOW.
+Interactevely choose side for `my:move-window-to-other-window'."
   (let* ((choice (read-char-choice "Choose side with hjkl: "
                                    '(?h ?j ?k ?l)))
          (side (cond ((= choice ?h) 'left)
@@ -75,7 +85,7 @@ Here \"visible\" frame is current frame or any graphical frame"
                                     current-window side)))
 
 (defun my:swap-windows (target-window current-window)
-  "Swaps two windows' buffers"
+  "Swap TARGET-WINDOW and CURRENT-WINDOW buffers."
   (let ((current-buf (window-buffer current-window))
         (target-buf (window-buffer target-window)))
     (set-window-buffer current-window target-buf)
@@ -83,7 +93,7 @@ Here \"visible\" frame is current frame or any graphical frame"
     (select-window target-window)))
 
 (defun my:toggle-window-dedicated ()
-  "Toggle whether the current active window is dedicated or not"
+  "Toggle whether the current active window is dedicated or not."
   (interactive)
   (let ((window (selected-window)))
     (message (if (set-window-dedicated-p
@@ -93,14 +103,15 @@ Here \"visible\" frame is current frame or any graphical frame"
                "Window %s normal")
              (buffer-name))))
 
-(defun my:resize-window (&optional arg)
-  "Resize window interactively"
+(defun my:resize-window (&optional delta)
+  "Resize window for DELTA lines.
+Interactively keys hjkl set resize direction."
   (interactive "P")
   (when (one-window-p)
     (error "Cannot resize sole window"))
   (when (window-fixed-size-p (selected-window))
     (error "Window has fixed size"))
-  (let (c exit (n (or arg 5)))
+  (let (c exit (n (or delta 5)))
     (while (not exit)
       (message "Resize window on hkjl")
       (setq c (read-char))
@@ -113,7 +124,7 @@ Here \"visible\" frame is current frame or any graphical frame"
 
 (defun my:detach-window (&optional window)
   "Close WINDOW and open it's buffer in new frame.
- If WINDOW is nil, applies to selected window"
+If WINDOW is nil, apply to selected window."
   (interactive)
   (let ((window (window-normalize-window window)))
     (if (my:one-window-p window)

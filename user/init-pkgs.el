@@ -74,6 +74,7 @@
     (defun my:aw-put-window (window)
       (my:apply-to-window
        #'my:query-move-to-window window (selected-window)))
+    (fset 'aw-window-list 'my:visible-window-list)
     (setq aw-dispatch-alist
           '((?w aw-switch-to-window " Ace - Window")
             (?m my:aw-put-window " Ace - Move Window")
