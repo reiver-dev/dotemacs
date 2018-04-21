@@ -6,8 +6,11 @@
 
 ;;; Code:
 
-(defconst my:space (decode-char 'ucs 32))
-(defconst my:nbs (decode-char 'ucs 160))
+(defconst my:space (decode-char 'ucs #x20))
+(defconst my:nbsp (decode-char 'ucs #xA0))
+(defconst my:nnbsp (decode-char 'ucs #x202F))
+(defconst my:zws (decode-char 'ucs #x200B))
+(defconst my:wj (decode-char 'ucs #x2060))
 
 
 (defun -my:ligatures-correct-symbol-bounds (len char)
@@ -17,10 +20,10 @@ will use the correct width of the symbols instead of the width
 measured by `char-width'."
   (let ((acc (list (decode-char 'ucs char))))
     (while (> len 2)
-      (setq acc (cons my:space (cons '(Br . Bl) acc)))
+      (setq acc (cons my:nbsp (cons '(Br . Bl) acc)))
       (setq len (1- len)))
     (if (> len 1)
-        (cons my:nbs (cons '(Br . Bl) acc))
+        (cons my:nbsp (cons '(Br . Bl) acc))
       acc)))
 
 
@@ -37,15 +40,16 @@ sequentially."
           ligatures))
 
 (defconst my:ligatures-fira-code-list
-  '("www" "**" "***" "*>" "*/" "\\\\" "\\\\\\" "]#" "::" ":::"
-    ":=" "!!" "!=" "!==" "--" "---" "-->" "->" "->>" "-<"
-    "-<<" "-~" "#{" "#[" "#!" "##" "###" "####" "#(" "#?"
-    "#_" "#_(" ".-" ".=" ".." "..<" "..." ".?" "?:" "?="
-    "?." "??" ";;" "/*" "/=" "/==" "/>" "//" "///" "__"
-    "&&" "||" "|||>" "||=" "||>" "|=" "|>" "^=" "$>" "++"
-    "+++" "+>" "=:=" "==" "===" "==>" "=>" "=>>" "<=" "=<<"
-    "=/=" ">-" ">->" ">=" ">=>" ">>" ">>-" ">>=" ">>>" "<*"
-    "<*>" "<|" "<||" "<|||" "<|>" "<$" "<$>" "<!--" "<-" "<--"
+  '("www" "**" "***" "*>" "*/" "{|" "[|" "]#" "::" ":::"
+    "::=" ":=" ":>" "!!" "!=" "!==" "-|" "--" "---" "-->"
+    "->" "->>" "-<" "-<<" "-~" "#{" "#[" "#!" "##" "###"
+    "####" "#=" "#(" "#?" "#_" "#_(" ".-" ".=" ".." "..="
+    "..<" "..." ".?" "?:" "?=" "?." "??" ";;" "/*" "/="
+    "/==" "/>" "//" "///" "_|_" "__" "&&" "||" "|||>" "||="
+    "||>" "|}" "|]" "|-" "|=" "|>" "^=" "$>" "++" "+++"
+    "+>" "=:=" "=!=" "==" "===" "==>" "=>" "=>>" "=<<" "=/="
+    ">-" ">->" ">=" ">=>" ">>" ">>-" ">>=" ">>>" "<*" "<*>"
+    "<|" "<||" "<|||" "<|>" "<:" "<$" "<$>" "<!--" "<-" "<--"
     "<->" "<-<" "<+" "<+>" "<=" "<==" "<=>" "<=<" "<>" "<<"
     "<<-" "<<=" "<<<" "<~" "<~>" "<~~" "</" "</>" "~@" "~-"
     "~=" "~>" "~~" "~~>" "%%")
