@@ -100,11 +100,6 @@
               company-backends (-my:cleanup-company-backends))
 
 
-(my:kmap* company-active-map
-          ("C-p" #'company-select-previous)
-          ("C-n" #'company-select-next))
-
-
 (provide 'init-company)
 
 ;;; init-company.el ends here
