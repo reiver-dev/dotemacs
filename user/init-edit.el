@@ -48,33 +48,6 @@ With argument ARG, do this many times."
   (interactive "*p")
   (my:delete-word (- arg)))
 
-(unless (fboundp 'upcase-dwim)
-  (defun upcase-dwim (arg)
-    "Call `upcase-region' or `upcase-word'
-depending on whether or not a region is selected."
-    (interactive "*p")
-    (if (use-region-p)
-        (upcase-region (region-beginning) (region-end))
-      (upcase-word arg))))
-
-(unless (fboundp 'downcase-dwim)
-  (defun downcase-dwim (arg)
-    "Call `downcase-region' or `downcase-word'
-depending on whether or not a region is selected."
-    (interactive "*p")
-    (if (use-region-p)
-        (downcase-region (region-beginning) (region-end))
-      (downcase-word arg))))
-
-(unless (fboundp 'capitalize-dwim)
-  (defun capitalize-dwim (arg)
-    "Call `capitalize-region' or `capitalize-word'
-depending on whether or not a region is selected."
-    (interactive "*p")
-    (if (use-region-p)
-        (capitalize-region (region-beginning) (region-end))
-      (capitalize-word arg))))
-
 (defun my:join-line (arg)
   "Backward from `delete-indentation'.
 Joins this line to following line.
