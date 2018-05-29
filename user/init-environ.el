@@ -11,7 +11,7 @@
 (defun my:env-split-entry (entry)
   "Return cons pair (name . var) from ENTRY string.
 Entry string should be 'NAME=VALUE'"
-  (when (string-match "^\\(.*?\\)=\\(.*\\)" entry)
+  (when (string-match "^\\(=?.*?\\)=\\(.*\\)" entry)
     (let ((name (match-string 1 entry))
           (value (match-string 2 entry)))
       (when value (cons name value)))))
