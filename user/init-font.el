@@ -13,6 +13,9 @@
 (defconst my:wj (decode-char 'ucs #x2060))
 
 
+(setq-default prettify-symbols-unprettify-at-point 'right-edge)
+
+
 (defun -my:ligatures-correct-symbol-bounds (len char)
   "Prepend up to LEN non-breaking spaces with reference points to CHAR.
 This way `compose-region' called by function `prettify-symbols-mode'
