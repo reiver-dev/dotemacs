@@ -7,7 +7,8 @@
 
 (defconst my:powershell-env-from-registry
   "\
-$exclude = @('USERNAME', 'PROCESSOR_ARCHITECTURE', 'PSModulePath', 'PATH');
+$exclude = @('USERNAME', 'PROCESSOR_ARCHITECTURE', 'PATH', 'PSModulePath',
+             'TERM', 'SHELL');
 $sysreg = \
 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment';
 $userreg = 'HKCU:\\Environment';
@@ -29,7 +30,7 @@ $uservars.GetValueNames() \
 | write-output;
 
 $paths = \
- $uservars.GetValue('PATH'), $sysvars.GetValue('PATH') \
+ $sysvars.GetValue('PATH'), $uservars.GetValue('PATH') \
  | %{ $_ -split ';' } \
  | %{ [System.Environment]::ExpandEnvironmentVariables($_) } \
  | select -unique;
@@ -43,8 +44,6 @@ Return output as string."
     (call-process-region command nil
                          "powershell" nil standard-output nil
                          "-noprofile" "-noninteractive" "-command" "-")))
-
-
 
 
 (provide 'init-powershell)
