@@ -6,8 +6,9 @@
 
 ;;; Code:
 
-(require 'init-filesystem)
-(require 'ivy)
+(eval-when-compile
+  (require 'init-filesystem)
+  (require 'ivy))
 
 
 (defun my:counsel-complete-files (&optional initial-input)

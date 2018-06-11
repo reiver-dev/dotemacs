@@ -50,12 +50,18 @@
 
 (my:with-package ivy
   :ensure t
+  :defer 1
   :init (ivy-mode t))
+
+
+(my:with-package ivy-xref
+  :ensure t
+  :init (setq xref-show-xrefs-function #'ivy-xref-show-xrefs))
 
 
 (my:with-package counsel
   :ensure t
-  :init (counsel-mode t)
+  :init (my:after ivy (counsel-mode t))
   :config (progn
             (require 'init-ivy)
             (my:kmap* counsel-mode-map
@@ -66,11 +72,18 @@
 ;; Completion
 (my:with-package company
   :ensure t
+  :defer 1
   :init (global-company-mode t)
   :config (progn
             (require 'init-company)
             (my:kmap* company-mode-map
-                      ("C-<tab>" #'my:counsel-company))))
+                      ("C-<tab>" #'company-complete))))
+
+
+(my:with-package company-box
+  :ensure t
+  :init (add-hook 'company-mode-hook 'company-box-mode)
+  :config (require 'subr-x))
 
 
 (my:with-package yasnippet

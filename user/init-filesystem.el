@@ -28,6 +28,92 @@ See `locate-dominating-file' for reference"
             (my:locate-top-dominating-file parent name target)))
       default)))
 
+
+(if (string= system-type "windows-nt")
+    (defun my:expand-file-name (name &optional directory)
+      "Convert filename NAME to absolute, and canonicalize it.
+Start from DEFAULT-DIRECTORY if set. Same as `expand-file-name'
+but lowercase paths on windows. On other systems is just alias."
+      (let ((w32-downcase-file-names t))
+        (expand-file-name name directory)))
+  (defalias 'my:expand-file-name 'expand-file-name))
+
+
+(defun my:slurp (file)
+  "Read FILE from filesystem."
+  (with-temp-buffer
+    (insert-file-contents file)
+    (buffer-string)))
+
+
+(defun my:slurp-lines (file)
+  "Read FILE from filesystem, split lines, trim whitespace."
+  (with-temp-buffer
+    (insert-file-contents file)
+    (mapcar
+     #'(lambda (line)
+         (if (string-match "[ \t]+$" line)
+             (replace-match "" t t line)
+           line))
+     (split-string (buffer-string)  "\n" t))))
+
+
+(defun my:tokenize-args (input)
+  (let* ((len (length input))
+         (whitespace (string-to-list " \f\t\n\r\v"))
+         (weak-special (string-to-list "\"$`"))
+         (i 0)
+         (slashed nil)
+         (result (cons nil nil))
+         (result-tail result)
+         (acc (cons nil nil))
+         (acc-tail acc)
+         (state 'normal))
+    (while (< i len)
+      (let ((char (aref input i)))
+        (cond
+         ((eq state 'normal)
+          (cond
+           (slashed
+            (setq acc-tail (setcdr acc-tail (cons char nil))
+                  slashed nil))
+           ((member char whitespace)
+            (when (cdr acc)
+              (setq result-tail (setcdr result-tail
+                                        (cons (cdr acc) nil))
+                    acc-tail acc)
+              (setcdr acc nil)))
+
+           ((equal char ?\") (setq state 'weak-quotes))
+           ((equal char ?\') (setq state 'strong-quotes))
+           ((equal char ?\\) (setq slashed t))
+           (t (setq acc-tail (setcdr acc-tail (cons char nil))))))
+
+         ((eq state 'weak-quotes)
+          (cond
+           (slashed
+            (setq acc-tail
+                  (if (member char weak-special)
+                      (setcdr acc-tail (cons char nil))
+                    (cdr (setcdr acc-tail (list ?\\ char))))
+                  slashed nil))
+           ((equal char ?\\) (setq slashed t))
+           ((equal char ?\") (setq state 'normal))
+           (t (setq acc-tail (setcdr acc-tail (cons char nil))))))
+
+         ((eq state 'strong-quotes)
+          (cond
+           ((equal char ?\') (setq state 'normal))
+           (t (setq acc-tail (setcdr acc-tail (cons char nil))))))
+
+         (t
+          (error "Invalid state: %s" state))))
+      (setq i (1+ i)))
+    (setq result-tail (setcdr result-tail
+                              (cons (cdr acc) nil)))
+    (mapcar (lambda (x) (apply 'string x)) (cdr result))))
+
+
 (defun my:files-in-below-directory (directory pattern &optional ignore)
   "List the file names in DIRECTORY and in its sub-dirs equal to PATTERN.
 Optional IGNORE argument can be list of names to ignore in recursive walk
@@ -74,7 +160,7 @@ Path is pecified by RELATIVE argument.  See `expand-file-name'."
 
 
 (defmacro my:with-local-dir (relative &rest body)
-  "Macro for running commands from location relative to \".dir-locals.el\"."
+  "Evaluate BODY in RELATIVE location to \".dir-locals.el\"."
   `(let ((default-directory
            (file-name-as-directory (my:dir-locals-path ,relative))))
      ,@body))
@@ -91,6 +177,7 @@ Path is pecified by RELATIVE argument.  See `expand-file-name'."
 
 
 (defun my:regexp-find-current-line (regexp &optional expression limit)
+  "Perform REGEXP search on current line. Get EXPRESSION group up to LIMIT."
   (let ((inhibit-field-text-motion t)
         (group (or expression 0)))
     (when (looking-back regexp limit)

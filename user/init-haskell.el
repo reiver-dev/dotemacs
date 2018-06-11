@@ -18,10 +18,9 @@
 (my:with-package company-ghc
   :if (executable-find "ghc-mod")
   :ensure t
-  :config (my:after 'company
-            (my:after 'haskell-mode
-              (add-to-list 'company-backends #'company-ghc)
-              (add-hook 'haskell-mode-hook #'ghc-init))))
+  :config (my:after '(company haskell-mode)
+            (add-to-list 'company-backends #'company-ghc)
+            (add-hook 'haskell-mode-hook #'ghc-init)))
 
 
 

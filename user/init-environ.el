@@ -60,7 +60,7 @@ Try to use vswhere if available."
                (when comntools
                  (expand-file-name "../../" comntools))))))
     (cond
-     ((not vspath) nil)
+     ((or (not vspath) (string= "" vspath)) nil)
      ((>= version 15) (expand-file-name
                        "VC/Auxiliary/Build/vcvarsall.bat"
                        vspath))

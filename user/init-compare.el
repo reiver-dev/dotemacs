@@ -7,8 +7,8 @@
 (require 'init-package)
 
 
-(my:after 'ediff
-  (setq-default
+(my:after ediff
+  (setq
    ;; run control panel in same frame
    ediff-window-setup-function #'ediff-setup-windows-plain))
 

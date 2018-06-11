@@ -7,8 +7,9 @@
 
 ;;; Code:
 
-(require 'init-list)
-(require 'init-keybind)
+(eval-when-compile
+  (require 'init-list)
+  (require 'init-keybind))
 
 (require 'rfc2231)
 (require 'restclient)

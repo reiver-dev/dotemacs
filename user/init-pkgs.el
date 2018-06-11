@@ -4,16 +4,28 @@
 
 ;;; Code:
 
-(require 'init-package)
-(require 'init-keybind)
+
+(eval-when-compile
+  (require 'init-package)
+  (require 'init-keybind))
 
 
 (my:with-package undo-tree
   :ensure t
+  :defer 1
   :init (global-undo-tree-mode)
   :config (progn
             (setq-default undo-tree-visualizer-timestamps t
                           undo-tree-visualizer-diff t)))
+
+
+(my:with-package vi-tilde-fringe
+  :ensure t
+  :init (add-hook 'my:first-frame-hook
+                  #'(lambda ()
+                      (when (fboundp 'define-fringe-bitmap)
+                        (global-vi-tilde-fringe-mode)))))
+
 
 (my:with-package multiple-cursors
   :ensure t
@@ -105,15 +117,6 @@
            magit-diff-refine-hunk t))
 
 ;; Project management and project tree
-(my:with-package dired+
-  :ensure t
-  :init (progn
-          (setq-default
-           diredp-hide-details-initially-flag t
-           diredp-hide-details-propagate-flag t)
-          (let ((inhibit-message t))
-            (diredp-toggle-find-file-reuse-dir t))))
-
 
 (my:with-package neotree
   :ensure t
@@ -137,8 +140,10 @@
   :defer t
   :init (global-diff-hl-mode))
 
+
 (my:with-package projectile
   :ensure t
+  :defer t
   :init (progn
           (setq-default projectile-completion-system 'ivy
                         projectile-switch-project-action
@@ -146,13 +151,35 @@
           (projectile-mode))
   :config (progn
             ;; Try to emulate ede (from CEDET) project
-            (my:after 'semanticdb
+            (my:after semanticdb
               (setq-default semanticdb-project-root-functions
                             projectile-project-root-files-functions))))
 
 
 (my:with-package flycheck
-  :ensure t)
+  :ensure t
+  :init (setq flycheck-indication-mode 'right-fringe)
+  :config
+  (progn
+    (when (fboundp 'define-fringe-bitmap)
+      (define-fringe-bitmap 'flycheck-fringe-bitmap-double-arrow
+        (vector #b00000000
+                #b00000000
+                #b00000000
+                #b00000000
+                #b00000000
+                #b00011001
+                #b00110110
+                #b01101100
+                #b11011000
+                #b01101100
+                #b00110110
+                #b00011001
+                #b00000000
+                #b00000000
+                #b00000000
+                #b00000000
+                #b00000000)))))
 
 (my:with-package js2-mode
   :ensure t
@@ -165,8 +192,6 @@
   :ensure t
   :config (setq-default lua-indent-level 4))
 
-(my:with-package rust-mode
-  :ensure t)
 
 (provide 'init-pkgs)
 

@@ -4,8 +4,9 @@
 
 ;;; Code:
 
-(require 'init-package)
-(require 'init-completion)
+(eval-when-compile
+  (require 'init-package)
+  (require 'init-completion))
 
 (eval-when-compile
   (require 'python))
@@ -106,17 +107,17 @@ appends `python-shell-remote-exec-path' instead of `exec-path'."
   :init (add-hook 'python-mode-hook #'anaconda-mode)
   :config (progn
             (my:kmap* anaconda-mode-map
-                      ("M-*" "M-," "M-." "C-M-i" nil)
+                      ("M-r" "M-*" "M-," "M-." nil)
                       ("M-." #'anaconda-mode-find-definitions)
-                      ("M-," #'anaconda-mode-go-back)
                       ("C-M-." #'anaconda-mode-find-assignments)
-                      ("M-]" #'anaconda-mode-find-references)
-                      ([remap completion-at-point] #'anaconda-mode-complete))))
+                      ("M-?" #'anaconda-mode-find-references)
+                      ("C-c C-d" #'anaconda-mode-show-doc)
+                      ("M-," #'xref-pop-marker-stack))))
 
 
 (my:with-package company-anaconda
   :ensure t
-  :init (my:after 'anaconda-mode
+  :init (my:after '(anaconda-mode company)
           (add-to-list 'company-backends #'company-anaconda)))
 
 
@@ -131,7 +132,7 @@ appends `python-shell-remote-exec-path' instead of `exec-path'."
 (my:with-package company-jedi
   :disabled t
   :ensure t
-  :init (my:after 'jedi-core
+  :init (my:after jedi-core
           (add-to-list 'company-backends #'company-jedi)))
 
 

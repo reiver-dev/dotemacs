@@ -16,25 +16,73 @@ re-downloaded in order to locate PACKAGE."
         (package-install package)
       (progn
         (package-refresh-contents)
-        (my:require-package package min-version t)))))
+        (package-install package)))))
 
 
-(defmacro my:after (file &rest body)
-  "Wait until FILE loaded to execute BODY.
-FILE is normally a feature name, but it can also be a file name,
-in case that file does not provide any feature.  See `eval-after-load'
-for more details about the different forms of FILE and their semantics."
+(defun my:require-when-compile (feature)
+  "Require or load FEATURE if file is currently compiled.
+Meant to be used in macros."
+  (or (not (boundp 'byte-compile-current-file))
+      (not byte-compile-current-file)
+      (cond
+       ((symbolp feature)
+        (require feature nil :no-error))
+       ((stringp feature)
+        (load feature :no-message :no-error)))))
+
+
+(defun -my:at-least-one (value)
+  "Normalize VALUE to quoted or string."
+  (while (or (eq 'quote (car-safe value))
+             (eq 'backquote (car-safe value)))
+    (setq value (eval value :lexical)))
+  (if (consp value)
+      value
+    (cons value nil)))
+
+
+(defmacro my:measure-time (name &rest body)
+  "Measure the time it takes for NAME to evaluate BODY."
+  `(let ((--time-- (current-time)))
+     ,@body
+     (message "Package: %s %.06f" ,name (float-time (time-since --time--)))))
+
+
+(defmacro -my:run-after (count &rest body)
+  "Create closure from BODY to be executed after COUNT funcalls."
+  (let ((var '--times--))
+    `(let ((,var ,count))
+       (lambda ()
+         (setq ,var (1- ,var))
+         (if (= 0 ,var) ,@body)))))
+
+
+(defmacro -my:maybe-no-warnings (flag &rest body)
+  "Wrap BODY to lamba. Use `with-no-warnings' if FLAG is set."
   (declare (indent 1) (debug t))
-  `(,(if (or (not (boundp 'byte-compile-current-file))
-             (not byte-compile-current-file)
-             (cond
-              ((eq 'quote (car-safe file))
-               (require (eval file :lexical) nil :no-error))
-              ((stringp file)
-               (load file :no-message :no-error))))
-         #'progn
-       #'with-no-warnings)
-    (eval-after-load ,file (lambda () ,@body))))
+  (if flag
+      `(lambda () ,@body)
+    `(lambda ()
+       (with-no-warnings ,@body))))
+
+
+(defmacro my:after (items &rest body)
+  "Evaluate BODY after ITEMS are loaded.
+ITEMS might be a symbol, string or list of these."
+  (declare (indent 1) (debug t))
+  (let* ((items (-my:at-least-one items))
+         (loaded t))
+    (dolist (item items)
+      (setq loaded (and (my:require-when-compile item) loaded)))
+    (if (= 1 (length items))
+        `(eval-after-load ,(macroexp-quote (car items))
+           (-my:maybe-no-warnings ,loaded ,@body))
+      `(let* ((routine (-my:maybe-no-warnings ,loaded ,@body))
+              (guarded (-my:run-after ,(length items)
+                                      (funcall routine))))
+         ,@(mapcar (lambda (item)
+                     (list 'eval-after-load (macroexp-quote item) 'guarded))
+                   items)))))
 
 
 (defmacro my:with-package (name &rest args)
@@ -44,6 +92,7 @@ depending on property list pairs in ARGS"
   (unless (plist-get args :disabled)
     (let* ((ensure (plist-get args :ensure))
            (package (if (or (not ensure) (eq t ensure)) name ensure))
+           (package-name (symbol-name package))
            (init (plist-get args :init))
            (defer (let ((d (plist-get args :defer)))
                     (when d
@@ -53,7 +102,7 @@ depending on property list pairs in ARGS"
            (lpath (plist-get args :load-path))
            (result
             `(with-demoted-errors
-                 ,(concat "Error loading " (symbol-name package) ": %S")
+                 ,(concat "Error loading " package-name ": %S")
                ,@(delq
                   nil
                   (list

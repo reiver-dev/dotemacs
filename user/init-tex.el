@@ -22,9 +22,8 @@
 (my:with-package company-auctex
   :if -my:tex-present
   :ensure t
-  :init (my:after 'company
-          (my:after 'tex
-            (company-auctex-init))))
+  :init (my:after '(company tex)
+          (company-auctex-init)))
 
 
 (provide 'init-tex)

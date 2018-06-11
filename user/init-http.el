@@ -7,7 +7,8 @@
 
 ;;; Code:
 
-(require 'init-package)
+(eval-when-compile
+  (require 'init-package))
 
 
 (my:with-package request
@@ -18,7 +19,7 @@
   :ensure t
   :config
   (progn
-    (my:after 'request
+    (my:after request
       (require 'init-restclient))
     (require 'request nil t)))
 

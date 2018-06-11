@@ -96,7 +96,7 @@
 
 (setq-default company-tooltip-limit 20
               company-tooltip-align-annotations t
-              company-frontends '(company-preview-if-just-one-frontend)
+              ;; company-frontends '(company-preview-if-just-one-frontend)
               company-backends (-my:cleanup-company-backends))
 
 

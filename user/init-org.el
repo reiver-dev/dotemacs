@@ -72,7 +72,7 @@ td, th { padding-left: 1em; padding-right: 1em; }
                                     my:xhtml-style-end))
 
 
-(my:after 'ox-html
+(my:after ox-html
   (setf (alist-get 'bold org-html-text-markup-alist) "<strong>%s</strong>"
         (alist-get 'italic org-html-text-markup-alist) "<em>%s</em>"))
 
@@ -85,11 +85,11 @@ td, th { padding-left: 1em; padding-right: 1em; }
              (mapcar (lambda (l) (cons l t)) langs))))
 
 
-(my:after 'org
+(my:after org
   (-my:org-add-language 'python 'plantuml))
 
 
-(my:after 'plantuml-mode
+(my:after plantuml-mode
   (add-to-list 'org-src-lang-modes '("plantuml" . plantuml)))
 
 

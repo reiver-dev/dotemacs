@@ -4,6 +4,8 @@
 
 ;;; Code:
 
+(defvaralias 'my:first-frame-hook 'init:first-frame-hook)
+
 (require 'init-font)
 (require 'init-defs)
 (require 'init-package)
@@ -41,8 +43,8 @@
 (setq-default enable-recursive-minibuffers t)
 
 ;; Fringe
-(setq-default indicate-empty-lines t)
-(fringe-mode '(nil . 0))
+(setq-default indicate-empty-lines t
+              fringes-outside-margins t)
 
 ;; Window border
 (setq window-divider-default-places t
@@ -159,6 +161,7 @@
 
 ;; Text behavior
 (setq-default shift-select-mode nil
+              set-mark-command-repeat-pop t
               sentence-end-double-space nil
               require-final-newline t)
 
@@ -178,13 +181,6 @@
   (whitespace-mode t))
 
 (add-hook 'diff-mode-hook #'my:whitespace-mode-diff-setup)
-
-(setq-default dired-listing-switches "-lhvA"
-              dired-clean-up-buffers-too t
-              dired-recursive-copies 'always
-              dired-recursive-deletes 'top
-              dired-hide-details-hide-symlink-targets nil)
-
 
 (add-hook 'prog-mode-hook #'my:prog-mode-setup)
 (add-hook 'nxml-mode #'my:prog-mode-setup)
@@ -267,25 +263,18 @@
  ("<f9>" #'my:toggle-window-dedicated)
  ("<f5>" #'revert-buffer))
 
-(if (eq (lookup-key (current-global-map) (kbd "M-*"))
-        'pop-tag-mark)
-    (my:kmap
-     ("M-," #'pop-tag-mark)
-     ("M-*" #'tags-loop-continue)))
-
 
 ;;; Mode Settings
 
-;; Sync unchanged buffers with filesystem
-(global-auto-revert-mode t)
-
-;; Disable `Reverting buffer' messages
-(setq-default auto-revert-verbose nil)
 
 (eval-when-compile
   (require 'autorevert))
 
 (declare-function auto-revert-set-timer "autorevert")
+;; Sync unchanged buffers with filesystem
+(global-auto-revert-mode t)
+;; Disable `Reverting buffer' messages
+(setq-default auto-revert-verbose nil)
 
 (defun my:log-tail-handler ()
   (setq-local auto-revert-interval 1)
@@ -297,77 +286,14 @@
 (add-hook 'auto-revert-tail-mode-hook #'my:log-tail-handler)
 
 ;; Show recent files
-(recentf-mode t)
+(my:with-package recentf
+  :defer 1
+  :init (recentf-mode t))
 
 ;; Window management
 (setq-default windmove-wrap-around t)
 (winner-mode t)
 
-;; Comint
-(setq-default comint-prompt-read-only t
-              comint-process-echoes t
-              comint-input-ignoredups t
-              comint-scroll-show-maximum-output t
-              comint-scroll-to-bottom-on-input t
-              comint-scroll-to-bottom-on-output nil
-              comint-buffer-maximum-size 8196)
-
-(defun -my:comint-text-readonly (_text)
-  (let ((inhibit-read-only t)
-        (output-end (process-mark (get-buffer-process (current-buffer)))))
-    (put-text-property comint-last-output-start output-end 'read-only t)))
-
-(add-hook 'comint-output-filter-functions 'comint-truncate-buffer)
-(add-hook 'comint-output-filter-functions '-my:comint-text-readonly)
-(add-hook 'shell-mode-hook 'ansi-color-for-comint-mode-on)
-
-
-(my:after 'comint
-  ;; We have `my:kill-region-or-word' already
-  (my:kmap* comint-mode-map ("C-c C-w" nil)))
-
-
-;;; Compilation
-(setq compilation-ask-about-save nil        ;; save everything
-      compilation-scroll-output 'next-error ;; stop on error
-      compilation-skip-threshold 2)         ;; skip warnings
-
-(defun my:compile (comint)
-  "Compile without confirmation.
-With a prefix argument, use `comint-mode'."
-  (interactive "P")
-  ;; Do the command without a prompt.
-  (save-window-excursion
-    (compile (eval compile-command) (and comint t)))
-  ;; Create a compile window of the desired width.
-  (pop-to-buffer (get-buffer "*compilation*"))
-  (enlarge-window
-   (- (frame-width) 105 (window-width))
-   'horizontal))
-
-(my:after 'compile
-  (my:kmap* compilation-shell-minor-mode-map
-            ("<f8>" "<C-<f8>" #'recompile)))
-
-(my:kmap* prog-mode-map
-          ("<f8>" #'my:compile)
-          ("C-<f8>" #'compile))
-
-;; Eshell
-(setq-default eshell-scroll-to-bottom-on-input t)
-
-(defun eshell/ff (&rest files)
-  "Alias for `eshell' to `find-file' FILES."
-  (dolist (f files)
-    (find-file f t)))
-
-(defun eshell/fo (&rest files)
-  "Alias for `eshell' to `find-file-other-window' for FILES."
-  (dolist (f files)
-    (find-file-other-window f t)))
-
-(defun eshell/compile (&rest args)
-  (compile (combine-and-quote-strings args)))
 
 ;; Disable everything for big files
 (defun my:large-file-p ()
@@ -424,7 +350,12 @@ See `large-file-warning-threshold'."
   (my:process-region-with-command "python -m json.tool"))
 
 
+(require 'init-dired)
+(require 'init-compile)
+(require 'init-comint)
+(require 'init-eshell)
 (require 'init-compare)
+
 (require 'init-pkgs)
 (require 'init-parens)
 (require 'init-completion)
