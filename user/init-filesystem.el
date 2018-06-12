@@ -7,7 +7,10 @@
 
 ;;; Code:
 
-(require 'init-list)
+(eval-when-compile
+  (require 'init-defs)
+  (require 'init-list))
+
 
 (defun my:current-fs-point ()
   "Get current `buffer-file-name' or `default-directory'."
@@ -29,13 +32,15 @@ See `locate-dominating-file' for reference"
       default)))
 
 
-(if (string= system-type "windows-nt")
-    (defun my:expand-file-name (name &optional directory)
-      "Convert filename NAME to absolute, and canonicalize it.
+(my:when-windows
+  (defun my:expand-file-name (name &optional directory)
+    "Convert filename NAME to absolute, and canonicalize it.
 Start from DEFAULT-DIRECTORY if set. Same as `expand-file-name'
 but lowercase paths on windows. On other systems is just alias."
-      (let ((w32-downcase-file-names t))
-        (expand-file-name name directory)))
+    (let ((w32-downcase-file-names t))
+      (expand-file-name name directory))))
+
+(my:when-posix
   (defalias 'my:expand-file-name 'expand-file-name))
 
 

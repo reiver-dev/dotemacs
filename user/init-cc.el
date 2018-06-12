@@ -6,6 +6,7 @@
 
 
 (eval-when-compile
+  (require 'init-defs)
   (require 'init-package)
   (require 'init-completion)
   (require 'init-filesystem))

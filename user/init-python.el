@@ -80,7 +80,7 @@ appends `python-shell-remote-exec-path' instead of `exec-path'."
         pyexe)))
 
 
-(when (eq system-type 'windows-nt)
+(my:when-windows
   (defun -my:pythonic-executable ()
     "Python executable."
     (if python-shell-virtualenv-root

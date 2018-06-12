@@ -4,10 +4,8 @@
 
 ;;; Code:
 
-(defvaralias 'my:first-frame-hook 'init:first-frame-hook)
-
-(require 'init-font)
 (require 'init-defs)
+(require 'init-font)
 (require 'init-package)
 (require 'init-keybind)
 (require 'init-wm)
@@ -131,7 +129,7 @@
               ring-bell-function #'my:bell-function ;; and blink less
               disabled-command-function nil) ;; enable all commands
 
-(when (string-equal system-type "windows-nt")
+(my:when-windows
   (setq inhibit-compacting-font-caches t
         w32-pipe-read-delay 0
         w32-pipe-buffer-size (* 64 1024)))
