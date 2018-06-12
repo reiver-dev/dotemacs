@@ -186,47 +186,6 @@ value eiter attached to them or as seperate option."
     (cdr result)))
 
 
-(when (string= system-type "windows-nt")
-  (defun my:-w32-lowercase-path (proc &rest args)
-    "Bind `w32-downcase-file-names' and call PROC with ARGS."
-    (let ((w32-downcase-file-names t))
-      (apply proc args))))
-
-
-(when (executable-find "clang")
-  (my:with-package irony
-    :ensure t
-    :init
-    (progn
-      (my:after irony-cdb-json
-        (when (fboundp 'my:-w32-lowercase-path)
-          (advice-add 'irony-cdb-json--adjust-compile-options :around
-                      #'my:-w32-lowercase-path))
-        (fset 'irony-cdb-json--adjust-compile-options 'my:fix-compile-args))))
-
-  (my:with-package company-irony
-    :ensure t
-    :init (my:after company
-            (my:after irony
-              (add-to-list 'company-backends 'company-irony))))
-
-  (my:with-package flycheck-irony
-    :ensure t
-    :init (my:after flycheck
-            (flycheck-irony-setup)))
-
-  (my:with-package irony-eldoc
-    :disabled t
-    :ensure t
-    :init (add-hook 'irony-mode-hook 'irony-eldoc)))
-
-
-(my:with-package company-c-headers
-  :ensure t
-  :init (my:after company
-          (add-to-list 'company-backends #'company-c-headers)))
-
-
 (my:with-package cquery
   :ensure t)
 
