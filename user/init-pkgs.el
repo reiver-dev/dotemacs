@@ -156,9 +156,15 @@
                             projectile-project-root-files-functions))))
 
 
+(my:with-package pkg-info
+  :ensure t
+  :init (autoload 'pkg-info-version-info "pkg-info"))
+
+
 (my:with-package flycheck
   :ensure t
-  :init (setq flycheck-indication-mode 'right-fringe)
+  :init (setq flycheck-indication-mode 'right-fringe
+              flycheck-check-syntax-automatically '(save mode-enabled))
   :config
   (progn
     (when (fboundp 'define-fringe-bitmap)
