@@ -38,7 +38,11 @@
 (column-number-mode t)
 (size-indication-mode t)
 (minibuffer-depth-indicate-mode t)
-(setq-default enable-recursive-minibuffers t)
+(setq-default enable-recursive-minibuffers t
+              minibuffer-prompt-properties '(read-only
+                                             t point-entered
+                                             minibuffer-avoid-prompt
+                                             face minibuffer-prompt))
 
 ;; Fringe
 (setq-default indicate-empty-lines t
@@ -150,7 +154,7 @@
  ;; don't accelerate scrolling
  mouse-wheel-progressive-speed nil
  ;; don't recenter
- scroll-conservatively 100000
+ scroll-conservatively 1001
  scroll-margin 0
  scroll-preserve-screen-position t
  ;; horizontal scroll jumps

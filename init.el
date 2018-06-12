@@ -156,7 +156,8 @@ Display result in BUFFER."
 (setq backup-directory-alist `((".*" . ,init:backup-dir))
       auto-save-list-file-prefix (concat init:auto-save-list-dir "saves-")
       auto-save-file-name-transforms `((".*" ,init:auto-save-dir t))
-      create-lockfiles nil)
+      create-lockfiles nil
+      idle-update-delay 2)
 
 
 ;; Custom and current config
