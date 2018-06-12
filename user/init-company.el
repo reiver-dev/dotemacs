@@ -96,8 +96,18 @@
 
 (setq-default company-tooltip-limit 20
               company-tooltip-align-annotations t
+              company-require-match 'never
+              company-idle-delay nil
+              company-dabbrev-downcase nil
+              company-dabbrev-ignore-case nil
+              company-dabbrev-code-other-buffers t
               ;; company-frontends '(company-preview-if-just-one-frontend)
               company-backends (-my:cleanup-company-backends))
+
+
+(my:kmap* company-active-map
+          ("C-p" #'company-select-previous)
+          ("C-n" #'company-select-next))
 
 
 (provide 'init-company)
