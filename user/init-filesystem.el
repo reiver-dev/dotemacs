@@ -64,6 +64,7 @@ but lowercase paths on windows. On other systems is just alias."
 
 
 (defun my:tokenize-args (input)
+  "Split and unquote INPUT string as list of command line arguments."
   (let* ((len (length input))
          (whitespace (string-to-list " \f\t\n\r\v"))
          (weak-special (string-to-list "\"$`"))

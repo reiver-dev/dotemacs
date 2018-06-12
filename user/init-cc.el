@@ -42,7 +42,22 @@
    "--driver-mode=cl"))
 
 
-(defun my:fix-compile-args (options file directory)
+(defun my:cdb-fix-args (options file directory)
+  "Process compilation database OPTIONS.
+
+Args:
+  OPTIONS   :: command line string or list of arguments;
+  FILE      :: processed file;
+  DIRECTORY :: working directory for the compiler.
+
+Return new list of options.
+
+Remove options that are useless for completion:
+  * compile-only flags (-c, /c);
+  * output files (-o, /F);
+  * input file (equal to FILE).
+
+Make include paths absolute (-I, /I)."
   (let* ((options (if (stringp options)
                       (my:tokenize-args options)
                     options))
@@ -146,8 +161,11 @@
     (cdr result)))
 
 
-
 (defun my:extract-include-dirs (options)
+  "Gather include paths from list of OPTIONS.
+
+Include paths are -I and /I arguments with
+value eiter attached to them or as seperate option."
   (let* ((result (cons nil nil))
          (head result)
          (it options))
