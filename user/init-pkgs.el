@@ -113,6 +113,12 @@
                             projectile-project-root-files-functions))))
 
 
+(my:with-package counsel-projectile
+  :ensure t
+  :init (my:after projectile
+          (counsel-projectile-mode t)))
+
+
 (my:with-package pkg-info
   :ensure t
   :init (autoload 'pkg-info-version-info "pkg-info"))
