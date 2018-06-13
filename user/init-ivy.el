@@ -35,8 +35,20 @@
 (autoload 'counsel--find-file-matcher "counsel")
 
 
-(setq-default ivy-display-functions-alist nil
-              ivy-use-virtual-buffers t)
+(setq-default
+ ;; no overlays
+ ivy-display-functions-alist nil
+ ;; include recent files and bookmarks
+ ivy-use-virtual-buffers t
+ ;; no '^' for M-x and others
+ ivy-initial-inputs-alist nil
+ ;; do not complete selected dir if slash entered
+ ivy-magic-slash-non-match-action nil
+ ;; keep minibuffer large if candidate list is low
+ ivy-height 12
+ ivy-fixed-height-minibuffer t
+ ;; highligh full line
+ ivy-format-function #'ivy-format-function-line)
 
 
 (provide 'init-ivy)
