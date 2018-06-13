@@ -5,11 +5,10 @@
 ;;; Code:
 
 
-(eval-when-compile
-  (require 'init-defs)
-  (require 'init-package)
-  (require 'init-completion)
-  (require 'init-filesystem))
+(require 'init-defs)
+(require 'init-package)
+(require 'init-completion)
+(require 'init-filesystem)
 
 
 (defconst my:c-style

@@ -4,13 +4,13 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'init-package)
-  (require 'init-environ))
+(require 'init-package)
+(require 'init-environ)
 
 
 (my:with-package eshell
-  :init (setq-default eshell-scroll-to-bottom-on-input t)
+  :init
+  (setq-default eshell-scroll-to-bottom-on-input t)
   :config
   (progn
     (defun eshell/ff (&rest files)

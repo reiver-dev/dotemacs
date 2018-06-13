@@ -4,9 +4,17 @@
 
 ;;; Code:
 
-;; No-op for region operations if region is active but empty
-;; useful for macros consistency
-(setq-default use-empty-active-region t)
+(setq-default
+ ;; No-op for region operations if region is active but empty
+ ;; useful for macros consistency
+ use-empty-active-region t
+ shift-select-mode nil
+ set-mark-command-repeat-pop t
+ sentence-end-double-space nil
+ require-final-newline t
+ indent-tabs-mode nil)
+
+(electric-pair-mode t)
 
 
 (defun my:push-mark-no-activate ()

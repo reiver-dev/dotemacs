@@ -6,6 +6,11 @@
 
 (require 'init-list)
 
+
+(setq-default windmove-wrap-around t)
+(winner-mode t)
+
+
 (defun my:one-window-p (&optional window)
   "Check if WINDOW (current as defalt) is single window on frame.
 Like `one-window-p', but correctly works with other frame selected."
@@ -131,6 +136,7 @@ If WINDOW is nil, apply to selected window."
         (error "Can't detach single window"))
     (display-buffer-pop-up-frame (window-buffer window) nil)
     (delete-window window)))
+
 
 (provide 'init-wm)
 
