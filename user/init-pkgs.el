@@ -55,7 +55,8 @@
 (my:with-package avy
   :ensure t
   :init (progn
-          (setq-default avy-background t)
+          (setq-default avy-background t
+                        avy-all-windows 'all-frames)
           (my:kmap "C-; p" #'avy-goto-word-1)))
 
 
