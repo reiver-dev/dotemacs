@@ -139,15 +139,6 @@ Set value of `face-remapping-alist' to FACE-REMAP for BUFFER."
 (size-indication-mode t)
 (minibuffer-depth-indicate-mode t)
 
-(when (fboundp 'menu-bar-mode)
-  (menu-bar-mode -1))
-(when (fboundp 'tool-bar-mode)
-  (tool-bar-mode -1))
-(when (fboundp 'toolltip-mode)
-  (tooltip-mode -1))
-(when (fboundp 'scroll-bar-mode)
-  (scroll-bar-mode -1))
-
 ;; Maximum except dired
 (setq-default font-lock-maximum-decoration
               '((dired-mode . 1) (t . t)))
