@@ -34,14 +34,27 @@ from it if result is true."
          sequence)))
 
 
-(defun my:reduce (func sequence &optional init)
-  "Perform reduction with FUNC over ROWS sequence.
-Use optional INIT value or first element of ROWS."
+(defun my:reduce (reducer sequence &optional init)
+  "Perform reduction with REDUCER over SEQUENCE.
+Use optional INIT value or first element of SEQUENCE."
   (when sequence
     (let* ((acc (or init (car sequence)))
            (seq (if init sequence (cdr sequence))))
       (mapc (lambda (el)
-              (setq acc (funcall func acc el)))
+              (setq acc (funcall reducer acc el)))
+            seq)
+      acc)))
+
+
+(defun my:mapreduce (reducer mapper sequence &optional init)
+  "Perform reduction with REDUCER over SEQUENCE.
+Apply MAPPER to each SEQUENCE element. Use optional INIT value
+or first element of SEQUENCE."
+  (when sequence
+    (let* ((acc (or init (car sequence)))
+           (seq (if init sequence (cdr sequence))))
+      (mapc (lambda (el)
+              (setq acc (funcall reducer acc (funcall mapper el))))
             seq)
       acc)))
 
@@ -94,6 +107,34 @@ Return nil. See `mapc'."
     (apply func (mapcar #'car sequences))
     (setq sequences (mapcar #'cdr sequences))))
 
+
+(defun my:length-to-stops (values offset)
+  "Transform column length VALUES to list of tab stop positions.
+Use OFFSET as column separator width."
+  (let ((acc  0))
+    (mapcar (lambda (x)
+              (setq acc (+ acc x (if (eql acc 0) 0 offset))))
+            values)))
+
+
+(defun my:stops-to-ranges (stops offset)
+  "Transform column tab STOPS to list of (begin . end) pairs.
+Use OFFSET as column separator width."
+  (let ((begin (cons 0 (mapcar (lambda (x) (+ x offset)) stops)))
+        (end (mapcar #'identity stops)))
+    (my:mapcar-zip #'cons begin end)))
+
+
+(defun my:string-trim (str)
+  "Remove leading and trailing whitespace from STR string."
+  (save-match-data
+    (let ((begin (if (string-match "\\`[ \t\n\r]+" str)
+                     (match-end 0)
+                   0))
+          (end (if (string-match "[ \t\n\r]+\\'" str)
+                   (match-beginning 0)
+                 nil)))
+      (substring str begin end))))
 
 
 (provide 'init-list)

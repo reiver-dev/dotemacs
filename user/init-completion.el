@@ -77,13 +77,7 @@
   :config (progn
             (require 'init-company)
             (my:kmap* company-mode-map
-                      ("C-<tab>" #'company-complete))))
-
-
-(my:with-package company-box
-  :ensure t
-  :init (add-hook 'company-mode-hook 'company-box-mode)
-  :config (require 'subr-x))
+                      ("C-<tab>" #'my:ivy-company))))
 
 
 (my:with-package yasnippet
