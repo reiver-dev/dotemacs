@@ -185,6 +185,14 @@ value eiter attached to them or as seperate option."
     (cdr result)))
 
 
+(defun my:compiler-include-dirs-run (binary &optional language)
+  (with-output-to-string
+    (call-process binary nil standard-output nil
+                  (if language (concat "-x" language) "")
+                  "-E" "-v" "-")))
+
+
+
 (my:with-package cquery
   :ensure t)
 
