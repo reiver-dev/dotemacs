@@ -26,6 +26,7 @@
 
 (advice-add 'dired-readin :after #'-my:dired-sort)
 
+(my:after dired (require 'dired-x))
 
 
 (my:with-package dired-k
