@@ -139,11 +139,6 @@ Set value of `face-remapping-alist' to FACE-REMAP for BUFFER."
 (size-indication-mode t)
 (minibuffer-depth-indicate-mode t)
 
-;; Maximum except dired
-(setq-default font-lock-maximum-decoration
-              '((dired-mode . 1) (t . t)))
-
-
 (my:with-package vi-tilde-fringe
   :ensure t
   :init (add-hook 'my:first-frame-hook

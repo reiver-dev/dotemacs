@@ -27,17 +27,23 @@
 (advice-add 'dired-readin :after #'-my:dired-sort)
 
 
-(my:with-package dired+
+
+(my:with-package dired-k
   :ensure t
   :init (progn
-          (setq-default
-           diredp-hide-details-initially-flag t
-           diredp-hide-details-propagate-flag t)
-          (my:after dired
-            (let ((inhibit-message t))
-              (load "dired+.el"))))
-  :config (let ((inhibit-message t))
-            (diredp-toggle-find-file-reuse-dir t)))
+          (setq-default dired-k-human-readable t)
+          (my:after dired (require 'dired-k)))
+  :config (progn
+            (advice-add #'dired-k--highlight :around
+                        #'-my:dired-k--highlight-if-local)
+            (add-hook 'dired-initial-position-hook #'dired-k)
+            (add-hook 'dired-after-readin-hook #'dired-k-no-revert)))
+
+
+(defun -my:dired-k--highlight-if-local (orig-fn &rest args)
+              "Butt out if the requested directory is remote."
+              (unless (file-remote-p default-directory)
+                (apply orig-fn args)))
 
 
 (provide 'init-dired)
