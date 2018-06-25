@@ -37,6 +37,7 @@
 (require 'init-rust)
 (require 'init-tex)
 (require 'init-haskell)
+(require 'init-lsp)
 
 (require 'init-misc)
 
