@@ -24,6 +24,10 @@
 (when (fboundp 'scroll-bar-mode)
   (scroll-bar-mode -1))
 
+
+(setq-default load-prefer-newer t)
+
+
 (with-eval-after-load 'package
   (add-to-list 'package-archives
                '("melpa" . "http://melpa.org/packages/"))
