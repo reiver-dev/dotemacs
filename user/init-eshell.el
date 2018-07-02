@@ -31,7 +31,9 @@
 
     (defun eshell/vs-apply (version &rest args)
       (apply #'my:env-w32-vcvars-apply version args)
-      (setq eshell-path-env (getenv "PATH")))))
+      (setq eshell-path-env (mapconcat #'my:expand-file-name
+                                       (my:env-path-split (getenv "PATH"))
+                                       path-separator)))))
 
 
 

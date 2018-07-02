@@ -49,6 +49,7 @@ Try to use vswhere if available."
          (with-output-to-string
            (call-process vswhere nil standard-output nil
                          "-version" version-range
+                         "-products" "*"
                          "-legacy"
                          "-property" "installationPath")))))))
 
