@@ -69,6 +69,21 @@
                       ("C-M-y" #'counsel-yank-pop))))
 
 
+(my:with-package ivy-posframe
+  :init
+  (progn
+    (autoload 'ivy-posframe-display-at-point "ivy-posframe")
+    (autoload 'ivy-posframe-display-at-window-center "ivy-posframe")
+    (my:after init-ivy
+      (setq
+       ivy-display-functions-alist
+       '((ivy-completion-in-region . ivy-posframe-display-at-point)
+         (my:ivy-company . ivy-posframe-display-at-point)
+         (counsel-M-x . ivy-posframe-display-at-window-center))
+       ivy-fixed-height-minibuffer nil
+       ivy-posframe-parameters (list (cons 'min-height ivy-height))))))
+
+
 ;; Completion
 (my:with-package company
   :ensure t
