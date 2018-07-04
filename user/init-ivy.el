@@ -51,6 +51,10 @@
  ivy-format-function #'ivy-format-function-line)
 
 
+;; Disable xref during ivy
+(my:kmap* ivy-minibuffer-map ("M-." "M-," "M-?" #'ignore))
+
+
 (provide 'init-ivy)
 
 ;;; init-ivy.el ends here
