@@ -11,7 +11,7 @@
   (require 'ivy))
 
 
-(defun my:counsel-complete-files (&optional initial-input)
+(defun my:ivy-complete-files (&optional initial-input)
   (interactive)
   (let ((existing (my:find-path-at-point)))
     ;; (when existing
