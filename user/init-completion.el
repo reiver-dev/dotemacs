@@ -77,7 +77,7 @@
   :config (progn
             (require 'init-company)
             (my:kmap* company-mode-map
-                      ("C-<tab>" #'my:ivy-company))))
+                      ("C-<tab>" #'company-complete))))
 
 
 (my:with-package yasnippet

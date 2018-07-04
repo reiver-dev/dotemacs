@@ -10,11 +10,8 @@
 (require 'company)
 (require 'ivy)
 
-
-(defun my:ivy-company-maybe-abort ()
-  "Call `company-abort' if `ivy-exit' is not 'done."
-  (unless (eq ivy-exit 'done)
-    (company-abort)))
+(eval-when-compile
+  (require 'cl))
 
 
 (defun -my:ivy-make-company-transformer (candidates)
@@ -26,32 +23,14 @@ Result is CANDIDATES as `company-candidates' with their annotations on a side."
     (lambda (candidate)
       (format format-template candidate
               (let ((annotation
-                     (my:string-trim
-                      (or (company-call-backend 'annotation candidate) ""))))
+                     (truncate-string-to-width
+                      (my:string-trim
+                       (or (company-call-backend 'annotation candidate) ""))
+                      100)))
                 (put-text-property 0 (length annotation)
                                    'face font-lock-keyword-face
                                    annotation)
                 annotation)))))
-
-
-(defun my:ivy-company (&optional backend)
-  "Do `company-mode' completion using `ivy'.
-Can specify company BACKEND to use."
-  (interactive)
-  (when (if backend
-            (company-begin-backend backend)
-          (company-manual-begin))
-    (if (cdr company-candidates)
-        (let ((ivy--display-transformers-list
-               (list 'my:ivy-company
-                     (-my:ivy-make-company-transformer company-candidates))))
-          (ivy-read (format "%s: " company-backend)
-                    company-candidates
-                    :initial-input company-common
-                    :action #'company-finish
-                    :unwind #'my:ivy-company-maybe-abort
-                    :caller 'my:ivy-company))
-      (company-finish (car company-candidates)))))
 
 
 (defun -my:cleanup-company-backends ()
@@ -63,14 +42,71 @@ Can specify company BACKEND to use."
            company-backends))))
 
 
+(defun -my:company-ivy-backends-format (backends)
+  "Abbreviate names for grouped BACKENDS list using common prefix."
+  (let ((backend-segments
+         (mapcar (lambda (b) (split-string (symbol-name b) "-")) backends))
+        (common-length 0))
+
+    (while (my:mapreduce
+            (lambda (acc x) (and (equal acc x) acc))
+            #'car (cdr backend-segments) (caar backend-segments))
+      (setq common-length (+ common-length (length (caar backend-segments)) 1)
+            backend-segments (mapcar #'cdr backend-segments)))
+
+    (concat (substring (symbol-name (car backends)) 0 common-length)
+            (mapconcat (lambda (x) (mapconcat #'identity x "-"))
+                       backend-segments "|"))))
+
+
+(defun -my:company-ivy-frontend--show ()
+  "Prepare `ivy-read' to complete  `company-candidates'."
+  (let ((ivy--display-transformers-list
+         (list 'my:ivy-company
+               (-my:ivy-make-company-transformer company-candidates))))
+    (ivy-read (if (symbolp company-backend)
+                  (format "%s: " company-backend)
+                (format "%s: "
+                        (truncate-string-to-width
+                         (-my:company-ivy-backends-format company-backend)
+                         35 nil nil "...")))
+              company-candidates
+              :initial-input company-common
+              :action #'company-finish
+              :caller 'my:ivy-company)))
+
+
+(defun my:company-ivy-frontend (command)
+  "Display `company-candidates' using `ivy-read'.
+For possible COMMAND values see `company-frontends'."
+  (cl-case command
+    (pre-command nil)
+    (show (-my:company-ivy-frontend--show))
+    (hide nil)
+    (update (-my:company-ivy-frontend--show))
+    (post-command (-my:company-ivy-frontend--show))))
+
+
+(defun my:company-ivy-unless-just-one-frontend (command)
+  "Display `company-candidates' using `ivy-read'.
+For possible COMMAND values see `company-frontends'. Complete
+immediately if only single candidate."
+  (unless (company--show-inline-p)
+    (my:company-ivy-frontend command)))
+
+
 (setq-default company-tooltip-limit 20
+              company-tooltip-minimum-width 50
               company-tooltip-align-annotations t
               company-require-match 'never
               company-idle-delay nil
               company-dabbrev-downcase nil
               company-dabbrev-ignore-case nil
               company-dabbrev-code-other-buffers t
-              company-frontends '(company-preview-if-just-one-frontend)
+              company-frontends
+              '(my:company-ivy-unless-just-one-frontend
+                company-preview-if-just-one-frontend
+                company-echo-metadata-frontend)
               company-backends (-my:cleanup-company-backends))
 
 
