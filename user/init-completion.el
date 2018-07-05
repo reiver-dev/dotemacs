@@ -70,6 +70,7 @@
 
 
 (my:with-package ivy-posframe
+  :ensure t
   :init
   (progn
     (autoload 'ivy-posframe-display-at-point "ivy-posframe")
