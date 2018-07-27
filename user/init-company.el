@@ -103,14 +103,16 @@ immediately if only single candidate."
               company-dabbrev-downcase nil
               company-dabbrev-ignore-case nil
               company-dabbrev-code-other-buffers t
-              company-frontends
-              '(my:company-ivy-unless-just-one-frontend
-                company-preview-if-just-one-frontend
-                company-echo-metadata-frontend)
               company-backends (-my:cleanup-company-backends))
 
 
 (my:kmap* company-active-map
+          ("C-p" #'company-select-previous)
+          ("C-n" #'company-select-next)
+          ("C-r" #'company-search-candidates)
+          ("M-s" #'company-filter-candidates))
+
+(my:kmap* company-search-map
           ("C-p" #'company-select-previous)
           ("C-n" #'company-select-next))
 
