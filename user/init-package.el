@@ -31,6 +31,14 @@ Meant to be used in macros."
         (load feature :no-message :no-error)))))
 
 
+(defun -my:is-function-form (form)
+  (and (= (length form) 1)
+       (= (length (car form)) 2)
+       (let ((wrapper (caar form)))
+         (or (eq wrapper 'function)
+             (eq wrapper 'quote)))))
+
+
 (defun -my:at-least-one (value)
   "Normalize VALUE to quoted or string."
   (while (or (eq 'quote (car-safe value))
@@ -85,6 +93,36 @@ ITEMS might be a symbol, string or list of these."
                    items)))))
 
 
+(defmacro my:add-hook (hook &rest body)
+  "Execute BODY at HOOK.
+Wrap BODY in `lambda' or use as is if function or symbol."
+  (declare (indent 1) (debug t))
+  (if (-my:is-function-form body)
+      `(add-hook ,hook ,(car body))
+    `(add-hook ,hook (lambda () ,@body))))
+
+
+(defmacro my:add-hook-in (hook seconds &rest body)
+  (declare (indent 2) (debug t))
+  (if (-my:is-function-form body)
+      `(add-hook ,hook
+                 (lambda ()
+                   (run-with-idle-timer ,seconds nil ,(car body))))
+    `(add-hook ,hook
+               (lambda ()
+                 (run-with-idle-timer ,seconds nil (lambda () ,@body))))))
+
+
+(defmacro my:after-init (&rest body)
+  (declare (indent 0) (debug t))
+  `(my:add-hook 'init:startup-hook ,@body))
+
+
+(defmacro my:after-init-in (seconds &rest body)
+  (declare (indent 1) (debug t))
+  `(my:add-hook-in 'init:startup-hook ,seconds ,@body))
+
+
 (defmacro my:with-package (name &rest args)
   "Helper macro for package configuration.
 Performs various tasks around package with NAME
@@ -112,7 +150,7 @@ depending on property list pairs in ARGS"
                      `(my:require-package (quote ,package)))
                    (when init
                      (if defer
-                         `(run-with-idle-timer ,defer nil (lambda () ,init))
+                         `(my:after-init-in ,defer ,init)
                        init))
                    (when config
                      `(my:after (quote ,name)

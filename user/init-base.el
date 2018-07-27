@@ -124,11 +124,36 @@ function list afterwards."
   (remove-hook 'after-make-frame-functions #'init:at-first-frame-function))
 
 
+(defun init:try-run-hook (fn hook)
+  "Runs a hook wrapped in a `condition-case-unless-debug' block; its objective
+is to include more information in the error message, without sacrificing your
+ability to invoke the debugger in debug mode."
+  (condition-case-unless-debug ex (funcall fn)
+    ('error
+     (lwarn hook :error "%s in '%s' -> %s"
+            (car ex) fn (error-message-string ex))))
+  nil)
+
+
+(defun init:startup-hook nil
+  "Hook to be executed during `emacs-startup-hook'.")
+
+
+(defun init:finalize ()
+  "Run routines after config is loaded."
+  (unless (or (not after-init-time) noninteractive)
+    (run-hook-wrapped 'init:startup-hook
+                      #'init:try-run-hook 'init:startup-hook)))
+
+
+(add-hook 'emacs-startup-hook #'init:finalize)
+
+
 ;; Create directories
 (eval-when-compile
   (dolist (dir init:auto-create-dirs)
-   (unless (file-directory-p dir)
-     (make-directory dir))))
+    (unless (file-directory-p dir)
+      (make-directory dir))))
 
 
 (defun init:run-emacs (script &optional buffer)
