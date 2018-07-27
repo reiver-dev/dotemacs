@@ -60,6 +60,18 @@
           (my:kmap "C-; p" #'avy-goto-word-1)))
 
 
+(my:with-package which-key
+  :ensure t
+  :init (my:after-init #'which-key-mode)
+  :config (progn
+            (setq which-key-sort-order #'which-key-prefix-then-key-order
+                  which-key-sort-uppercase-first nil
+                  which-key-add-column-padding 1
+                  which-key-max-display-columns nil
+                  which-key-min-display-lines 5)
+            (which-key-setup-side-window-bottom)))
+
+
 ;; External tools
 (my:with-package ag
   :ensure t
