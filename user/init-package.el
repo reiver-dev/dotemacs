@@ -31,12 +31,41 @@ Meant to be used in macros."
         (load feature :no-message :no-error)))))
 
 
-(defun -my:is-function-form (form)
-  (and (= (length form) 1)
-       (= (length (car form)) 2)
-       (let ((wrapper (caar form)))
-         (or (eq wrapper 'function)
-             (eq wrapper 'quote)))))
+(defun -my:macroexp-unwrap (body)
+  "Unwrap BODY until it becomes list if single form."
+  (let ((exp body)
+        (counter 0))
+    (while (and (consp exp) (not (cdr exp)))
+      (setq exp (car exp)
+            counter (1+ counter)))
+    (when (> counter 2)
+      (warn "Deep wrapped form: %S" body))
+    (if (consp exp)
+        exp
+      (cons exp nil))))
+
+
+(defun -my:macroexp-progn (body)
+  "Wrap BODY form list in `progn' if needed."
+  (let ((body (-my:macroexp-unwrap body)))
+    (if (cdr body)
+        (if (consp (car body))
+            `(progn ,@body)
+          body)
+      (car body))))
+
+
+(defun -my:macroexp-fun (body)
+  "Wrap BODY with `lambda' without arguments.
+Unwrap if BODY is single `function' or `quote' function expression."
+  (let ((body (-my:macroexp-unwrap body)))
+    (if (and (= (length body) 2)
+             (memq (car body) '(function quote))
+             (atom (cdr-safe (cdr body))))
+        body)
+    `(lambda () ,@(macroexp-unprogn
+                   (-my:macroexp-progn body)))))
+
 
 
 (defun -my:at-least-one (value)
@@ -66,7 +95,7 @@ Meant to be used in macros."
 
 
 (defmacro -my:maybe-no-warnings (flag &rest body)
-  "Wrap BODY to lamba. Use `with-no-warnings' if FLAG is set."
+  "Wrap BODY to lambda. Use `with-no-warnings' if FLAG is set."
   (declare (indent 1) (debug t))
   (if flag
       `(lambda () ,@body)
@@ -86,8 +115,7 @@ ITEMS might be a symbol, string or list of these."
         `(eval-after-load ,(macroexp-quote (car items))
            (-my:maybe-no-warnings ,loaded ,@body))
       `(let* ((routine (-my:maybe-no-warnings ,loaded ,@body))
-              (guarded (-my:run-after ,(length items)
-                                      (funcall routine))))
+              (guarded (-my:run-after ,(length items) (funcall routine))))
          ,@(mapcar (lambda (item)
                      (list 'eval-after-load (macroexp-quote item) 'guarded))
                    items)))))
@@ -97,28 +125,25 @@ ITEMS might be a symbol, string or list of these."
   "Execute BODY at HOOK.
 Wrap BODY in `lambda' or use as is if function or symbol."
   (declare (indent 1) (debug t))
-  (if (-my:is-function-form body)
-      `(add-hook ,hook ,(car body))
-    `(add-hook ,hook (lambda () ,@body))))
+  `(add-hook ,hook ,(-my:macroexp-fun body)))
 
 
 (defmacro my:add-hook-in (hook seconds &rest body)
+  "Execute BODY at in SECONDS seconds after HOOK run."
   (declare (indent 2) (debug t))
-  (if (-my:is-function-form body)
-      `(add-hook ,hook
-                 (lambda ()
-                   (run-with-idle-timer ,seconds nil ,(car body))))
-    `(add-hook ,hook
-               (lambda ()
-                 (run-with-idle-timer ,seconds nil (lambda () ,@body))))))
+  `(add-hook ,hook
+             (lambda ()
+               (run-with-idle-timer ,seconds nil ,(-my:macroexp-fun body)))))
 
 
 (defmacro my:after-init (&rest body)
+  "Execute BODY at `init:startup-hook' hook."
   (declare (indent 0) (debug t))
   `(my:add-hook 'init:startup-hook ,@body))
 
 
 (defmacro my:after-init-in (seconds &rest body)
+  "Execute BODY in SECONDS seconds after `init:startup-hook'."
   (declare (indent 1) (debug t))
   `(my:add-hook-in 'init:startup-hook ,seconds ,@body))
 
