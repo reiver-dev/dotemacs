@@ -28,5 +28,4 @@
 
 (provide 'init-tex)
 
-;;; init-clojure.el ends here
-
+;;; init-tex.el ends here
