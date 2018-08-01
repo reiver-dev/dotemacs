@@ -31,47 +31,34 @@ Meant to be used in macros."
         (load feature :no-message :no-error)))))
 
 
-(defun -my:macroexp-unwrap (body)
-  "Unwrap BODY until it becomes list if single form."
-  (let ((exp body)
-        (counter 0))
-    (while (and (consp exp) (not (cdr exp)))
-      (setq exp (car exp)
-            counter (1+ counter)))
-    (when (> counter 2)
-      (warn "Deep wrapped form: %S" body))
-    (if (consp exp)
-        exp
-      (cons exp nil))))
-
-
 (defun -my:macroexp-progn (body)
   "Wrap BODY form list in `progn' if needed."
-  (let ((body (-my:macroexp-unwrap body)))
-    (if (cdr body)
-        (if (consp (car body))
-            `(progn ,@body)
-          body)
-      (car body))))
+  (cond
+   ((atom body) body)
+   ((cdr body) (if (consp (car body))
+                   `(progn ,@body)
+                 body))
+   (t (car body))))
 
 
 (defun -my:macroexp-fun (body)
   "Wrap BODY with `lambda' without arguments.
 Unwrap if BODY is single `function' or `quote' function expression."
-  (let ((body (-my:macroexp-unwrap body)))
-    (if (and (= (length body) 2)
-             (memq (car body) '(function quote))
-             (atom (cdr-safe (cdr body))))
-        body)
-    `(lambda () ,@(macroexp-unprogn
-                   (-my:macroexp-progn body)))))
+  (cond
+   ((atom body) `(quote ,body))
+   ((and (= (length body) 2)
+         (memq (car body) '(function quote))
+         (not (consp (cdr-safe (cdr body)))))
+    body)
+   ((and (symbolp (car body)) (not (cdr body)))
+    `(function ,(car body)))
+   (t `(lambda () ,@(macroexp-unprogn
+                     (-my:macroexp-progn body))))))
 
 
-
-(defun -my:at-least-one (value)
+(defun -my:macroexp-at-least-one (value)
   "Normalize VALUE to quoted or string."
-  (while (or (eq 'quote (car-safe value))
-             (eq 'backquote (car-safe value)))
+  (while (memq (car-safe value) '(quote backquote))
     (setq value (eval value :lexical)))
   (if (consp value)
       value
@@ -80,9 +67,12 @@ Unwrap if BODY is single `function' or `quote' function expression."
 
 (defmacro my:measure-time (name &rest body)
   "Measure the time it takes for NAME to evaluate BODY."
+  (declare (indent 1) (debug t))
   `(let ((--time-- (current-time)))
-     ,@body
-     (message "Package: %s %.06f" ,name (float-time (time-since --time--)))))
+     (message "Package: %s start" ,name)
+     (prog1 ,(-my:macroexp-progn body)
+       (message "Package: %s done %.06f"
+                ,name (float-time (time-since --time--))))))
 
 
 (defmacro -my:run-after (count &rest body)
@@ -107,7 +97,7 @@ Unwrap if BODY is single `function' or `quote' function expression."
   "Evaluate BODY after ITEMS are loaded.
 ITEMS might be a symbol, string or list of these."
   (declare (indent 1) (debug t))
-  (let* ((items (-my:at-least-one items))
+  (let* ((items (-my:macroexp-at-least-one items))
          (loaded t))
     (dolist (item items)
       (setq loaded (and (my:require-when-compile item) loaded)))
@@ -157,9 +147,7 @@ depending on property list pairs in ARGS"
            (package (if (or (not ensure) (eq t ensure)) name ensure))
            (package-name (symbol-name package))
            (init (plist-get args :init))
-           (defer (let ((d (plist-get args :defer)))
-                    (when d
-                      (if (numberp d) d 10))))
+           (defer (plist-get args :defer))
            (config (plist-get args :config))
            (condition (plist-get args :if))
            (lpath (plist-get args :load-path))
@@ -174,12 +162,22 @@ depending on property list pairs in ARGS"
                    (when ensure
                      `(my:require-package (quote ,package)))
                    (when init
-                     (if defer
-                         `(my:after-init-in ,defer ,init)
-                       init))
+                     (cond
+                      ((numberp defer)
+                       `(my:after-init-in ,defer
+                          (my:measure-time ,(format "%s (init %d)" name defer)
+                            ,init)))
+                      (defer
+                        `(my:after-init
+                           (my:measure-time ,(format "%s (init t)" name)
+                             ,init)))
+                      (t
+                       `(my:measure-time ,(format "%s (init)" name)
+                          ,init))))
                    (when config
                      `(my:after (quote ,name)
-                        ,@(macroexp-unprogn config))))))))
+                        (my:measure-time ,(format "%s (config)" name)
+                          ,@(macroexp-unprogn config)))))))))
       (if condition
           `(if ,condition ,result nil)
         result))))
