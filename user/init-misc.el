@@ -30,6 +30,44 @@
 (add-hook 'minibuffer-setup-hook #'-my:gc-disable)
 (add-hook 'minibuffer-exit-hook #'-my:gc-enable)
 
+
+(defun my:set-vars (variables)
+  "Apply associative list of VARIABLES.
+Return old values as kv cons pairs if values changed. Coparison is
+performed with `eq'."
+  (let (result)
+    (dolist (kv variables)
+      (let ((symbol (car kv))
+            (newval (cdr kv)))
+        (when (boundp symbol)
+          (let ((curval (symbol-value symbol)))
+            (unless (eq curval newval)
+              (setq result
+                    (cons (cons symbol curval)
+                          result))
+              (set symbol newval))))))
+    result))
+
+
+(defun my:set-modes (modes)
+  "Change state of MODES passed as an associative list.
+Return old modes states if changed. Element is ignored if mode is not
+loaded."
+  (let (result)
+    (dolist (kv modes)
+      (let ((symbol (car kv))
+            (newstate (cdr kv)))
+        (when (and (boundp symbol) (fboundp symbol))
+          (let ((func (symbol-function symbol))
+                (curstate (symbol-value symbol)))
+            (unless (eq newstate curstate)
+              (setq result
+                    (cons (cons symbol curstate)
+                          result))
+              (funcall func newstate))))))
+    result))
+
+
 ;; Sync unchanged buffers with filesystem
 (my:with-package autorevert
   :init (progn
