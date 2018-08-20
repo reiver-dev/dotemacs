@@ -138,8 +138,15 @@
 
 (my:with-package flycheck
   :ensure t
-  :init (setq flycheck-indication-mode 'right-fringe
-              flycheck-check-syntax-automatically '(save mode-enabled))
+  :init (progn
+          (setq flycheck-indication-mode 'right-fringe
+                flycheck-check-syntax-automatically '(save mode-enabled))
+          (defun turn-on-flycheck-mode ()
+            "Unconditionally enable `flycheck-mode'"
+            (flycheck-mode 1))
+          (defun turn-off-flycheck-mode ()
+            "Unconditionally disable `flycheck-mode'"
+            (flycheck-mode -1)))
   :config
   (progn
     (when (fboundp 'define-fringe-bitmap)
@@ -160,7 +167,8 @@
                 #b00000000
                 #b00000000
                 #b00000000
-                #b00000000)))))
+                #b00000000)))
+    (add-hook 'my:exporting-hook #'turn-off-flycheck-mode)))
 
 (my:with-package js2-mode
   :ensure t

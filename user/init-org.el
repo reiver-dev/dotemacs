@@ -9,7 +9,8 @@
 
 (eval-when-compile
   (require 'init-package)
-  (require 'init-list))
+  (require 'init-list)
+  (require 'init-export))
 
 
 (setq-default org-src-fontify-natively t
@@ -69,12 +70,21 @@ td, th { padding-left: 1em; padding-right: 1em; }
               org-html-postamble nil
               org-html-head (concat my:xhtml-style-begin
                                     my:html-style
-                                    my:xhtml-style-end))
+                                    my:xhtml-style-end)
+              org-html-htmlize-output-type 'css)
 
 
 (my:after ox-html
   (setf (alist-get 'bold org-html-text-markup-alist) "<strong>%s</strong>"
-        (alist-get 'italic org-html-text-markup-alist) "<em>%s</em>"))
+        (alist-get 'italic org-html-text-markup-alist) "<em>%s</em>")
+  (advice-add 'org-html-src-block :around #'my:exporting-wrap))
+
+
+(my:with-package htmlize
+  :ensure t
+  :config (progn
+            (advice-add 'htmlize-buffer-1 :around
+                        #'my:exporting-wrap)))
 
 
 (defun -my:org-add-languages (&rest languages)

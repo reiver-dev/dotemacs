@@ -8,6 +8,7 @@
 (require 'init-package)
 (require 'init-keybind)
 (require 'init-edit)
+(require 'init-export)
 (require 'init-ui)
 (require 'init-wm)
 (require 'init-globalbind)
