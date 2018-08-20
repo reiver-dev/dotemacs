@@ -73,7 +73,7 @@
 ;; Completion
 (my:with-package company
   :ensure t
-  :defer 1
+  :defer 10
   :init (global-company-mode t)
   :config (progn
             (require 'init-company)
@@ -88,7 +88,7 @@
 
 (my:with-package yasnippet
   :ensure t
-  :defer t
+  :defer 10
   :init (yas-global-mode t)
   :config (progn
             ;; No more toolkit popups

@@ -106,13 +106,13 @@
 
 (my:with-package diff-hl
   :ensure t
-  :defer t
+  :defer 10
   :init (global-diff-hl-mode))
 
 
 (my:with-package projectile
   :ensure t
-  :defer t
+  :defer 10
   :init (progn
           (setq-default projectile-completion-system 'ivy
                         projectile-switch-project-action
