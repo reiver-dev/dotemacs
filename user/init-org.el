@@ -59,7 +59,7 @@ td, th { padding-left: 1em; padding-right: 1em; }
 .org-svg { width: auto; max-width: 100%; }
 #table-of-contents { font-variant: small-caps; }
 "
-  "Additional style to `org-html-style-default'")
+  "Additional style to `org-html-style-default'.")
 
 
 (setq-default org-export-headline-levels 6
@@ -77,16 +77,17 @@ td, th { padding-left: 1em; padding-right: 1em; }
         (alist-get 'italic org-html-text-markup-alist) "<em>%s</em>"))
 
 
-(defun -my:org-add-language (&rest langs)
-    (org-babel-do-load-languages
-     'org-babel-load-languages
-     (append (my:remove-if (lambda (l) (memq (car l) langs))
-                           org-babel-load-languages)
-             (mapcar (lambda (l) (cons l t)) langs))))
+(defun -my:org-add-languages (&rest languages)
+  "Enable LANGUAGES in org source blocks."
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   (append (my:remove-if (lambda (l) (memq (car l) languages))
+                         org-babel-load-languages)
+           (mapcar (lambda (l) (cons l t)) languages))))
 
 
 (my:after org
-  (-my:org-add-language 'python 'plantuml))
+  (-my:org-add-languages 'python 'plantuml))
 
 
 (my:after plantuml-mode

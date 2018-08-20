@@ -6,6 +6,7 @@
 
 (require 'init-package)
 (require 'init-environ)
+(require 'init-filesystem)
 
 
 (my:with-package eshell
