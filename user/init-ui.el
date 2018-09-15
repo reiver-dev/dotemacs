@@ -32,7 +32,8 @@
 (add-hook 'nxml-mode-hook #'my:prog-mode-setup)
 
 
-(defface -my:bell-modeline-face '((t (:inherit error :inverse-video t)))
+(defface -my:bell-modeline-face
+  '((t (:inherit (error mode-line) :inverse-video t)))
   "Face to be used for blining modeline as visual-bell"
   :group 'my:faces)
 
