@@ -32,9 +32,9 @@
   "Set simple `paredit-mode-mode' functions into MAP keymap."
   (my:kmap*
    map
-   ("M-(" 'paredit-wrap-round)
-   ("M-[" 'paredit-wrap-square)
-   ("M-{" 'paredit-wrap-curly)
+   ("C-x p (" "C-x p 9" 'paredit-wrap-round)
+   ("C-x p [" 'paredit-wrap-square)
+   ("C-x p {" 'paredit-wrap-curly)
    ("C-x p ," "C-x p <" 'paredit-wrap-angled)
 
    ("C-x p a" 'paredit-raise-sexp)
