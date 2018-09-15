@@ -22,9 +22,11 @@
 (custom-theme-set-faces
  'my:theme
 
- ;; '(vertical-border
- ;;   ((((type graphic))
- ;;     (:foreground nil :backround nil :inherit fringe :inverse-video t))))
+ '(vertical-border
+   ((((type tty))
+     (:foreground nil :background nil :inherit mode-line))
+    (((type graphic))
+     (:foreground nil :backround nil :inherit fringe))))
 
  ;; Modeline highligh box is ugly
  '(mode-line-highlight ((t (:box nil :inverse-video t))))
