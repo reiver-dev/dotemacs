@@ -115,8 +115,8 @@ Set value of `face-remapping-alist' to FACE-REMAP for BUFFER."
  whitespace-line-column 79
  whitespace-style '(face indentation space-before-tab trailing lines-tail)
 
- window-divider-default-places t
- window-divider-default-bottom-width 1
+ window-divider-default-places 'right-only
+ window-divider-default-bottom-width 0
  window-divider-default-right-width 1
 
  visible-bell t
