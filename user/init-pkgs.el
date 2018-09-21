@@ -21,16 +21,17 @@
 
 (my:with-package multiple-cursors
   :ensure t
-  :init (my:kmap ("C->" #'mc/mark-next-like-this)
-                 ("C-<" #'mc/mark-previous-like-this)
-                 ("C-c C-<" #'mc/mark-all-like-this)))
+  :init (my:kmap ("M->" #'mc/mark-next-like-this)
+                 ("M-<" #'mc/mark-previous-like-this)
+                 ("C-c M-<" #'mc/mark-all-like-this)))
 
 (my:with-package expand-region
   :ensure t
   :init (progn
           (autoload 'er/mark-symbol "expand-region")
-          (my:kmap ("C-=" 'er/expand-region)
-                   ("C-+" 'er/mark-symbol))))
+          (my:kmap ("M-]" 'er/expand-region)
+                   ("M-}" 'er/contract-region)
+                   ("C-x p p" 'er/mark-symbol))))
 
 (my:with-package visual-regexp
   :ensure t
@@ -45,8 +46,8 @@
 
 (my:with-package iy-go-to-char
   :ensure t
-  :init (my:kmap ("C-." #'iy-go-up-to-char)
-                 ("C-," #'iy-go-up-to-char-backward))
+  :init (my:kmap ("C-x ." #'iy-go-up-to-char)
+                 ("C-x ," #'iy-go-up-to-char-backward))
   :config (setq-default
            ;; kill-region do not work with `multiple-cursors-mode'
            iy-go-to-char-override-local-map nil))
@@ -57,7 +58,7 @@
   :init (progn
           (setq-default avy-background t
                         avy-all-windows 'all-frames)
-          (my:kmap "C-; p" #'avy-goto-word-1)))
+          (my:kmap "C-o C-o" #'avy-goto-word-1)))
 
 
 (my:with-package which-key
@@ -88,6 +89,7 @@
 ;; Project management and project tree
 
 (my:with-package neotree
+  :disable t
   :ensure t
   :init (progn
           (setq-default neo-mode-line-type 'none

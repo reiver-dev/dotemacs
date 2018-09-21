@@ -36,8 +36,8 @@
  ;; Jumping
  ([remap exchange-point-and-mark] #'my:exchange-point-and-mark) ; "C-x C-x"
  ("C-x m" #'my:push-mark-no-activate)
- ("C-; o" #'ff-find-other-file)
- ("C-; i" #'imenu)
+ ("C-o f" #'ff-find-other-file)
+ ("C-o i" #'imenu)
 
  ;; Vim's word jumping
  ("M-a" #'my:backward-same-syntax)
@@ -52,7 +52,6 @@
  ;; Editing
  ("C-w" #'my:kill-region-or-word)
  ("C-S-w" #'kill-region)
- ("C-x C-;" #'comment-or-uncomment-region)
 
  ("C-h" #'delete-backward-char)
  ("M-h" #'my:backward-delete-word)
@@ -67,8 +66,7 @@
 
  ("M-k" #'kill-whole-line)
  ("M-j" #'my:join-line)
- ([remap open-line] #'my:open-line)
- ("M-o" #'my:open-line-back)
+ ("M-o" #'my:open-line)
 
  ([remap capitalize-word] #'capitalize-dwim)
  ([remap upcase-word] #'upcase-dwim)
