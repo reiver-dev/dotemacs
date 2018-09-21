@@ -28,7 +28,7 @@
 
  '(vertical-border
    ((((type tty))
-     (:foreground nil :background nil :inherit mode-line))
+     (:foreground nil :background nil :inherit (mode-line default)))
     (((type graphic))
      (:foreground nil :backround nil :inherit fringe))))
 
