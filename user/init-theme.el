@@ -7,16 +7,20 @@
 (deftheme my:theme "My face theme settings")
 
 
-(defun my:change-theme (&rest args)
+(defun my:change-theme (theme)
   "Like `load-theme', but disables all themes before loading the new one."
-  ;; The `interactive' magic is for creating a future-proof passthrough.
-  (interactive (advice-eval-interactive-spec
-                (cadr (interactive-form #'load-theme))))
-  (dolist (theme custom-enabled-themes)
-    (unless (eq theme 'my:theme)
-      (disable-theme theme)))
-  (apply (if (called-interactively-p 'any) #'funcall-interactively #'funcall)
-         #'load-theme args))
+  ;; Select theme from available
+  (interactive
+   (list
+    (intern
+     (completing-read "Load custom theme: "
+                      (mapcar 'symbol-name (custom-available-themes))))))
+  (unless (custom-theme-name-valid-p theme)
+    (error "Invalid theme name `%s'" theme))
+  (dolist (theme custom-enabled-themes) (disable-theme theme))
+  (load-theme theme :no-confirm :no-enable)
+  (enable-theme theme)
+  (enable-theme 'my:theme))
 
 
 (custom-theme-set-faces
