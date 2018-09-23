@@ -63,63 +63,6 @@ but lowercase paths on windows. On other systems is just alias."
      (split-string (buffer-string)  "\n" t))))
 
 
-(defun my:tokenize-args (input)
-  "Split and unquote INPUT string as list of command line arguments."
-  (let* ((len (length input))
-         (whitespace (string-to-list " \f\t\n\r\v"))
-         (weak-special (string-to-list "\"$`"))
-         (i 0)
-         (slashed nil)
-         (result (cons nil nil))
-         (result-tail result)
-         (acc (cons nil nil))
-         (acc-tail acc)
-         (state 'normal))
-    (while (< i len)
-      (let ((char (aref input i)))
-        (cond
-         ((eq state 'normal)
-          (cond
-           (slashed
-            (setq acc-tail (setcdr acc-tail (cons char nil))
-                  slashed nil))
-           ((member char whitespace)
-            (when (cdr acc)
-              (setq result-tail (setcdr result-tail
-                                        (cons (cdr acc) nil))
-                    acc-tail acc)
-              (setcdr acc nil)))
-
-           ((equal char ?\") (setq state 'weak-quotes))
-           ((equal char ?\') (setq state 'strong-quotes))
-           ((equal char ?\\) (setq slashed t))
-           (t (setq acc-tail (setcdr acc-tail (cons char nil))))))
-
-         ((eq state 'weak-quotes)
-          (cond
-           (slashed
-            (setq acc-tail
-                  (if (member char weak-special)
-                      (setcdr acc-tail (cons char nil))
-                    (cdr (setcdr acc-tail (list ?\\ char))))
-                  slashed nil))
-           ((equal char ?\\) (setq slashed t))
-           ((equal char ?\") (setq state 'normal))
-           (t (setq acc-tail (setcdr acc-tail (cons char nil))))))
-
-         ((eq state 'strong-quotes)
-          (cond
-           ((equal char ?\') (setq state 'normal))
-           (t (setq acc-tail (setcdr acc-tail (cons char nil))))))
-
-         (t
-          (error "Invalid state: %s" state))))
-      (setq i (1+ i)))
-    (setq result-tail (setcdr result-tail
-                              (cons (cdr acc) nil)))
-    (mapcar (lambda (x) (apply 'string x)) (cdr result))))
-
-
 (defun my:files-in-below-directory (directory pattern &optional ignore)
   "List the file names in DIRECTORY and in its sub-dirs equal to PATTERN.
 Optional IGNORE argument can be list of names to ignore in recursive walk

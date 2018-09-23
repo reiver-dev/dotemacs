@@ -6,6 +6,7 @@
 
 
 (require 'init-defs)
+(require 'init-shlex)
 (require 'init-package)
 (require 'init-completion)
 (require 'init-filesystem)
@@ -58,7 +59,7 @@ Remove options that are useless for completion:
 
 Make include paths absolute (-I, /I)."
   (let* ((options (if (stringp options)
-                      (my:tokenize-args options)
+                      (my:sh-tokenize options)
                     options))
          (absfile (my:expand-file-name file directory))
          (commands '(next))
@@ -92,7 +93,7 @@ Make include paths absolute (-I, /I)."
                               (substring (car options) 1) directory))
                    (rsp-args (with-temp-buffer
                                (insert-file-contents rsp-path)
-                               (my:tokenize-args (buffer-string)))))
+                               (my:sh-tokenize (buffer-string)))))
               (setq options (nconc rsp-args (cdr options)))))
 
            ;; Expand current option path inplace
