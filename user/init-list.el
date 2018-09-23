@@ -69,6 +69,66 @@ Return first non-nil result."
     result))
 
 
+(defun my:aposf (array element &optional start end)
+    "Find first position of the ELEMENT in ARRAY.
+Comparison is performed using `eq' function. Optionally use START and
+END positions to limit search to a region."
+  (let ((pos (or start 0))
+        (end (if end (min end (length array))
+               (length array)))
+        result)
+    (while (and (not result) (< pos end))
+      (when (eq element (aref array pos))
+        (setq result pos))
+      (setq pos (1+ pos)))
+    result))
+
+
+(defun my:aposl (array element &optional start end)
+    "Find last position of ELEMENT in ARRAY.
+Comparison is performed using `eq' function. Optionally use START and
+END positions to limit search to a region."
+  (let ((start (or start 0))
+        (pos (1- (if end
+                     (min end (length array))
+                   (length array))))
+        result)
+    (while (and (not result) (>= pos start))
+      (when (eq element (aref array pos))
+        (setq result pos))
+      (setq pos (1- pos)))
+    result))
+
+
+(defun my:afindf (predicate array &optional start end)
+  "Find a position of first element that conforms to a PREDICATE in the ARRAY.
+Optionally use START and END positions to limit search to a region."
+  (let ((pos (or start 0))
+        (end (if end (min end (length array))
+               (length array)))
+        result)
+    (while (and (not result) (< pos end))
+      (when (funcall predicate (aref array pos))
+        (setq result pos))
+      (setq pos (1+ pos)))
+    result))
+
+
+(defun my:afindl (predicate array &optional start end)
+  "Find a position of last element that conforms to a PREDICATE in the ARRAY.
+Optionally use START and END positions to limit search to a region."
+  (let ((start (or start 0))
+        (pos (1- (if end
+                     (min end (length array))
+                   (length array))))
+        result)
+    (while (and (not result) (>= pos start))
+      (when (funcall predicate (aref array pos))
+        (setq result pos))
+      (setq pos (1- pos)))
+    result))
+
+
 (defun my:reduce-cols (colfun cellfun rows &optional init)
   "Apply COLFUN to each cell in table ROWS.
 Apply CELLFUN to each table element. Optional INIT is used
