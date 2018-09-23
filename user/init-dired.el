@@ -43,9 +43,9 @@
 
 
 (defun -my:dired-k--highlight-if-local (orig-fn &rest args)
-              "Butt out if the requested directory is remote."
-              (unless (file-remote-p default-directory)
-                (apply orig-fn args)))
+  "Butt out if the requested directory is remote."
+  (unless (file-remote-p default-directory)
+    (apply orig-fn args)))
 
 
 (provide 'init-dired)
