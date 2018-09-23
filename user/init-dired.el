@@ -31,6 +31,7 @@
 
 (my:with-package dired-k
   :ensure t
+  :if (executable-find "git")
   :init (progn
           (setq-default dired-k-human-readable t)
           (my:after dired (require 'dired-k)))
