@@ -113,7 +113,9 @@
 (my:with-package diff-hl
   :ensure t
   :defer 10
-  :init (global-diff-hl-mode))
+  :init (progn
+          (diff-hl-margin-mode t)
+          (global-diff-hl-mode t)))
 
 
 (my:with-package projectile
