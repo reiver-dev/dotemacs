@@ -46,8 +46,8 @@
 
 (my:with-package iy-go-to-char
   :ensure t
-  :init (my:kmap ("C-x ." #'iy-go-up-to-char)
-                 ("C-x ," #'iy-go-up-to-char-backward))
+  :init (my:kmap ("M-z" #'iy-go-up-to-char)
+                 ("M-Z" #'iy-go-up-to-char-backward))
   :config (setq-default
            ;; kill-region do not work with `multiple-cursors-mode'
            iy-go-to-char-override-local-map nil))
