@@ -25,6 +25,7 @@
                  ("M-I" #'mc/mark-previous-like-this)
                  ("C-x i" #'mc/mark-all-like-this)))
 
+
 (my:with-package expand-region
   :ensure t
   :init (progn
@@ -32,6 +33,7 @@
           (my:kmap ("M-]" 'er/expand-region)
                    ("M-}" 'er/contract-region)
                    ("C-x p p" 'er/mark-symbol))))
+
 
 (my:with-package visual-regexp
   :ensure t
@@ -43,6 +45,7 @@
             (my:kmap* vr/minibuffer-keymap
                       ("C-c p" nil) ;; Will be shadowed by projectile
                       ("C-c v" #'vr--shortcut-toggle-preview))))
+
 
 (my:with-package iy-go-to-char
   :ensure t
@@ -77,6 +80,7 @@
 (my:with-package ag
   :ensure t
   :config (setq-default ag-highlight-search t))
+
 
 (my:with-package magit
   :ensure t
@@ -172,12 +176,15 @@
                 #b00000000)))
     (add-hook 'my:exporting-hook #'turn-off-flycheck-mode)))
 
+
 (my:with-package js2-mode
   :ensure t
   :init (add-to-list 'auto-mode-alist '("\\.json" . js-mode)))
 
+
 (my:with-package yaml-mode
   :ensure t)
+
 
 (my:with-package lua-mode
   :ensure t
