@@ -21,9 +21,9 @@
 
 (my:with-package multiple-cursors
   :ensure t
-  :init (my:kmap ("M->" #'mc/mark-next-like-this)
-                 ("M-<" #'mc/mark-previous-like-this)
-                 ("C-c M-<" #'mc/mark-all-like-this)))
+  :init (my:kmap ("M-i" #'mc/mark-next-like-this)
+                 ("M-I" #'mc/mark-previous-like-this)
+                 ("C-x i" #'mc/mark-all-like-this)))
 
 (my:with-package expand-region
   :ensure t
