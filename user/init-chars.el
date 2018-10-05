@@ -9,6 +9,10 @@
   "Unicode byte order mark.")
 
 
+(defconst my:char-utf8-marker "\xef\xbb\xbf"
+  "Sequence that indicates utf-8 file or stream.")
+
+
 (defsubst my:char-unicode-special-p (char)
   "Check if CHAR code is part of unicode specials block."
   (<= #xfff9 char #xffff))
