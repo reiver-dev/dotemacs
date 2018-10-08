@@ -117,6 +117,12 @@ immediately if only single candidate."
           ("C-n" #'company-select-next))
 
 
+(setq company-frontends
+      '(my:company-ivy-unless-just-one-frontend
+        company-preview-if-just-one-frontend
+        company-echo-metadata-frontend))
+
+
 (provide 'init-company)
 
 ;;; init-company.el ends here

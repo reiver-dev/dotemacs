@@ -81,11 +81,6 @@
                       ("C-<tab>" #'company-complete))))
 
 
-(my:with-package company-posframe
-  :ensure t
-  :init (my:after company (company-posframe-mode t)))
-
-
 (my:with-package yasnippet
   :ensure t
   :defer 10
