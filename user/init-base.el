@@ -5,12 +5,29 @@
 ;;; Code:
 
 
+(defmacro init:when-windows (&rest body)
+  "Evaluate BODY if current os is windows."
+  (if (eq system-type 'windows-nt) (cons 'progn body)))
+
+(defmacro init:when-posix (&rest body)
+  "Evaluate BODY if current os is posix (not windows)."
+  (if (eq system-type 'windows-nt) nil (cons 'progn body)))
+
+
+(put 'init:when-windows 'lisp-indent-function 'defun)
+(put 'init:when-posix 'lisp-indent-function 'defun)
+
+
 (when (fboundp 'set-charset-priority)
   (set-charset-priority 'unicode))
 (prefer-coding-system 'utf-8)
 (set-terminal-coding-system 'utf-8)
 (set-keyboard-coding-system 'utf-8)
-(set-selection-coding-system 'utf-8)
+(init:when-posix
+  (set-selection-coding-system 'utf-8))
+(init:when-windows
+  (set-clipboard-coding-system 'utf-16-le)
+  (set-selection-coding-system 'utf-16-le))
 (setq-default locale-coding-system 'utf-8
               buffer-file-coding-system 'utf-8)
 
