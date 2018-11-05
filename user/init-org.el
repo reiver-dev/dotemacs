@@ -76,7 +76,8 @@ td, th { padding-left: 1em; padding-right: 1em; }
 
 (my:after ox-html
   (setf (alist-get 'bold org-html-text-markup-alist) "<strong>%s</strong>"
-        (alist-get 'italic org-html-text-markup-alist) "<em>%s</em>")
+        (alist-get 'italic org-html-text-markup-alist) "<em>%s</em>"
+        (alist-get 'underline org-html-text-markup-alist) "<ins>%s</ins>")
   (advice-add 'org-html-src-block :around #'my:exporting-wrap))
 
 
