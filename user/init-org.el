@@ -81,6 +81,28 @@ td, th { padding-left: 1em; padding-right: 1em; }
   (advice-add 'org-html-src-block :around #'my:exporting-wrap))
 
 
+(defvar -my:org-yt-link-iframe-format
+  (concat "<iframe width=\"560\""
+          " height=\"315\""
+          " src=\"https://www.youtube.com/embed/%s\""
+          " frameborder=\"0\""
+          " allowfullscreen>%s</iframe>")
+  "Format string to export embedded youtube video into html.")
+
+
+(defun -my:org-yt-link-follow (handle)
+  (browse-url
+   (concat "https://www.youtube.com/embed/" handle)))
+
+
+(defun -my:org-yt-link-export (path desc backend)
+  (cl-case backend
+    (html
+     (format -my:org-yt-link-iframe-format path (or desc "")))
+    (latex
+     (format "\href{%s}{%s}" path (or desc "video")))))
+
+
 (my:with-package htmlize
   :ensure t
   :config (progn
@@ -98,6 +120,7 @@ td, th { padding-left: 1em; padding-right: 1em; }
 
 
 (my:after org
+  (org-add-link-type "yt" #'-my:org-yt-link-follow #'-my:org-yt-link-export)
   (-my:org-add-languages 'python 'plantuml))
 
 
