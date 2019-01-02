@@ -115,6 +115,45 @@ appends `python-shell-remote-exec-path' instead of `exec-path'."
     (fset 'pythonic-executable '-my:pythonic-executable)))
 
 
+(my:when-windows
+  (defun -my:anaconda-mode-bootstrap (&optional callback)
+    "Run `anaconda-mode' server.
+CALLBACK function will be called when `anaconda-mode-port' will
+be bound."
+    (setq anaconda-mode-process
+          (pythonic-start-process
+           :process anaconda-mode-process-name
+           :buffer (get-buffer-create anaconda-mode-process-buffer)
+           :query-on-exit nil
+           :filter (lambda (process output)
+                     (anaconda-mode-bootstrap-filter process output callback))
+           :sentinel (lambda (_process _event))
+           :args `("-c"
+                   ,anaconda-mode-server-command
+                   ,(anaconda-mode-server-directory)
+                   ,(if (pythonic-remote-p)
+                        "0.0.0.0"
+                      anaconda-mode-localhost-address)
+                   ,(if python-shell-virtualenv-root
+                        (pythonic-executable)
+                      ""))))
+
+    (let ((params `((interpreter . ,python-shell-interpreter)
+                    (virtualenv . ,python-shell-virtualenv-root)
+                    (port . ,nil))))
+      (when (pythonic-remote-p)
+        (setq params (append params
+                             `((remote-p . t)
+                               (remote-method . ,(pythonic-remote-method))
+                               (remote-user . ,(pythonic-remote-user))
+                               (remote-host . ,(pythonic-remote-host))
+                               (remote-port . ,(pythonic-remote-port))))))
+      (dolist (kv params)
+        (process-put anaconda-mode-process (car kv) (cdr kv)))))
+  (my:after 'anaconda-mode
+    (fset 'anaconda-mode-bootstrap '-my:anaconda-mode-bootstrap)))
+
+
 (my:with-package anaconda-mode
   :ensure t
   :init (add-hook 'python-mode-hook #'anaconda-mode)
