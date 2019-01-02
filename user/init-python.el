@@ -72,18 +72,25 @@ appends `python-shell-remote-exec-path' instead of `exec-path'."
 (defvar flycheck-python-flake8-executable)
 (defvar flycheck-python-pylint-executable)
 (defvar flycheck-python-pycompile-executable)
+(defvar flycheck-python-mypy-executable)
 
 
 (defun my:flycheck-python-setup ()
   "Setup python executable for flycheck python checkers."
   (interactive)
   (with-demoted-errors "Error in flycheck-python-setup: %S"
-      (let ((pyexe (python-shell-with-environment
-                     (executable-find python-shell-interpreter))))
-        (setq-local flycheck-python-flake8-executable pyexe)
-        (setq-local flycheck-python-pylint-executable pyexe)
-        (setq-local flycheck-python-pycompile-executable pyexe)
-        pyexe)))
+    (let* ((executables
+            (python-shell-with-environment
+              (list
+               :pyexe (or (executable-find python-shell-interpreter) "python")
+               :mypy (or (executable-find "mypy") "mypy"))))
+           (pyexe (plist-get executables :pyexe))
+           (mypy (plist-get executables :mypy)))
+      (setq-local flycheck-python-flake8-executable pyexe)
+      (setq-local flycheck-python-pylint-executable pyexe)
+      (setq-local flycheck-python-pycompile-executable pyexe)
+      (setq-local flycheck-python-mypy-executable mypy)
+      python-shell-virtualenv-root)))
 
 
 (my:when-windows
