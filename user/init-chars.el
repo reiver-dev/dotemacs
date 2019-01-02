@@ -5,6 +5,9 @@
 ;;; Code:
 
 
+(require 'init-list)
+
+
 (defconst my:char-unicode-bom #xfeff
   "Unicode byte order mark.")
 

@@ -6,10 +6,12 @@
 ;;; Code:
 
 
+(require 'init-package)
+
+
 (my:with-package lsp-mode
   :ensure t
   :config (progn
-            (require 'lsp-imenu)
             (add-hook 'lsp-after-open-hook 'lsp-enable-imenu)))
 
 
@@ -54,7 +56,7 @@
     ("Unit" . "unit")
     ("Value" . "val")
     ("Variable" . "var"))
-  "Abbreviations for lsp constants")
+  "Abbreviations for lsp constants.")
 
 
 (defconst my:lsp-completion-item-kind
@@ -83,7 +85,7 @@
     (23 . "Event")
     (24 . "Operator")
     (25 . "TypeParameter"))
-  "LSP namespace CompletionItemKind")
+  "LSP namespace CompletionItemKind.")
 
 
 (defconst my:lsp-symbol-kind
@@ -113,7 +115,7 @@
     (24 . "Event")
     (25 . "Operator")
     (26 . "TypeParameter"))
-  "LSP namespace SymbolKind")
+  "LSP namespace SymbolKind.")
 
 
 (defconst my:lsp-completion-item-kind-abbrev
@@ -121,7 +123,7 @@
             (cons (car item)
                   (cdr (assoc (cdr item) my:lsp-kinds-abbrev-alist))))
           my:lsp-completion-item-kind)
-  "Abbreviated LSP namespace CompletionItemKind")
+  "Abbreviated LSP namespace CompletionItemKind.")
 
 
 (defconst my:lsp-symbol-kind-abbrev
@@ -129,7 +131,7 @@
             (cons (car item)
                   (cdr (assoc (cdr item) my:lsp-kinds-abbrev-alist))))
           my:lsp-symbol-kind)
-  "Abbreviated LSP namespace SymbolKind")
+  "Abbreviated LSP namespace SymbolKind.")
 
 
 (provide 'init-lsp)

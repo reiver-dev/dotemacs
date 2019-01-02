@@ -7,10 +7,10 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'init-package)
-  (require 'init-list)
-  (require 'init-export))
+
+(require 'init-package)
+(require 'init-list)
+(require 'init-export)
 
 
 (setq-default org-src-fontify-natively t
@@ -35,11 +35,11 @@
 
 (defconst my:xhtml-script-begin
   "<script type=\"text/javascript\">\n<!--/*--><![CDATA[/*><!--*/\n"
-  "Opening tag with CDATA for xhtml script")
+  "Opening tag with CDATA for xhtml script.")
 
 (defconst my:xhtml-script-end
   "/*]]>*///-->\n</script>\n"
-  "Closing tag with CDATA for xhtml script")
+  "Closing tag with CDATA for xhtml script.")
 
 (defconst my:html-style
   ".outline-2 { margin-left: 2em; }
@@ -91,11 +91,17 @@ td, th { padding-left: 1em; padding-right: 1em; }
 
 
 (defun -my:org-yt-link-follow (handle)
+  "Open youtube url in browser. HANDLE is link path tail."
   (browse-url
    (concat "https://www.youtube.com/embed/" handle)))
 
 
 (defun -my:org-yt-link-export (path desc backend)
+  "Format youtube link when exporting org document.
+Follows pattern used by `org-link-parameters' export field.
+    PATH :: video handle
+    DESC :: link text
+    BACKEND :: org export kind symbol (html, latex)"
   (cl-case backend
     (html
      (format -my:org-yt-link-iframe-format path (or desc "")))
@@ -120,7 +126,10 @@ td, th { padding-left: 1em; padding-right: 1em; }
 
 
 (my:after org
-  (org-add-link-type "yt" #'-my:org-yt-link-follow #'-my:org-yt-link-export)
+  (org-link-set-parameters
+   "yt"
+   :follow #'-my:org-yt-link-follow
+   :export #'-my:org-yt-link-export)
   (-my:org-add-languages 'python 'plantuml))
 
 

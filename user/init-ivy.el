@@ -6,12 +6,18 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'init-filesystem)
-  (require 'ivy))
+(require 'init-filesystem)
+(require 'ivy)
+
+
+(defvar counsel-find-file-map)
 
 
 (defun my:ivy-complete-files (&optional initial-input)
+  "Complete filesystem paths using `ivy-read'.
+Start from INITIAL-INPUT path if provided. Siminal to
+`counsel-find-file' but inserts path into buffer instead of visiting
+it."
   (interactive)
   (let ((existing (my:find-path-at-point)))
     ;; (when existing

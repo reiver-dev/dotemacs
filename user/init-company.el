@@ -9,6 +9,7 @@
 (require 'init-list)
 (require 'company)
 (require 'ivy)
+(require 'init-keybind)
 
 (eval-when-compile
   (require 'cl))

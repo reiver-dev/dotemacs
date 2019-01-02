@@ -15,9 +15,9 @@
  compilation-scroll-output 'next-error ;; stop on error
  compilation-skip-threshold 2)         ;; skip warnings
 
-(defun my:compile (comint)
-      "Compile without confirmation.
-With a prefix argument, use `comint-mode'."
+(defun my:compile (&optional comint)
+  "Compile without confirmation.
+If used with a COMINT argument, use `comint-mode'."
       (interactive "P")
       ;; Do the command without a prompt.
       (save-window-excursion

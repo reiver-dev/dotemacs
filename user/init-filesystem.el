@@ -13,7 +13,7 @@
 
 
 (defun my:current-fs-point ()
-  "Get current `buffer-file-name' or `default-directory'."
+  "Get current variable `buffer-file-name' or `default-directory'."
   (or (buffer-file-name) default-directory))
 
 (defun my:parent-dir (target)

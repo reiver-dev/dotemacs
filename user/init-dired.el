@@ -5,8 +5,7 @@
 ;;; Code:
 
 
-(eval-when-compile
-  (require 'init-package))
+(require 'init-package)
 
 
 (setq-default dired-listing-switches "-lhvA"
@@ -43,7 +42,7 @@
 
 
 (defun -my:dired-k--highlight-if-local (orig-fn &rest args)
-  "Butt out if the requested directory is remote."
+  "Call ORIG-FN function with ARGS if `default-directory' is not remote."
   (unless (file-remote-p default-directory)
     (apply orig-fn args)))
 
@@ -51,5 +50,3 @@
 (provide 'init-dired)
 
 ;;; init-dired.el ends here
-
-

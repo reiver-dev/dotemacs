@@ -7,8 +7,8 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'init-package))
+
+(require 'init-package)
 
 
 (my:with-package request

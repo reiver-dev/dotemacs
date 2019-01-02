@@ -56,7 +56,7 @@
 
 (my:with-package ivy-xref
   :ensure t
-  :init (setq xref-show-xrefs-function #'ivy-xref-show-xrefs))
+  :init (setq-default xref-show-xrefs-function #'ivy-xref-show-xrefs))
 
 
 (my:with-package counsel

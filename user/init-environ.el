@@ -6,6 +6,7 @@
 
 
 (require 'init-powershell)
+(require 'init-list)
 
 
 (defun my:env-split-entry (entry)
@@ -45,7 +46,7 @@ Try to use vswhere if available."
                    program-files)))
     (when (file-executable-p vswhere)
       (let ((version-range (format "[%d.0, %d.0)" version (+ version 1))))
-        (string-trim-right
+        (my:string-trim
          (with-output-to-string
            (call-process vswhere nil standard-output nil
                          "-version" version-range
@@ -55,6 +56,7 @@ Try to use vswhere if available."
 
 
 (defun my:env-w32-vcvars-location (version)
+  "Find 'vcvarsall.bat' path for specified VERSION string."
   (let ((vspath
          (or (my:env-w32-vs-installation-path version)
              (let ((comntools (getenv (format "VS%d0COMNTOOLS" version))))

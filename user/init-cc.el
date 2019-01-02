@@ -187,6 +187,8 @@ value eiter attached to them or as seperate option."
 
 
 (defun my:compiler-include-dirs-run (binary &optional language)
+  "Collect compiler's include directories.
+Performed by running compiler BINARY with specified LANGUAGE argument."
   (with-output-to-string
     (call-process binary nil standard-output nil
                   (if language (concat "-x" language) "")

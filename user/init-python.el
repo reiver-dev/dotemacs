@@ -24,6 +24,7 @@
 
 
 (defun -my:python-venv-root-expand (path)
+  "Expand PATH relative to `python-shell-virtualenv-root'."
   (expand-file-name path python-shell-virtualenv-root))
 
 
@@ -66,6 +67,11 @@ appends `python-shell-remote-exec-path' instead of `exec-path'."
         '-my:python-shell-switch-to-shell)
   (fset 'python-shell-calculate-exec-path
         '-my:python-shell-calculate-exec-path))
+
+
+(defvar flycheck-python-flake8-executable)
+(defvar flycheck-python-pylint-executable)
+(defvar flycheck-python-pycompile-executable)
 
 
 (defun my:flycheck-python-setup ()

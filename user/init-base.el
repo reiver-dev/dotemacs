@@ -76,7 +76,7 @@ returns result as filename, uses `file-name-as-directory' otherwise."
       (file-name-as-directory dest))))
 
 (defconst init:emacs (expand-file-name invocation-name invocation-directory)
-  "Current emacs executable")
+  "Current Emacs executable.")
 (defconst init:user-modules-dir (init:in-dir "user")
   "Directory for the most of init code.")
 (defconst init:load-path-dir (init:in-dir "load-path")
@@ -100,7 +100,7 @@ returns result as filename, uses `file-name-as-directory' otherwise."
 Initializes `auto-save-file-name-transforms'.")
 
 (defconst init:base-file (init:in-dir "init-base.el" init:user-modules-dir t)
-  "This file, to be loaded when emacs is called non-interactively")
+  "This file, to be loaded when Emacs is called non-interactively.")
 (defconst init:custom-file (init:in-dir "custom.el" nil t)
   "File for stored 'customize' settings. Initializes `custom-file'.")
 (defconst init:after-file (init:in-dir "after.el" nil t)
@@ -142,9 +142,9 @@ function list afterwards."
 
 
 (defun init:try-run-hook (fn hook)
-  "Runs a hook wrapped in a `condition-case-unless-debug' block; its objective
-is to include more information in the error message, without sacrificing your
-ability to invoke the debugger in debug mode."
+  "Run a FN associated with HOOK wrapped in a `condition-case-unless-debug'.
+Its objective is to include more information in the error message, without
+sacrificing your ability to invoke the debugger in debug mode."
   (condition-case-unless-debug ex (funcall fn)
     ('error
      (lwarn hook :error "%s in '%s' -> %s"
@@ -167,7 +167,8 @@ ability to invoke the debugger in debug mode."
 
 
 ;; Create directories
-(eval-when-compile
+(defun init:create-default-directories ()
+  "Make directories defined in `init:auto-create-dirs'."
   (dolist (dir init:auto-create-dirs)
     (unless (file-directory-p dir)
       (make-directory dir))))
@@ -187,7 +188,7 @@ Display result in BUFFER."
 
 
 (defun init:recompile-elpa ()
-  "Recompile packages in elpa directory"
+  "Recompile packages in elpa directory."
   (interactive)
   (init:run-emacs
    "(progn
@@ -196,6 +197,7 @@ Display result in BUFFER."
 
 
 (defun init:recompile ()
+  "Recompile user config."
   (interactive)
   (init:run-emacs
    (format
@@ -206,17 +208,26 @@ Display result in BUFFER."
 
 
 ;; Load path for additional modules
-(eval-when-compile
+
+(defun init:setup-load-path ()
+  "Initialize load path recursively to to '~/.emacs.d/load-path'."
   (dolist (default-directory
             (list init:user-modules-dir
                   init:load-path-dir))
     (normal-top-level-add-to-load-path (list "."))
     (normal-top-level-add-subdirs-to-load-path)))
 
-(eval-when-compile
+
+(defun init:create-after-file ()
+  "Create empty 'after.el' in '~/.emacs.d'."
   (unless (file-exists-p init:after-file)
     (with-temp-file init:after-file
       (insert ";;; after.el -*- lexical-binding: t; -*-\n\n"))))
+
+
+(init:create-default-directories)
+(init:create-after-file)
+(init:setup-load-path)
 
 
 ;; Themes directory, Custom and current config
