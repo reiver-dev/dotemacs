@@ -82,6 +82,10 @@
   :config (setq-default ag-highlight-search t))
 
 
+(my:with-package rg
+  :ensure t)
+
+
 (my:with-package magit
   :ensure t
   :init (my:kmap
