@@ -7,9 +7,8 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'init-defs)
-  (require 'init-list))
+(require 'init-defs)
+(require 'init-list)
 
 
 (defun my:current-fs-point ()

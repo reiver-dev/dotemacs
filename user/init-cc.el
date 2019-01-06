@@ -4,11 +4,9 @@
 
 ;;; Code:
 
-
 (require 'init-defs)
-(require 'init-shlex)
 (require 'init-package)
-(require 'init-completion)
+(require 'init-shlex)
 (require 'init-filesystem)
 
 

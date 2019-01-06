@@ -47,9 +47,9 @@
 
 (with-eval-after-load 'package
   (add-to-list 'package-archives
-               '("melpa" . "http://melpa.org/packages/"))
+               '("melpa" . "https://melpa.org/packages/"))
   (add-to-list 'package-archives
-               '("org" . "http://orgmode.org/elpa/")))
+               '("org" . "https://orgmode.org/elpa/")))
 
 
 (defun package--compile---no-save (proc &rest args)
@@ -152,7 +152,7 @@ sacrificing your ability to invoke the debugger in debug mode."
   nil)
 
 
-(defun init:startup-hook nil
+(defvar init:startup-hook nil
   "Hook to be executed during `emacs-startup-hook'.")
 
 

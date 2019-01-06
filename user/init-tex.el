@@ -4,9 +4,8 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'init-package)
-  (require 'init-completion))
+(require 'init-package)
+(require 'init-completion)
 
 (defconst -my:tex-present (executable-find "tex"))
 

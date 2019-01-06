@@ -7,6 +7,11 @@
 (require 'init-defs)
 (require 'init-package)
 (require 'init-theme)
+(require 'init-export)
+
+(eval-when-compile
+  (require 'whitespace))
+
 
 (enable-theme 'my:theme)
 

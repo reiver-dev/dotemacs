@@ -7,9 +7,9 @@
 
 ;;; Code:
 (require 'init-list)
-(require 'company)
-(require 'ivy)
 (require 'init-keybind)
+(require 'ivy)
+(require 'company)
 
 (eval-when-compile
   (require 'cl))

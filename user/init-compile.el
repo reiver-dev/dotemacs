@@ -4,9 +4,8 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'init-package)
-  (require 'init-keybind))
+(require 'init-package)
+(require 'init-keybind)
 
 
 (setq-default

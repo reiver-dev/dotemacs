@@ -13,6 +13,8 @@
 (require 'init-wm)
 (require 'init-globalbind)
 (require 'init-filesystem)
+(require 'init-shlex)
+(require 'init-largefile)
 (require 'init-font)
 
 (require 'init-environ)

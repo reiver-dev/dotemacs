@@ -4,6 +4,8 @@
 
 ;;; Code:
 
+(defvar package-archive-contents)
+(declare-function package-installed-p "package")
 
 ;; https://github.com/purcell/emacs.d/blob/master/lisp/init-elpa.el
 (defun my:require-package (package &optional min-version no-refresh)

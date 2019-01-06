@@ -4,12 +4,9 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'init-package)
-  (require 'init-completion))
-
-(eval-when-compile
-  (require 'python))
+(require 'init-defs)
+(require 'init-package)
+(require 'init-completion)
 
 ;; Replace python.el version to support venv on windows
 
