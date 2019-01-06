@@ -10,150 +10,17 @@
 
 ;; Replace python.el version to support venv on windows
 
-(defconst -my:python-venv-bin-list
-  (if (eq system-type 'windows-nt)
-      (list "Scripts" ".")
-    (list "bin")))
-
-
 (setq-default python-shell-completion-native-enable
               (not (eq system-type 'windows-nt)))
 
 
-(defun -my:python-venv-root-expand (path)
-  "Expand PATH relative to `python-shell-virtualenv-root'."
-  (expand-file-name path python-shell-virtualenv-root))
-
-
-;; Consider visible frames
-(defun -my:python-shell-switch-to-shell (&optional msg)
-  "Switch to inferior Python process buffer.
-When optional argument MSG is non-nil, forces display of a
-user-friendly message if there's no process running; defaults to
-t when called interactively."
-  (interactive "p")
-  (pop-to-buffer
-   (process-buffer (python-shell-get-process-or-error msg))
-   '(display-buffer-reuse-window (reusable-frames . visible)) t))
-
-
-;; Consider Scripts folder on windows
-(defun -my:python-shell-calculate-exec-path ()
-    "Calculate `exec-path'.
-Prepends `python-shell-exec-path' and adds the binary directory
-for virtualenv if `python-shell-virtualenv-root' is set.  If
-`default-directory' points to a remote host, the returned value
-appends `python-shell-remote-exec-path' instead of `exec-path'."
-    (let ((new-path (copy-sequence
-                     (if (file-remote-p default-directory)
-                         python-shell-remote-exec-path
-                       exec-path))))
-      (python-shell--add-to-path-with-priority
-       new-path python-shell-exec-path)
-      (if (not python-shell-virtualenv-root)
-          new-path
-        (python-shell--add-to-path-with-priority
-         new-path
-         (mapcar #'-my:python-venv-root-expand
-                 -my:python-venv-bin-list))
-        new-path)))
-
-
 (my:after 'python
-  (fset 'python-shell-switch-to-shell
-        '-my:python-shell-switch-to-shell)
-  (fset 'python-shell-calculate-exec-path
-        '-my:python-shell-calculate-exec-path))
-
-
-(defvar flycheck-python-flake8-executable)
-(defvar flycheck-python-pylint-executable)
-(defvar flycheck-python-pycompile-executable)
-(defvar flycheck-python-mypy-executable)
-
-
-(defun my:flycheck-python-setup ()
-  "Setup python executable for flycheck python checkers."
-  (interactive)
-  (with-demoted-errors "Error in flycheck-python-setup: %S"
-    (let* ((executables
-            (python-shell-with-environment
-              (list
-               :pyexe (or (executable-find python-shell-interpreter) "python")
-               :mypy (or (executable-find "mypy") "mypy"))))
-           (pyexe (plist-get executables :pyexe))
-           (mypy (plist-get executables :mypy)))
-      (setq-local flycheck-python-flake8-executable pyexe)
-      (setq-local flycheck-python-pylint-executable pyexe)
-      (setq-local flycheck-python-pycompile-executable pyexe)
-      (setq-local flycheck-python-mypy-executable mypy)
-      python-shell-virtualenv-root)))
-
-
-(my:when-windows
-  (defun -my:pythonic-executable ()
-    "Python executable."
-    (if python-shell-virtualenv-root
-        (if (tramp-tramp-file-p python-shell-virtualenv-root)
-            (expand-file-name
-             "bin/python"
-             (tramp-file-name-localname
-              (tramp-dissect-file-name python-shell-virtualenv-root)))
-          (locate-file
-           "pythonw"
-           (mapcar #'-my:python-venv-root-expand
-                   -my:python-venv-bin-list)
-           exec-suffixes 1))
-      (if (tramp-tramp-file-p python-shell-interpreter)
-          (tramp-file-name-localname
-           (tramp-dissect-file-name python-shell-interpreter))
-        python-shell-interpreter)))
-  (my:after 'pythonic
-    (fset 'pythonic-executable '-my:pythonic-executable)))
-
-
-(my:when-windows
-  (defun -my:anaconda-mode-bootstrap (&optional callback)
-    "Run `anaconda-mode' server.
-CALLBACK function will be called when `anaconda-mode-port' will
-be bound."
-    (setq anaconda-mode-process
-          (pythonic-start-process
-           :process anaconda-mode-process-name
-           :buffer (get-buffer-create anaconda-mode-process-buffer)
-           :query-on-exit nil
-           :filter (lambda (process output)
-                     (anaconda-mode-bootstrap-filter process output callback))
-           :sentinel (lambda (_process _event))
-           :args `("-c"
-                   ,anaconda-mode-server-command
-                   ,(anaconda-mode-server-directory)
-                   ,(if (pythonic-remote-p)
-                        "0.0.0.0"
-                      anaconda-mode-localhost-address)
-                   ,(if python-shell-virtualenv-root
-                        (pythonic-executable)
-                      ""))))
-
-    (let ((params `((interpreter . ,python-shell-interpreter)
-                    (virtualenv . ,python-shell-virtualenv-root)
-                    (port . ,nil))))
-      (when (pythonic-remote-p)
-        (setq params (append params
-                             `((remote-p . t)
-                               (remote-method . ,(pythonic-remote-method))
-                               (remote-user . ,(pythonic-remote-user))
-                               (remote-host . ,(pythonic-remote-host))
-                               (remote-port . ,(pythonic-remote-port))))))
-      (dolist (kv params)
-        (process-put anaconda-mode-process (car kv) (cdr kv)))))
-  (my:after 'anaconda-mode
-    (fset 'anaconda-mode-bootstrap '-my:anaconda-mode-bootstrap)))
+  (require 'init-python-internal))
 
 
 (my:with-package anaconda-mode
   :ensure t
-  :init (add-hook 'python-mode-hook #'anaconda-mode)
+  :init (add-hook 'python-mode-hook 'anaconda-mode)
   :config (progn
             (my:kmap* anaconda-mode-map
                       ("M-r" "M-*" "M-," "M-." nil)
