@@ -68,26 +68,21 @@ loaded."
     result))
 
 
-(defvar auto-revert-interval)
-(defvar auto-revert-set-timer)
-
-
-(defun my:log-tail-handler ()
-  "Setup current buffer to view logs efficiently."
-  (setq-local auto-revert-interval 1)
-  (auto-revert-set-timer)
-  (read-only-mode t)
-  (font-lock-mode 0)
-  (goto-char (point-max)))
-
-
 ;; Sync unchanged buffers with filesystem
 (my:with-package autorevert
   :init (progn
           ;; Disable `Reverting buffer' messages
           (setq-default auto-revert-verbose nil)
           (global-auto-revert-mode t))
-  :config (add-hook 'auto-revert-tail-mode-hook #'my:log-tail-handler))
+  :config (progn
+            (defun -my:log-tail-handler ()
+              "Setup current buffer to view logs efficiently."
+              (setq-local auto-revert-interval 1)
+              (auto-revert-set-timer)
+              (read-only-mode t)
+              (font-lock-mode -1)
+              (goto-char (point-max)))
+            (add-hook 'auto-revert-tail-mode-hook #'-my:log-tail-handler)))
 
 
 ;; Show recent files
