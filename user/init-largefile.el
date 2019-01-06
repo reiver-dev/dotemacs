@@ -12,7 +12,7 @@ See `large-file-warning-threshold'."
 
 (define-derived-mode my:large-file-mode fundamental-mode "LargeFile"
   "Mode to minimize large file freezes"
-  (setq bidi-display-reordering nil))
+  (setq-local bidi-display-reordering nil))
 
 
 (add-to-list 'magic-mode-alist
