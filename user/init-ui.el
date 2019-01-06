@@ -139,6 +139,7 @@ Set value of `face-remapping-alist' to FACE-REMAP for BUFFER."
 (fset #'yes-or-no-p #'y-or-n-p)
 
 (show-paren-mode t)
+(set-fringe-mode 0)
 (window-divider-mode t)
 
 (line-number-mode t)
@@ -147,11 +148,12 @@ Set value of `face-remapping-alist' to FACE-REMAP for BUFFER."
 (minibuffer-depth-indicate-mode t)
 
 (my:with-package vi-tilde-fringe
+  :disabled t
   :ensure t
   :init (add-hook 'my:first-frame-hook
                   #'(lambda ()
                       (when (fboundp 'define-fringe-bitmap)
-                        (global-vi-tilde-fringe-mode)))))
+                        (global-vi-tilde-fringe-mode t)))))
 
 (my:with-package minions
   :ensure t
