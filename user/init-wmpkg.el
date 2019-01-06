@@ -22,9 +22,9 @@
   :ensure t
   :init
   (progn
-    (setq aw-scope 'visible
-          aw-dispatch-always t
-          aw-background nil)
+    (setq-default aw-scope 'visible
+                  aw-dispatch-always t
+                  aw-background nil)
     (my:kmap ("C-c w" "C-c C-w" #'ace-window)))
   :config
   (progn
