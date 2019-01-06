@@ -33,6 +33,12 @@ Meant to be used in macros."
         (load feature :no-message :no-error)))))
 
 
+(defmacro my:require (feature)
+  "Require or load FEATURE if file is currently compiled.
+Macro version of `my:require-when-compile'."
+  (my:require-when-compile feature))
+
+
 (defun -my:macroexp-progn (body)
   "Wrap BODY form list in `progn' if needed."
   (cond
@@ -104,13 +110,19 @@ ITEMS might be a symbol, string or list of these."
     (dolist (item items)
       (setq loaded (and (my:require-when-compile item) loaded)))
     (if (= 1 (length items))
-        `(eval-after-load ,(macroexp-quote (car items))
-           (-my:maybe-no-warnings ,loaded ,@body))
-      `(let* ((routine (-my:maybe-no-warnings ,loaded ,@body))
-              (guarded (-my:run-after ,(length items) (funcall routine))))
-         ,@(mapcar (lambda (item)
-                     (list 'eval-after-load (macroexp-quote item) 'guarded))
-                   items)))))
+        (let ((item (macroexp-quote (car items))))
+          `(eval-after-load ,item
+             (-my:maybe-no-warnings ,loaded ,@body)))
+      (let ((routine-sym (make-symbol "routine"))
+            (guarded-sym (make-symbol "guarded")))
+        `(let* ((,routine-sym (-my:maybe-no-warnings ,loaded ,@body))
+                (,guarded-sym (-my:run-after ,(length items)
+                                             (funcall ,routine-sym))))
+           ,@(mapcar
+              (lambda (item)
+                (list 'eval-after-load (macroexp-quote item)
+                      guarded-sym))
+              items))))))
 
 
 (defmacro my:add-hook (hook &rest body)
