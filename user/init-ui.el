@@ -158,8 +158,9 @@ Set value of `face-remapping-alist' to FACE-REMAP for BUFFER."
 (my:with-package minions
   :ensure t
   :init (progn
-          (setq-default minions-direct '(flycheck-mode projectile-mode))
-          (minions-mode 1)))
+          (setq-default minions-direct
+                        '(flycheck-mode flymake-mode projectile-mode))
+          (minions-mode t)))
 
 
 (provide 'init-ui)
