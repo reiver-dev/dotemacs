@@ -8,12 +8,11 @@
 (require 'init-base (expand-file-name "user/init-base.el"
                                       user-emacs-directory))
 
-(package-initialize)
-
 
 (let ((gc-cons-threshold most-positive-fixnum)
       (gc-cons-percentage 0.6)
       (file-name-handler-alist nil))
+  (package-initialize)
   (load custom-file t)
   (require 'init-main)
   (load init:after-file t))
