@@ -69,6 +69,125 @@
       (eq #xffff char)))
 
 
+(defconst my:char-sp #x0020
+  "Space.")
+
+(defconst my:char-nbsp #x00A0
+  "No-Break Space.")
+
+(defconst my:char-fgsp #x2006
+  "Firgure Space.")
+
+(defconst my:char-nnbsp #x202F
+  "Narrow No-Break Space.")
+
+(defconst my:char-zwsp #x200B
+  "Zero Width Space.")
+
+(defconst my:char-wj #x2060
+  "Word Joiner.")
+
+(defconst my:char-horiz-tab #x0009
+  "Horizontal tabulation \\t.")
+
+(defconst my:char-line-feed #x000A
+  "Line Feed (LN) \\n.")
+
+(defconst my:char-vertical-tab #x000B
+  "Vertical Tabulation.")
+
+(defconst my:char-form-feed #x000C
+  "Form Feed \\f.")
+
+(defconst my:char-carriage-return #x000D
+  "Carriage Return \\r.")
+
+(defconst my:char-file-separator #x001C
+  "File Separator.")
+
+(defconst my:char-group-separator #x001C
+  "Group Separator.")
+
+(defconst my:char-record-separator #x001C
+  "Record Separator.")
+
+(defconst my:char-unit-separator #x001C
+  "Unit Separator.")
+
+
+(defconst my:char-category-space-separator
+  [
+   #x0020 ;; Space (SP)
+   #x00A0 ;; No-Break Space (NBSP)
+   #x1680 ;; Ogham Space Mark
+   #x2000 ;; En Quad
+   #x2001 ;; Em Quad
+   #x2002 ;; En Space
+   #x2003 ;; Em Space
+   #x2004 ;; Three-Per-Em Space
+   #x2005 ;; Four-Per-Em Space
+   #x2006 ;; Six-Per-Em Space
+   #x2007 ;; Figure Space
+   #x2008 ;; Punctuation Space
+   #x2009 ;; Thin Space
+   #x200A ;; Hair Space
+   #x202F ;; Narrow No-Break Space (NNBSP)
+   #x205F ;; Medium Mathematical Space (MMSP)
+   #x3000 ;; Ideographic Space
+   ]
+  "SPACE SEPARATOR (Zs) category.")
+
+
+(defconst my:char-category-line-separator
+  [#x2028]
+  "LINE SEPARATOR (Zl) category.")
+
+
+(defconst my:char-category-paragraph-separator
+  [#x2029]
+  "PARAGRAPH SEPARATOR (Zp) category.")
+
+
+(defconst my:char-whitespace
+  [
+   ;; Space Separator (Zs)
+   #x0020 ;; Space (SP)
+   #x0009 ;; Line Feed
+   #x000A ;; Horizontal Tab
+   #x000B ;; Vertical Tabulation
+   #x000C ;; Form Feed
+   #x000D ;; Carriage Return
+   #x001C ;; File Separator
+   #x001D ;; Group Separator
+   #x001E ;; Record Separator
+   #x001F ;; Unit Separator
+
+   ;; #x00A0 ;; No-Break Space (NBSP)
+   #x1680 ;; Ogham Space Mark
+   #x2000 ;; En Quad
+   #x2001 ;; Em Quad
+   #x2002 ;; En Space
+   #x2003 ;; Em Space
+   #x2004 ;; Three-Per-Em Space
+   #x2005 ;; Four-Per-Em Space
+   #x2006 ;; Six-Per-
+   ;; #x2007 ;; Figure Space
+   #x2008 ;; Punctuation Space
+   #x2009 ;; Thin Space
+   #x200A ;;
+   ;; #x202F ;; Narrow No-Break Space (NNBSP)
+   #x205F ;; Medium Mathematical Space (MMSP)
+   #x3000 ;; Ideographic Space
+
+   ;; Line Separator (Zl)
+   #x2028
+
+   ;; Paragraph Separator
+   #x2029
+   ]
+  "Whitespace charters according to Java 11.")
+
+
 (defsubst my:char-hex-p (char)
   "Check if CHAR is valid hexadecimal ascii digit."
   (or (<= ?0 char ?9) (<= ?A char ?F) (<= ?a char ?f)))
