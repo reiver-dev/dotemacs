@@ -34,9 +34,27 @@ If used with a COMINT argument, use `comint-mode'."
           ("<f8>" #'my:compile)
           ("C-<f8>" #'compile))
 
+
+(defun -my:compile-mock-fringes (&optional _window)
+  "Always return list of (-1 -1 nil).
+This is to override `window-fringes.'"
+  (list -1 -1 nil))
+
+
+(defun -my:compile-set-window-nojump (proc &rest args)
+  "Call PROC with ARGS while wrapping `window-fringes'."
+  (let ((old (symbol-function 'window-fringes)))
+    (unwind-protect
+        (progn (fset 'window-fringes #'-my:compile-mock-fringes)
+               (apply proc args))
+      (fset 'window-fringes old))))
+
+
 (my:after compile
   (my:kmap* compilation-shell-minor-mode-map
-            ("<f8>" "<C-<f8>" #'recompile)))
+            ("<f8>" "<C-<f8>" #'recompile))
+  (advice-add 'compilation-goto-locus :around
+              #'-my:compile-set-window-nojump))
 
 
 (provide 'init-compile)
