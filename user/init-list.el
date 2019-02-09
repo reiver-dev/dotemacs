@@ -197,6 +197,37 @@ Use OFFSET as column separator width."
       (substring str begin end))))
 
 
+(defun my:string-partition-regex (str regex)
+  "Split STR around first and last groups of REGEX.
+Return (prefix . suffix) pair."
+  (if (string-match regex str)
+      (let ((md (match-data))
+            pb pe sb se)
+        (setq md (cddr md))
+        (setq pb (pop md)
+              pe (pop md))
+        (while md
+          (setq sb (pop md)
+                se (pop md)))
+        (cons (substring str pb pe)
+              (substring str sb se)))
+    (cons str nil)))
+
+
+(defun my:string-partition (str delimiter)
+  "Split STR around first occurance of DELIMITER.
+Return (prefix . suffix) pair."
+  (my:string-partition-regex
+   str (concat "\\`\\(.*?\\)" delimiter "\\(.*\\)\\'")))
+
+
+(defun my:string-rpartition (str delimiter)
+  "Split STR around last occurance of DELIMITER.
+Return (prefix . suffix) pair."
+  (my:string-partition-regex
+   str (concat "\\`\\(.*\\)" delimiter "\\(.*\\)\\'")))
+
+
 (provide 'init-list)
 
 ;;; init-list.el ends here
