@@ -38,55 +38,50 @@
          (whitespace (string-to-list my:sh-char-whitespace))
          (weak-special (string-to-list my:sh-backslashed-literal))
          (i 0)
-         (slashed nil)
-         (result (cons nil nil))
-         (result-tail result)
-         (acc (cons nil nil))
-         (acc-tail acc)
-         (state 'normal))
+         (state 'normal)
+         slashed result acc)
     (while (< i len)
       (let ((char (aref input i)))
         (cond
          ((eq state 'normal)
           (cond
+
            (slashed
-            (setq acc-tail (setcdr acc-tail (cons char nil))
+            (setq acc (cons char acc)
                   slashed nil))
+
            ((member char whitespace)
-            (when (cdr acc)
-              (setq result-tail (setcdr result-tail
-                                        (cons (cdr acc) nil))
-                    acc-tail acc)
-              (setcdr acc nil)))
+            (when acc
+              (setq result (cons acc result)
+                    acc nil)))
 
            ((equal char ?\") (setq state 'weak-quotes))
            ((equal char ?\') (setq state 'strong-quotes))
            ((equal char ?\\) (setq slashed t))
-           (t (setq acc-tail (setcdr acc-tail (cons char nil))))))
+           (t (setq acc (cons char acc)))))
 
          ((eq state 'weak-quotes)
           (cond
            (slashed
-            (setq acc-tail
-                  (if (member char weak-special)
-                      (setcdr acc-tail (cons char nil))
-                    (cdr (setcdr acc-tail (list ?\\ char))))
+            (setq acc (if (member char weak-special)
+                          (cons char acc)
+                        (cons char (cons ?\\ acc)))
                   slashed nil))
            ((equal char ?\\) (setq slashed t))
            ((equal char ?\") (setq state 'normal))
-           (t (setq acc-tail (setcdr acc-tail (cons char nil))))))
+           (t (setq acc (cons char acc)))))
 
          ((eq state 'strong-quotes)
           (cond
            ((equal char ?\') (setq state 'normal))
-           (t (setq acc-tail (setcdr acc-tail (cons char nil))))))
+           (t (setq acc (cons char acc)))))
 
          (t
           (error "Invalid state: %s" state))))
       (setq i (1+ i)))
-    (setq result-tail (setcdr result-tail
-                              (cons (cdr acc) nil)))
-    (mapcar (lambda (x) (apply 'string x)) (cdr result))))
+    (setq result (cons acc result))
+    (mapcar (lambda (x) (nreverse (apply 'string x)))
+            (nreverse result))))
 
 
 (provide 'init-shlex)
