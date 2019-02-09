@@ -83,7 +83,12 @@
 
 
 (my:with-package rg
-  :ensure t)
+  :ensure t
+  :config
+  (progn
+    (my:kmap* rg-mode-map
+              ("p" #'compilation-previous-error)
+              ("n" #'compilation-next-error))))
 
 
 (my:with-package magit
