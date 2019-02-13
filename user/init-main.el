@@ -25,6 +25,10 @@
 (require 'init-eshell)
 (require 'init-compare)
 
+(my:with-package flymake
+  :ensure t
+  :config (require 'init-flymake))
+
 (require 'init-pkgs)
 (require 'init-completion)
 (require 'init-spellcheck)

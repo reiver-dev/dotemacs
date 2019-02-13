@@ -15,7 +15,9 @@
 
 
 (my:after 'python
-  (require 'init-python-internal))
+  (require 'init-python-internal)
+  (require 'init-flymake-flake8)
+  (require 'init-flymake-mypy))
 
 
 (my:with-package anaconda-mode
