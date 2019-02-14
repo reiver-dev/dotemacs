@@ -35,27 +35,28 @@
         ":\\(?1:[0-9]+\\):\\(?2:[0-9]+\\): \\(?3:[a-z]+\\): \\(?4:.*\\)")))
 
 
-(defun -my:flymake-python-mypy-parse (source-file source-buffer output-buffer)
+(defun -my:flymake-python-mypy-parse (output-buffer source-buffer source-file)
   "Parse mypy output from OUTPUT-BUFFER.
 SOURCE-FILE is filename for SOURCE-BUFFER that were used to execute
 mypy against."
   (with-current-buffer output-buffer
-    (goto-char (point-min))
-    (cl-loop
-     while (-my:flymake-python-mypy-parse-line source-file)
-     for msg = (match-string 4)
-     for (beg . end) = (flymake-diag-region
-                        source-buffer
-                        (string-to-number (match-string 1))
-                        (string-to-number (match-string 2)))
-     for kind = (let ((k (match-string 3)))
-                  (cond
-                   ((eq k "note") :note)
-                   ((eq k "warning") :warning)
-                   ((eq k "error") :error)
-                   (t :error)))
-     collect (flymake-make-diagnostic
-              source-buffer beg end kind msg))))
+    (when (< 0 (- (point-max) (point-min)))
+      (goto-char (point-min))
+      (cl-loop
+       while (-my:flymake-python-mypy-parse-line source-file)
+       for msg = (match-string 4)
+       for (beg . end) = (flymake-diag-region
+                          source-buffer
+                          (string-to-number (match-string 1))
+                          (string-to-number (match-string 2)))
+       for kind = (let ((k (match-string 3)))
+                    (cond
+                     ((eq k "note") :note)
+                     ((eq k "warning") :warning)
+                     ((eq k "error") :error)
+                     (t :error)))
+       collect (flymake-make-diagnostic
+                source-buffer beg end kind msg)))))
 
 
 (defun -my:flymake-python-mypy-exec (report-fn &rest _args)
@@ -104,8 +105,9 @@ REPORT-FN is Flymake's callback function."
                          (flymake-log :warning "mypy process %s obsolete" proc)
                        (funcall report-fn
                                 (-my:flymake-python-mypy-parse
-                                 (file-name-nondirectory source-file)
-                                 source-buffer output-buffer)))
+                                 output-buffer
+                                 source-buffer
+                                 (file-name-nondirectory source-file))))
                    (ignore-errors (delete-file temp-file))
                    (kill-buffer output-buffer))))
              :noquery t
