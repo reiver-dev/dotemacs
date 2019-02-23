@@ -185,7 +185,7 @@ Display result in BUFFER."
       (erase-buffer)
       (display-buffer buffer)
       (call-process init:emacs nil buffer t
-                    "--batch" "--quick"
+                    "--quick" "--batch"
                     "--load" init:base-file
                     "--eval" script))))
 
@@ -194,20 +194,65 @@ Display result in BUFFER."
   "Recompile packages in elpa directory."
   (interactive)
   (init:run-emacs
-   "(progn
- (package-initialize)
- (byte-recompile-directory package-user-dir 0 t))"))
+   (prin1-to-string
+    `(progn
+       (package-initialize)
+       (byte-recompile-directory package-user-dir 0 t)))))
 
 
-(defun init:recompile ()
-  "Recompile user config."
-  (interactive)
-  (init:run-emacs
-   (format
-    "(progn
- (package-initialize)
- (byte-recompile-directory \"%s\" 0 t))"
-    init:user-modules-dir)))
+(defun init:user-modules-files ()
+  "Find elisp files eligible to be byte compiled in `init:user-modules-dir'."
+  (let ((directory init:user-modules-dir)
+        (include emacs-lisp-file-regexp)
+        (exclude
+         "\\`\\(?:\\.#.*\\|#.*#\\|\\.dir-locals\\(?:-[0-9]+\\)?\\.el\\)\\'")
+        result)
+    (dolist (name (directory-files directory))
+      (let ((filename (file-name-nondirectory name))
+            (path (expand-file-name name directory)))
+        (when (and
+               (not (file-directory-p path))
+               (string-match include filename)
+               (not (string-match exclude filename))
+               (file-readable-p path))
+          (setq result (cons path result)))))
+    result))
+
+
+(defun init:recompile-file (file buffer)
+  "Run Emacs to compile FILE.
+Use BUFFER for process and compilation log."
+  (call-process
+   init:emacs nil buffer t
+   "--quick" "--batch"
+   "--load" init:base-file
+   "--eval" (prin1-to-string
+             `(progn
+                (setq lexical-binding t
+                      exit-code 0
+                      target-file ,file)
+                (package-initialize)
+                (message (format "Compiling %s..." target-file))
+                (if (null (batch-byte-compile-file target-file))
+                    (setq exit-code 1))
+                (message (format "Compiling %s... done" target-file))
+                (kill-emacs exit-code)))))
+
+
+(defun init:recompile (&optional force)
+  "Recompile user config by running Emacs for each file.
+If univesal argument FORCE is set recompile even if result exists."
+  (interactive "P")
+  (let ((files (init:user-modules-files))
+        (buffer (get-buffer-create "*Exec Emacs*")))
+    (with-current-buffer buffer
+      (erase-buffer)
+      (pop-to-buffer buffer nil t)
+      (dolist (file files)
+        (if (or force
+                (file-newer-than-file-p file (byte-compile-dest-file file)))
+            (init:recompile-file file buffer)
+          (insert (format "Compiling %s... skip\n" file)))))))
 
 
 ;; Load path for additional modules
