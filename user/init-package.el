@@ -49,9 +49,9 @@ Macro version of `my:require-when-compile'."
    (t (car body))))
 
 
-(defun -my:macroexp-fun (body)
+(defun -my:macroexp-fun-1 (body)
   "Wrap BODY with `lambda' without arguments.
-Unwrap if BODY is single `function' or `quote' function expression."
+Meant to be called by `-my:macroexp-fun'"
   (cond
    ((atom body) `(quote ,body))
    ((and (= (length body) 2)
@@ -60,8 +60,13 @@ Unwrap if BODY is single `function' or `quote' function expression."
     body)
    ((and (symbolp (car body)) (not (cdr body)))
     `(function ,(car body)))
-   (t `(lambda () ,@(macroexp-unprogn
-                     (-my:macroexp-progn body))))))
+   (t `(lambda () ,@(macroexp-unprogn body)))))
+
+
+(defun -my:macroexp-fun (body)
+  "Wrap BODY with `lambda' without arguments.
+Unwrap if BODY is single `function' or `quote' function expression."
+  (-my:macroexp-fun-1 (-my:macroexp-progn body)))
 
 
 (defun -my:macroexp-at-least-one (value)
