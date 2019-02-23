@@ -120,6 +120,8 @@
                         #'projectile-commander)
           (projectile-mode))
   :config (progn
+            (my:kmap* projectile-mode-map
+                      ("C-c p" "C-c C-p" 'projectile-command-map))
             ;; Try to emulate ede (from CEDET) project
             (my:after semanticdb
               (setq-default semanticdb-project-root-functions
