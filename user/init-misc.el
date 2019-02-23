@@ -82,7 +82,7 @@ loaded."
               (read-only-mode t)
               (font-lock-mode -1)
               (goto-char (point-max)))
-            (add-hook 'auto-revert-tail-mode-hook #'-my:log-tail-handler)))
+            (add-hook 'auto-revert-tail-mode-hook '-my:log-tail-handler)))
 
 
 ;; Show recent files

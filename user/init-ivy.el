@@ -6,6 +6,9 @@
 
 ;;; Code:
 
+(eval-when-compile
+  (require 'init-keybind))
+
 (require 'init-filesystem)
 (require 'ivy)
 

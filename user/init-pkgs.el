@@ -142,8 +142,9 @@
 (my:with-package flycheck
   :ensure t
   :init (progn
-          (setq flycheck-indication-mode 'right-fringe
-                flycheck-check-syntax-automatically '(save mode-enabled))
+          (setq-default
+           flycheck-indication-mode 'right-fringe
+           flycheck-check-syntax-automatically '(save mode-enabled))
           (defun turn-on-flycheck-mode ()
             "Unconditionally enable `flycheck-mode'"
             (flycheck-mode 1))

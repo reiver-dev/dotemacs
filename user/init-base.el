@@ -45,6 +45,9 @@
 (setq-default load-prefer-newer t)
 
 
+(eval-when-compile
+  (require 'package))
+
 (with-eval-after-load 'package
   (add-to-list 'package-archives
                '("melpa" . "https://melpa.org/packages/"))
@@ -102,7 +105,7 @@ Initializes `auto-save-file-name-transforms'.")
 (defconst init:base-file (init:in-dir "init-base.el" init:user-modules-dir t)
   "This file, to be loaded when Emacs is called non-interactively.")
 (defconst init:custom-file (init:in-dir "custom.el" nil t)
-  "File for stored 'customize' settings. Initializes `custom-file'.")
+  "File for stored 'customize' settings. Initializes variable `custom-file'.")
 (defconst init:after-file (init:in-dir "after.el" nil t)
   "File to be executed if present after main init code.")
 
