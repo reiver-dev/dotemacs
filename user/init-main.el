@@ -24,6 +24,7 @@
 (require 'init-comint)
 (require 'init-eshell)
 (require 'init-compare)
+(require 'init-vcs)
 
 (my:with-package flymake
   :ensure t

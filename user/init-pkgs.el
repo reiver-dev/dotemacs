@@ -91,14 +91,6 @@
               ("n" #'compilation-next-error))))
 
 
-(my:with-package magit
-  :ensure t
-  :init (my:kmap
-         ("<f6>" #'magit-status))
-  :config (setq-default
-           ;; by-word diff
-           magit-diff-refine-hunk t))
-
 ;; Project management and project tree
 
 (my:with-package neotree
@@ -117,14 +109,6 @@
                 (setq neo-global--buffer (window-buffer win)
                       neo-global--window win)))
             (setq neo-display-action '(-my:neotree-display))))
-
-
-(my:with-package diff-hl
-  :ensure t
-  :defer 10
-  :init (progn
-          (diff-hl-margin-mode t)
-          (global-diff-hl-mode t)))
 
 
 (my:with-package projectile
