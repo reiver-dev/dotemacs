@@ -5,8 +5,9 @@
 ;;; Code:
 
 
+(require 'init-package)
+
 (eval-when-compile
-  (require 'init-package)
   (require 'init-keybind))
 
 
