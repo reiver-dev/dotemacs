@@ -5,13 +5,41 @@
 ;;; Code:
 
 (defvar package-archive-contents)
+(defvar package-selected-packages)
 (declare-function package-installed-p "package")
+
+
+(defvar my:selected-packages-list nil
+  "List of packages that are requiested by `my:with-package'.")
+
+
+(defun my:select-package (package)
+  "Add PACKAGE symbol to `my:selected-packages-list'."
+  (add-to-list 'my:selected-packages-list package))
+
+
+(defun my:selected-packages-finalize nil
+  "Add `my:selected-packages-list' to `package-selected-packages'."
+  (interactive)
+  (let* ((added 0)
+         (already-selected package-selected-packages)
+         (result already-selected))
+    (dolist (package my:selected-packages-list)
+      (unless (memq package already-selected)
+        (setq result (cons package result)
+              added (1+ added))))
+    (when (> 0 added)
+      (let ((save-silently inhibit-message))
+        (customize-save-variable 'package-selected-packages result
+                                 "From my:selected-packages-list")))))
+
 
 ;; https://github.com/purcell/emacs.d/blob/master/lisp/init-elpa.el
 (defun my:require-package (package &optional min-version no-refresh)
   "Install given PACKAGE, optionally requiring MIN-VERSION.
 If NO-REFRESH is non-nil, the available package lists will not be
 re-downloaded in order to locate PACKAGE."
+  (my:select-package package)
   (if (package-installed-p package min-version)
       t
     (if (or (assoc package package-archive-contents) no-refresh)
