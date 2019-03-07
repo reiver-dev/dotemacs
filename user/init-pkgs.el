@@ -195,6 +195,14 @@
   :config (setq-default lua-indent-level 4))
 
 
+(my:with-package csv-mode
+  :ensure t
+  :init
+  (progn
+    (add-hook 'csv-mode-hook #'my:turn-on-tabs)
+    (add-to-list 'auto-mode-alist '("\\.[Tt][Ss][Vv]\\'" . csv-mode))))
+
+
 (provide 'init-pkgs)
 
 ;;; init-pkgs.el ends here
