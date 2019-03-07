@@ -90,15 +90,13 @@ See `directory-files-recursively' (since 25)."
       (setq current-directory-list (cdr current-directory-list)))
     el-files-list))
 
-(defun my:dir-locals ()
-    "Find directory local (.dir-locals.el) settings location;
-raises error if not found"
+(defun my:dir-locals nil
+  "Find directory local (.dir-locals.el) settings location."
     (let* ((dl-path
             (dir-locals-find-file (my:current-fs-point))))
       (cond
        ((stringp dl-path) (file-name-directory dl-path))
-       ((consp dl-path) (car dl-path))
-       (t (error "Dir-locals location is undefined")))))
+       ((consp dl-path) (car dl-path)))))
 
 
 (defun my:dir-locals-path (relative)
