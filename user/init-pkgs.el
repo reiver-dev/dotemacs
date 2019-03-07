@@ -123,6 +123,11 @@
   :config (progn
             (my:kmap* projectile-mode-map
                       ("C-c p" "C-c C-p" 'projectile-command-map))
+            (defun my:in-project-dir (func &rest args)
+              "Call function FUNC with ARGS in current project directory."
+              (let ((default-directory (or (projectile-project-root)
+                                           default-directory)))
+                (apply func args)))
             ;; Try to emulate ede (from CEDET) project
             (my:after semanticdb
               (setq-default semanticdb-project-root-functions

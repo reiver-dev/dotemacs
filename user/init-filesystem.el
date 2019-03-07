@@ -105,6 +105,12 @@ Path is pecified by RELATIVE argument.  See `expand-file-name'."
   (expand-file-name relative (my:dir-locals)))
 
 
+(defun my:in-local-dir-advice (func &rest args)
+  "Call function FUNC with ARGS with directory set to dir-locals location."
+  (let ((default-directory (or (my:dir-locals) default-directory)))
+    (apply func args)))
+
+
 (defmacro my:with-local-dir (relative &rest body)
   "Evaluate BODY in RELATIVE location to \".dir-locals.el\"."
   `(let ((default-directory
