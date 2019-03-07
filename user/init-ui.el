@@ -147,6 +147,25 @@ Set value of `face-remapping-alist' to FACE-REMAP for BUFFER."
 (size-indication-mode t)
 (minibuffer-depth-indicate-mode t)
 
+
+(defun my:turn-on-tabs ()
+  "Setup editor behavor and interface for tab-sensitive environments."
+  (setq-local indent-tabs-mode t)
+  (setq-local tab-always-indent nil)
+  (setq-local whitespace-style
+              '(face spaces tabs newline
+                     space-mark tab-mark newline-mark))
+  (setq-local whitespace-display-mappings
+              (quote
+               (;; SPACE, MIDDLE DOT, FULL STOP
+                (space-mark 32 [183] [46])
+                ;; LINE FEED
+                (newline-mark 10 [182 10])
+                ;; TAB
+                (tab-mark 9 [9655 9] [92 9]))))
+  (whitespace-mode 1))
+
+
 (my:with-package vi-tilde-fringe
   :disabled t
   :ensure t
