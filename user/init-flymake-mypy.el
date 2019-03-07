@@ -4,6 +4,7 @@
 
 ;;; Code:
 
+(require 'init-defs)
 (require 'python)
 (require 'flymake)
 
@@ -28,11 +29,20 @@
   "Mypy process for flymake")
 
 
+(defconst -my:flymake-python-mypy-line-pattern
+  ":\\(?:\\(?1:[0-9]+\\):\\)?\\(?:\\(?2:[0-9]+\\):\\)? \\(?3:[a-z]+\\): \\(?4:.*\\)"
+  "Regex for parsing.")
+
+
 (defun -my:flymake-python-mypy-parse-line (source-file)
   "Parse mypy line from current `point' of the SOURCE-FILE."
   (and (search-forward source-file (line-end-position) t 1)
-       (search-forward-regexp
-        ":\\(?1:[0-9]+\\):\\(?2:[0-9]+\\): \\(?3:[a-z]+\\): \\(?4:.*\\)")))
+       (search-forward-regexp -my:flymake-python-mypy-line-pattern)))
+
+
+(defun -my:maybe-string-to-number (string)
+  "Convert STRING to number, return nil if argument is not a string."
+  (when (stringp string) (string-to-number string)))
 
 
 (defun -my:flymake-python-mypy-parse (output-buffer source-buffer source-file)
@@ -47,8 +57,8 @@ mypy against."
        for msg = (match-string 4)
        for (beg . end) = (flymake-diag-region
                           source-buffer
-                          (string-to-number (match-string 1))
-                          (string-to-number (match-string 2)))
+                          (-my:maybe-string-to-number (match-string 1))
+                          (-my:maybe-string-to-number (match-string 2)))
        for kind = (let ((k (match-string 3)))
                     (cond
                      ((eq k "note") :note)
@@ -57,6 +67,20 @@ mypy against."
                      (t :error)))
        collect (flymake-make-diagnostic
                 source-buffer beg end kind msg)))))
+
+
+(my:when-windows
+  (defun -my:flymake-python-mypy-buffer-relative-path (buffer)
+    "Find `buffer-file-name' of BUFFER relative to `default-directory'."
+    (subst-char-in-string
+     ?/ ?\\
+     (file-relative-name (buffer-file-name buffer) default-directory))))
+
+
+(my:when-posix
+  (defun -my:flymake-python-mypy-buffer-relative-path (buffer)
+    "Find `buffer-file-name' of BUFFER relative to `default-directory'."
+    (file-relative-name (buffer-file-name buffer) default-directory)))
 
 
 (defun -my:flymake-python-mypy-exec (report-fn &rest _args)
@@ -75,7 +99,8 @@ REPORT-FN is Flymake's callback function."
   ;; Make temp file
   (let* ((temp-file (make-temp-file "flymake-mypy"))
          (source-buffer (current-buffer))
-         (source-file (buffer-file-name source-buffer)))
+         (source-file
+          (-my:flymake-python-mypy-buffer-relative-path source-buffer)))
 
     ;; Cancel buffer narrowing
     ;; Populate temp file
@@ -107,7 +132,7 @@ REPORT-FN is Flymake's callback function."
                                 (-my:flymake-python-mypy-parse
                                  output-buffer
                                  source-buffer
-                                 (file-name-nondirectory source-file))))
+                                 source-file)))
                    (ignore-errors (delete-file temp-file))
                    (kill-buffer output-buffer))))
              :noquery t
