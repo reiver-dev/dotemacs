@@ -17,11 +17,6 @@
   :ensure t
   :init (setq-default rust-indent-where-clause t))
 
-(my:with-package lsp-rust
-  :ensure t
-  :init (my:after rust-mode (require 'lsp-rust))
-  :config (add-hook 'rust-mode-hook #'lsp-rust-enable))
-
 
 (my:with-package cargo
   :if -my:rust-has-cargo
