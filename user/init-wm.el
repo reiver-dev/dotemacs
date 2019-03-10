@@ -80,6 +80,8 @@ For possible SIDE values see `split-window'."
 (defun my:query-move-to-window (target-window current-window)
   "Move buffer to TARGET-WINDOW from CURRENT-WINDOW.
 Interactevely choose side for `my:move-window-to-other-window'."
+  (when (eq target-window current-window)
+    (error "Can't move to same window"))
   (let* ((choice (read-char-choice "Choose side with hjkl: "
                                    '(?h ?j ?k ?l)))
          (side (cond ((= choice ?h) 'left)
