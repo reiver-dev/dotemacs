@@ -48,6 +48,7 @@
 (require 'init-lsp)
 
 (require 'init-misc)
+(require 'init-lang)
 
 (provide 'init-main)
 
