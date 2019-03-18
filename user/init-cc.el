@@ -188,10 +188,10 @@ value eiter attached to them or as seperate option."
   "Collect compiler's include directories.
 Performed by running compiler BINARY with specified LANGUAGE argument."
   (with-output-to-string
-    (call-process binary nil standard-output nil
-                  (if language (concat "-x" language) "")
-                  "-E" "-v" "-")))
-
+    (let ((args '("-E" "-v" "-")))
+      (unless (or (null language) (string-equal "" language))
+        (setq args (cons "-x" (cons language args))))
+      (apply #'call-process binary nil standard-output nil args))))
 
 
 (my:with-package cquery
