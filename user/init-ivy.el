@@ -35,6 +35,19 @@
 
 
 (defvar counsel-find-file-map)
+(autoload 'counsel--find-file-matcher "counsel")
+
+
+(defun -my:ivy-complete-files-components (path)
+  "Split PATH string into cons pair of components.
+First component is existing prefix, second is not-existing suffix."
+  (let* ((tail nil)
+         (head path))
+    (while (not (file-directory-p head))
+      (let ((next (directory-file-name head)))
+        (setq tail (cons (file-name-nondirectory next) tail)
+              head (file-name-directory (directory-file-name next)))))
+    (cons (file-name-as-directory head) (mapconcat #'identity tail "/"))))
 
 
 (defun my:ivy-complete-files (&optional initial-input)
@@ -43,26 +56,35 @@ Start from INITIAL-INPUT path if provided. Siminal to
 `counsel-find-file' but inserts path into buffer instead of visiting
 it."
   (interactive)
-  (let ((existing (my:find-path-at-point)))
-    ;; (when existing
-    ;;   (setq ivy-completion-beg (+ 1 (match-beginning 0)))
-    ;;   (setq ivy-completion-end (match-end 0)))
-    (ivy-read "Complete file: " 'read-file-name-internal
+  (let* ((bounds (bounds-of-thing-at-point 'filename))
+         (ivy-completion-beg (and bounds (car bounds)))
+         (ivy-completion-end (and bounds (cdr bounds)))
+         (existing (or (and bounds
+                            (buffer-substring-no-properties
+                             ivy-completion-beg ivy-completion-end))
+                       default-directory))
+         (components (-my:ivy-complete-files-components existing)))
+    (ivy-read "Complete file: " #'read-file-name-internal
               :matcher #'counsel--find-file-matcher
-              :initial-input initial-input
+              :initial-input (or initial-input (cdr components))
               :action
-              (lambda (x)
+              (lambda (result)
                 (with-ivy-window
                   (ivy-completion-in-region-action
-                   (file-relative-name x existing))))
-              :preselect existing
+                   (if bounds
+                       (let* ((target-dir
+                               (if (file-directory-p existing)
+                                   (file-name-as-directory existing)
+                                 (file-name-directory existing)))
+                              (relative (file-relative-name
+                                         result target-dir)))
+                         (if (string-equal "./" relative) target-dir
+                           (concat target-dir relative)))
+                     (abbreviate-file-name result)))))
+              :preselect (concat (car components) ".")
               :require-match 'confirm-after-completion
-              :history 'file-name-history
               :keymap counsel-find-file-map
-              :caller 'counsel-find-file)))
-
-
-(autoload 'counsel--find-file-matcher "counsel")
+              :caller 'read-file-name-internal)))
 
 
 (setq-default
@@ -81,6 +103,7 @@ it."
  ivy-format-function #'ivy-format-function-line)
 
 
+(my:kmap ("C-o f" #'my:ivy-complete-files))
 
 
 (provide 'init-ivy)
