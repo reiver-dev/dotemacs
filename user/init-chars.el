@@ -170,7 +170,7 @@
    #x2003 ;; Em Space
    #x2004 ;; Three-Per-Em Space
    #x2005 ;; Four-Per-Em Space
-   #x2006 ;; Six-Per-
+   #x2006 ;; Six-Per-Em Space
    ;; #x2007 ;; Figure Space
    #x2008 ;; Punctuation Space
    #x2009 ;; Thin Space
