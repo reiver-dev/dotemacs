@@ -61,15 +61,14 @@ Make include paths absolute (-I, /I)."
                     options))
          (absfile (my:expand-file-name file directory))
          (commands '(next))
-         (result (cons nil nil))
-         (it result))
+         result)
     (while options
       (while commands
         (let ((state (pop commands)))
           (cond
            ;; Move option into result
            ((eq state 'take)
-            (setq it (setcdr it (list (car options)))
+            (setq result (cons (car options) result)
                   options (cdr options)))
 
            ;; Skip current option
@@ -82,8 +81,9 @@ Make include paths absolute (-I, /I)."
 
            ;; Append option to last result
            ((eq state 'concat)
-            (setcar it (concat (car it) (car options)))
-            (setq options (cdr options)))
+            (setq result (cons (concat (car result) (car options))
+                               result)
+                  options (cdr options)))
 
            ;; Expand response file inplace
            ((eq state 'response)
@@ -156,7 +156,19 @@ Make include paths absolute (-I, /I)."
       (when (not commands)
         (setq commands '(next))))
 
-    (cdr result)))
+    (nreverse result)))
+
+
+(defsubst -my:char-arg-prefix-p (char)
+  "Check if CHAR is ?- or ?/."
+  (or (eq char ?-) (eq char ?/)))
+
+
+(defsubst -my:include-dir-arg-p (string)
+  "Check if STRING begins with -I or /I."
+  (and (<= 2 (length string))
+       (-my:char-arg-prefix-p (aref string 0))
+       (eq ?I (aref string 1))))
 
 
 (defun my:extract-include-dirs (options)
@@ -164,24 +176,18 @@ Make include paths absolute (-I, /I)."
 
 Include paths are -I and /I arguments with
 value eiter attached to them or as seperate option."
-  (let* ((result (cons nil nil))
-         (head result)
-         (it options))
+  (let* ((it options)
+         result)
     (while it
       (let ((opt (car it))
             (rest (cdr it)))
-        (when (or (string-prefix-p "-I" opt)
-                  (string-prefix-p "/I" opt))
+        (when (-my:include-dir-arg-p opt)
           (if (= 2 (length opt))
-              (progn
-                (setcdr head (cons (car rest) nil))
-                (setq head (cdr head)
-                      rest (cdr rest)))
-            (progn
-              (setcdr head (cons (substring opt 2) nil))
-              (setq head (cdr head)))))
+              (setq result (cons (car rest) result)
+                    rest (cdr rest))
+            (setq result (cons (substring opt 2) result))))
         (setq it rest)))
-    (cdr result)))
+    (nreverse result)))
 
 
 (defun my:compiler-include-dirs-run (binary &optional language)
