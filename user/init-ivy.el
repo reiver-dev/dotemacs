@@ -13,6 +13,27 @@
 (require 'ivy)
 
 
+;; https://github.com/abo-abo/swiper/issues/1953
+(defvar ivy-recursive-restore-in-progress nil)
+
+
+(defun ivy-recursive-restore-flag (func &rest args)
+  "Bind `ivy-recursive-restore-in-progress' while calling FUNC with ARGS."
+  (let ((ivy-recursive-restore-in-progress t))
+    (apply func args)))
+
+
+(defun ivy-recursive-restore-skip-when-in-progress (func &rest args)
+  "Skip call to FUNC with ARGS if `ivy-recursive-restore-in-progress' is set."
+  (if ivy-recursive-restore-in-progress
+      nil
+    (apply func args)))
+
+
+(advice-add 'ivy-recursive-restore :around #'ivy-recursive-restore-flag)
+(advice-add 'ivy-read :around #'ivy-recursive-restore-skip-when-in-progress)
+
+
 (defvar counsel-find-file-map)
 
 
@@ -60,8 +81,6 @@ it."
  ivy-format-function #'ivy-format-function-line)
 
 
-;; Disable xref during ivy
-(my:kmap* ivy-minibuffer-map ("M-." "M-," "M-?" #'ignore))
 
 
 (provide 'init-ivy)
