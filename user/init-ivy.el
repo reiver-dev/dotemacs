@@ -41,13 +41,15 @@
 (defun -my:ivy-complete-files-components (path)
   "Split PATH string into cons pair of components.
 First component is existing prefix, second is not-existing suffix."
-  (let* ((tail nil)
+  (let* ((tail (if (directory-name-p path) (cons "" nil) nil))
          (head path))
-    (while (not (file-directory-p head))
+    (while (and head (not (file-directory-p head)))
       (let ((next (directory-file-name head)))
-        (setq tail (cons (file-name-nondirectory next) tail)
-              head (file-name-directory (directory-file-name next)))))
-    (cons (file-name-as-directory head) (mapconcat #'identity tail "/"))))
+        (when next
+          (setq tail (cons (file-name-nondirectory next) tail)
+                head (file-name-directory (directory-file-name next))))))
+    (cons (if head (file-name-as-directory head) default-directory)
+          (mapconcat #'identity tail "/"))))
 
 
 (defun my:ivy-complete-files (&optional initial-input)
