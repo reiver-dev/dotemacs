@@ -65,25 +65,26 @@ it."
                             (buffer-substring-no-properties
                              ivy-completion-beg ivy-completion-end))
                        default-directory))
-         (components (-my:ivy-complete-files-components existing)))
+         (components (-my:ivy-complete-files-components existing))
+         (callback
+          (lambda (result)
+            (with-ivy-window
+              (ivy-completion-in-region-action
+               (if bounds
+                   (let* ((target-dir
+                           (if (file-directory-p existing)
+                               (file-name-as-directory existing)
+                             (file-name-directory existing)))
+                          (relative (file-relative-name
+                                     result target-dir)))
+                     (if (string-equal "./" relative) target-dir
+                       (concat target-dir relative)))
+                 (abbreviate-file-name result))))))
+         (default-directory (car components)))
     (ivy-read "Complete file: " #'read-file-name-internal
               :matcher #'counsel--find-file-matcher
               :initial-input (or initial-input (cdr components))
-              :action
-              (lambda (result)
-                (with-ivy-window
-                  (ivy-completion-in-region-action
-                   (if bounds
-                       (let* ((target-dir
-                               (if (file-directory-p existing)
-                                   (file-name-as-directory existing)
-                                 (file-name-directory existing)))
-                              (relative (file-relative-name
-                                         result target-dir)))
-                         (if (string-equal "./" relative) target-dir
-                           (concat target-dir relative)))
-                     (abbreviate-file-name result)))))
-              :preselect (concat (car components) ".")
+              :action callback
               :require-match 'confirm-after-completion
               :keymap counsel-find-file-map
               :caller 'read-file-name-internal)))
