@@ -1,0 +1,8 @@
+# -*-  mode: snippet -*-
+# name: #prama once
+# key: ponce
+# --
+#pragma once
+
+$0
+
