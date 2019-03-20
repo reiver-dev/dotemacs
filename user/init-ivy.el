@@ -65,7 +65,8 @@ it."
                             (buffer-substring-no-properties
                              ivy-completion-beg ivy-completion-end))
                        default-directory))
-         (components (-my:ivy-complete-files-components existing))
+         (components (-my:ivy-complete-files-components
+                      (expand-file-name existing)))
          (callback
           (lambda (result)
             (with-ivy-window
