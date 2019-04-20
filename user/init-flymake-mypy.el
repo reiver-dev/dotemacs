@@ -36,8 +36,10 @@
 
 (defun -my:flymake-python-mypy-parse-line (source-file)
   "Parse mypy line from current `point' of the SOURCE-FILE."
-  (and (search-forward source-file (line-end-position) t 1)
-       (search-forward-regexp -my:flymake-python-mypy-line-pattern)))
+  (let ((bound (line-end-position)))
+    (and (search-forward source-file bound :no-error 1)
+         (search-forward-regexp -my:flymake-python-mypy-line-pattern
+                                bound :no-error 1))))
 
 
 (defun -my:maybe-string-to-number (string)
@@ -91,52 +93,57 @@ REPORT-FN is Flymake's callback function."
   (unless (executable-find (car my:python-mypy-command))
     (error "Cannot find a suitable checker"))
 
-  ;; Kill process if already running
-  (when (and -my:flymake-mypy-proc
-             (process-live-p -my:flymake-mypy-proc))
-    (kill-process -my:flymake-mypy-proc))
-
-  ;; Make temp file
-  (let* ((temp-file (make-temp-file "flymake-mypy"))
-         (source-buffer (current-buffer))
+  (let* ((source-buffer (current-buffer))
          (source-file
           (-my:flymake-python-mypy-buffer-relative-path source-buffer)))
 
-    ;; Cancel buffer narrowing
-    ;; Populate temp file
-    (save-restriction
-      (widen)
-      (write-region (point-min) (point-max) temp-file nil 'nomessage))
+    (if (not (file-exists-p source-file))
+        ;; Short circuit, mypy requires source file to exist
+        (funcall report-fn nil)
 
-    (let ((output-buffer (generate-new-buffer " *python-mypy*")))
-      (setq -my:flymake-mypy-proc
-            (make-process
-             :name "python-mypy"
-             :buffer output-buffer
-             :command
-             (append my:python-mypy-command
-                     my:python-mypy-extra-args
-                     (list "--show-column-numbers"
-                           "--shadow-file" temp-file source-file
-                           source-file))
-             :sentinel
-             (lambda (proc _event)
-               (when (eq (process-status proc) 'exit)
-                 (unwind-protect
-                     (if (not (and (buffer-live-p source-buffer)
-                                   (eq proc
-                                       (with-current-buffer source-buffer
-                                         -my:flymake-mypy-proc))))
-                         (flymake-log :warning "mypy process %s obsolete" proc)
-                       (funcall report-fn
-                                (-my:flymake-python-mypy-parse
-                                 output-buffer
-                                 source-buffer
-                                 source-file)))
-                   (ignore-errors (delete-file temp-file))
-                   (kill-buffer output-buffer))))
-             :noquery t
-             :connection-type 'pipe)))))
+      ;; Kill process if already running
+      (when (and -my:flymake-mypy-proc
+                 (process-live-p -my:flymake-mypy-proc))
+        (kill-process -my:flymake-mypy-proc))
+
+      ;; Make temp file
+      (let ((temp-file (make-temp-file "flymake-mypy")))
+        (save-restriction
+          ;; Cancel buffer narrowing
+          (widen)
+          ;; Populate temp file
+          (write-region (point-min) (point-max) temp-file nil 'nomessage))
+
+        (let ((output-buffer (generate-new-buffer " *python-mypy*")))
+          (setq -my:flymake-mypy-proc
+                (make-process
+                 :name "python-mypy"
+                 :buffer output-buffer
+                 :command
+                 (append my:python-mypy-command
+                         my:python-mypy-extra-args
+                         (list "--show-column-numbers"
+                               "--shadow-file" temp-file source-file
+                               source-file))
+                 :sentinel
+                 (lambda (proc _event)
+                   (when (eq (process-status proc) 'exit)
+                     (unwind-protect
+                         (if (not (and (buffer-live-p source-buffer)
+                                       (eq proc
+                                           (with-current-buffer source-buffer
+                                             -my:flymake-mypy-proc))))
+                             (flymake-log :warning
+                                          "mypy process %s obsolete" proc)
+                           (funcall report-fn
+                                    (-my:flymake-python-mypy-parse
+                                     output-buffer
+                                     source-buffer
+                                     source-file)))
+                       (ignore-errors (delete-file temp-file))
+                       (kill-buffer output-buffer))))
+                 :noquery t
+                 :connection-type 'pipe)))))))
 
 
 (defun my:flymake-python-mypy (report-fn &rest args)
