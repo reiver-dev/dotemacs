@@ -15,6 +15,7 @@
   :ensire t
   :init (progn
           (setq-default TeX-auto-parse t
+                        TeX-auto-save t
                         TeX-parse-self t
                         TeX-master nil)))
 
