@@ -35,9 +35,9 @@ Result is CANDIDATES as `company-candidates' with their annotations on a side."
 
 
 (defun -my:cleanup-company-backends ()
-  "Remove unnecessary `company-mode' backends."
+  "Remove unnecessary `company' backends."
   (delq nil
-        (let ((to-remove '(company-semantic company-files)))
+        (let ((to-remove '(company-semantic company-files company-clang)))
           (mapcar
            (lambda (x) (unless (member x to-remove) x))
            company-backends))))
