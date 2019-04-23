@@ -15,6 +15,7 @@
 
 
 (my:after 'python
+  (my:kmap* python-mode-map ("C-c C-e" #'run-python))
   (require 'init-python-internal)
   (require 'init-flymake-flake8)
   (require 'init-flymake-mypy))
