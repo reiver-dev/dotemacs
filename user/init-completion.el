@@ -50,13 +50,13 @@
 
 (my:with-package ivy
   :ensure t
-  :defer 1
-  :init (ivy-mode t))
+  :init (setq completing-read-function 'ivy-completing-read
+              completion-in-region-function 'ivy-completion-in-region))
 
 
 (my:with-package ivy-xref
   :ensure t
-  :init (setq-default xref-show-xrefs-function #'ivy-xref-show-xrefs))
+  :init (setq-default xref-show-xrefs-function 'ivy-xref-show-xrefs))
 
 
 (my:with-package counsel
@@ -69,16 +69,13 @@
                       ("C-M-y" #'counsel-yank-pop))))
 
 
-
 ;; Completion
 (my:with-package company
   :ensure t
-  :defer 10
-  :init (global-company-mode t)
+  :init (my:kmap ("C-<tab>" 'company-complete))
   :config (progn
-            (require 'init-company)
-            (my:kmap* company-mode-map
-                      ("C-<tab>" #'company-complete))))
+            (global-company-mode t)
+            (require 'init-company)))
 
 
 (my:with-package yasnippet
