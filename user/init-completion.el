@@ -84,9 +84,12 @@
   :init (yas-global-mode t)
   :config (progn
             ;; No more toolkit popups
+            (defun my:yas-ivy-prompt (prompt choices &optional display-fn)
+              (yas-completing-prompt prompt choices
+                                     display-fn #'ivy-completing-read))
             (setq-default
              yas-prompt-functions
-             '(yas-ido-prompt yas-completing-prompt yas-no-prompt))
+             '(my:yas-ivy-prompt yas-completing-prompt yas-no-prompt))
             ;; Just custom snippet dir
             (add-hook 'term-mode-hook
                       (lambda () (yas-minor-mode -1)))))
