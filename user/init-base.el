@@ -18,19 +18,8 @@
 (put 'init:when-posix 'lisp-indent-function 'defun)
 
 
-(when (fboundp 'set-charset-priority)
-  (set-charset-priority 'unicode))
-(prefer-coding-system 'utf-8)
-(set-terminal-coding-system 'utf-8)
-(set-keyboard-coding-system 'utf-8)
-(init:when-posix
-  (set-selection-coding-system 'utf-8))
-(init:when-windows
-  (set-clipboard-coding-system 'utf-16-le)
-  (set-selection-coding-system 'utf-16-le))
-(setq-default locale-coding-system 'utf-8
-              buffer-file-coding-system 'utf-8)
-
+(set-language-environment "UTF-8")
+(prefer-coding-system 'utf-8-unix)
 
 (when (fboundp 'menu-bar-mode)
   (menu-bar-mode -1))
