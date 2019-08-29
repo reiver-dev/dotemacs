@@ -85,6 +85,39 @@ loaded."
             (add-hook 'auto-revert-tail-mode-hook '-my:log-tail-handler)))
 
 
+(defun my:describe-coding-vars ()
+  "Display current encoding variables and their values."
+  (interactive)
+  (with-output-to-temp-buffer (help-buffer)
+    (dolist (s
+             '(current-language-environment
+               buffer-file-coding-system
+               default-file-name-coding-system
+               default-keyboard-coding-system
+               default-process-coding-system
+               default-sendmail-coding-system
+               default-terminal-coding-system
+               epg-passphrase-coding-system
+               file-name-coding-system
+               inherit-process-coding-system
+               keyboard-coding-system
+               last-next-selection-coding-system
+               locale-coding-system
+               next-selection-coding-system
+               recentf-save-file-coding-system
+               rmail-file-coding-system
+               save-buffer-coding-system
+               selection-coding-system
+               sendmail-coding-system
+               vc-git-commits-coding-system
+               vc-git-log-output-coding-system
+               w32-system-coding-system))
+      (princ
+       (format "%s: %s\n"
+               (symbol-name s)
+               (when (boundp s) (symbol-value s)))))))
+
+
 ;; Show recent files
 (my:with-package recentf
   :defer t
