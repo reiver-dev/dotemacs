@@ -8,7 +8,8 @@
 
 
 (defun my:change-theme (theme)
-  "Like `load-theme', but disables all themes before loading the new one."
+  "Load Custom theme named THEME from its file.
+Like `load-theme', but disables all themes before loading the new one."
   ;; Select theme from available
   (interactive
    (list
