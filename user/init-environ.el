@@ -9,31 +9,50 @@
 (require 'init-list)
 
 
-(defun my:env-split-entry (entry)
+(defconst my:env-split-regex-simple "^\\(.*?\\)=\\(.*\\)$")
+(defconst my:env-split-regex-export "^export \\(.*?\\)=\\(.*\\)$")
+
+
+(defun my:env-valid-line-p (string)
+  "Check if STRING is not empty and is not a comment line."
+  (and (stringp string)
+       (> (length string) 0)
+       (not (eq (aref string 0) ?#))))
+
+
+(defun my:env-split-entry (entry &optional expr)
   "Return cons pair (name . var) from ENTRY string.
-Entry string should be 'NAME=VALUE'"
-  (when (string-match "^\\(=?.*?\\)=\\(.*\\)" entry)
-    (let ((name (match-string 1 entry))
+Entry string should be 'NAME=VALUE'. Optional EXPR regex is used
+instead of default `my:env-split-regex'."
+  (when (and (my:env-valid-line-p entry)
+             (string-match (or expr my:env-split-regex-simple) entry))
+    (let ((key (match-string 1 entry))
           (value (match-string 2 entry)))
-      (when value (cons name value)))))
+      (when key
+        (cons key value)))))
 
 
-(defun my:env-parse-entries (env)
+(defun my:env-parse-entries (env &optional expr)
   "Collect list of cons pairs (name . var) from ENV list.
-Each entry in ENV list should be 'NAME=VALUE'.
-If VARNAMES list is specified, filter only those variables."
-  (delete nil (mapcar #'my:env-split-entry
-                      (if (stringp env)
-                          (split-string env "\n" t)
-                        env))))
+Each entry in ENV list should be 'NAME=VALUE'. Optional EXPR regular
+expression string will be matched, it must return group 1 for env var
+name and group 2 for value."
+  (let ((expr (if (and expr (stringp expr))
+                  expr
+                my:env-split-regex-simple))
+        result)
+    (dolist (line (if (stringp env) (split-string env "\n" t) env))
+      (let ((pair (my:env-split-entry line expr)))
+        (when pair
+          (setq result (cons pair result)))))
+    (reverse result)))
 
 
 (defun my:env-apply-entries (pairs)
   "Apply cons PAIRS (name . value t) to current `process-environment'.
 See `setenv'."
-  (mapc (lambda (pair)
-          (setenv (car pair) (cdr pair)))
-        pairs))
+  (dolist (pair pairs)
+    (setenv (car pair) (cdr pair))))
 
 
 (defun my:env-w32-vs-installation-path (version)
