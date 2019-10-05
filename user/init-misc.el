@@ -6,6 +6,7 @@
 
 (require 'init-defs)
 (require 'init-package)
+(require 'init-process)
 
 
 (defconst -my:gc-threshold 800000
@@ -124,28 +125,7 @@ loaded."
   :init (recentf-mode t))
 
 
-(setq shell-command-default-error-buffer "*Shell Command STDERR*")
-
 ;; External tools
-(defun my:process-region-with-command (command)
-  "Execute COMMAND string over active region or entire buffer."
-  (let (begin end noncont)
-    (if (region-active-p)
-        (setq begin (region-beginning)
-              end (region-end)
-              noncont (region-noncontiguous-p))
-      (setq begin (point-min)
-            end (point-max)
-            noncont nil))
-    (when (< begin end)
-      (shell-command-on-region
-       begin end command
-       ;; no buffer set, replace in current
-       nil t
-       ;; display error-bufffer
-       shell-command-default-error-buffer t
-       noncont))))
-
 
 (defun my:reindent-xml ()
   "Use xmllint to format XML."
