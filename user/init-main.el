@@ -46,6 +46,7 @@
 (require 'init-tex)
 (require 'init-haskell)
 (require 'init-lsp)
+(require 'init-eval)
 (require 'init-process)
 
 (require 'init-misc)
