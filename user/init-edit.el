@@ -136,6 +136,15 @@ then take a second `keyboard-quit' to abort the minibuffer."
       (delete-window))
     (kill-buffer buf)))
 
+(defun my:keep-only-region (start end)
+  "Remove everything before and after the region.
+START and END positions define the region to keep."
+  (interactive
+   (list (region-beginning)
+         (region-end)))
+  (delete-region (max start end) (point-max))
+  (delete-region (point-min) (min start end)))
+
 
 (provide 'init-edit)
 
