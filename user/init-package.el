@@ -4,6 +4,10 @@
 
 ;;; Code:
 
+(eval-when-compile
+  (require 'package))
+
+
 (defvar package-archive-contents)
 (defvar package-selected-packages)
 (declare-function package-installed-p "package")
@@ -32,6 +36,30 @@
       (let ((save-silently inhibit-message))
         (customize-save-variable 'package-selected-packages result
                                  "From my:selected-packages-list")))))
+
+
+(defun my:package-table ()
+  "Collect list of currently installed package names."
+  (let (result)
+    (dolist (pkg-desc package-alist)
+      (push (car pkg-desc) result))
+    result))
+
+
+(defun my:package-dir (package)
+  "Discover installed PACKAGE directory."
+  (interactive
+   (list
+    (intern-soft (completing-read
+                  "Package: " (init:package-table)
+                  nil t))))
+  (let ((desc (cadr (assq package package-alist)))
+        result)
+    (when desc
+      (setq result (package-desc-dir desc)))
+    (if (called-interactively-p 'interactive)
+        (message "%s" result)
+      result)))
 
 
 ;; https://github.com/purcell/emacs.d/blob/master/lisp/init-elpa.el
