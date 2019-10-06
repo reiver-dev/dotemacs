@@ -51,7 +51,7 @@
   (interactive
    (list
     (intern-soft (completing-read
-                  "Package: " (init:package-table)
+                  "Package: " (my:package-table)
                   nil t))))
   (let ((desc (cadr (assq package package-alist)))
         result)
