@@ -30,6 +30,11 @@
     (defun eshell/vs-locate (version)
       (my:env-w32-vcvars-location version))
 
+    (defun eshell/purge ()
+      (let ((input (eshell-get-old-input)))
+        (eshell/clear-scrollback)
+        (insert input)))
+
     (defun eshell/vs-apply (version &rest args)
       (apply #'my:env-w32-vcvars-apply version args)
       (setq eshell-path-env (mapconcat #'my:expand-file-name
