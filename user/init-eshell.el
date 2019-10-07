@@ -37,6 +37,14 @@
                                        path-separator)))))
 
 
+(my:with-package xterm-color
+  :ensure t
+  :init (my:after esh-mode
+          (add-to-list 'eshell-preoutput-filter-functions 'xterm-color-filter)
+          (setq eshell-output-filter-functions
+                (remove 'eshell-handle-ansi-color
+                        eshell-output-filter-functions))))
+
 
 (provide 'init-eshell)
 
