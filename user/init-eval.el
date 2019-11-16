@@ -33,7 +33,8 @@ default `eval-expression' function."
       (my:pp (car values) buffer)
       (emacs-lisp-mode)
       (setq buffer-read-only nil)
-      (set (make-local-variable 'font-lock-verbose) nil))))
+      (set (make-local-variable 'font-lock-verbose) nil)
+      (display-buffer buffer))))
 
 
 (defun my:eval-last-expr ()
