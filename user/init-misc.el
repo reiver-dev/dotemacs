@@ -69,6 +69,18 @@ loaded."
     result))
 
 
+(defun my:func-log-args (proc &rest args)
+  "Call PROC with ARGS and log it's arguments and result."
+  (let ((procname (when proc (function-get proc 'name))))
+    (unwind-protect
+        (progn
+          (message "TRACE %s %s begin" procname args)
+          (let ((result (apply proc args)))
+            (message "TRACE %s %s -> %s" procname args result)
+            result))
+      (message "TRACE %s %s finish" procname args))))
+
+
 ;; Sync unchanged buffers with filesystem
 (my:with-package autorevert
   :init (progn
