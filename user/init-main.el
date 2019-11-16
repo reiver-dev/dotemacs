@@ -5,6 +5,8 @@
 ;;; Code:
 
 (require 'init-defs)
+(require 'init-list)
+(require 'init-hashmap)
 (require 'init-package)
 (require 'init-keybind)
 (require 'init-edit)
