@@ -5,7 +5,7 @@
 ;;; Code:
 
 
-(defun -my:plist-replace (func plist prop)
+(defun my:plist-replace (func plist prop)
   "Apply FUNC to value of PROP in PLIST.
 The function will result in replacing the value by FUNC result if the
 PROP is already in the PLIST. Nothing happens if there is no such PROP
@@ -16,7 +16,7 @@ in PLIST."
   plist)
 
 
-(defun -my:make-hash-table-from-plist (plist &rest keyword-args)
+(defun my:make-hash-table-from-plist (plist &rest keyword-args)
   "Construct new hash-table from PLIST.
 Optional KEYWORD-ARGS confugre the table as in `make-hash-table'."
   (let ((table (apply #'make-hash-table keyword-args)))
@@ -29,9 +29,9 @@ Optional KEYWORD-ARGS confugre the table as in `make-hash-table'."
     table))
 
 
-(defun -my:plist-default (plist &rest defaults)
+(defun my:plist-default (plist &rest defaults)
   "Add values from DEFAULTS propety list to PLIST if missing."
-  (let ((defaults (-my:make-hash-table-from-plist defaults))
+  (let ((defaults (my:make-hash-table-from-plist defaults))
         (it plist))
     (while it
       (let ((key (car it))
@@ -41,8 +41,8 @@ Optional KEYWORD-ARGS confugre the table as in `make-hash-table'."
     (maphash
      (lambda (key value)
        (setq plist (cons key (cons value plist))))
-     defaults)
-    plist))
+     defaults))
+  plist)
 
 
 (defun my:make-hash-table-like (table &rest keyword-args)
@@ -50,7 +50,7 @@ Optional KEYWORD-ARGS confugre the table as in `make-hash-table'."
 The result shares properties with TABLE. Optional KEYWORD-ARGS
 allow to override the properties."
   (apply #'make-hash-table
-         (-my:plist-default
+         (my:plist-default
           keyword-args
           :size (hash-table-size table)
           :test (hash-table-test table)
@@ -64,8 +64,8 @@ allow to override the properties."
 KEYWORD-ARGS are same as in `make-hash-table'. If :size is not set,
 then it is defaulted to length of the LIST."
   (let ((table (apply #'make-hash-table
-                      (if (not (plist-member :size))
-                          (plist-put keyword-args :size (length list))
+                      (if (not (plist-member keyword-args :size))
+                          (cons :size (cons (length list) keyword-args))
                         keyword-args))))
     (dolist (key list)
       (puthash key t table))
@@ -93,7 +93,8 @@ hash-table are taken from table A."
                  (let ((val-a (gethash key a)))
                    (when val-a
                      (puthash key val result))))
-               b))))
+               b))
+    result))
 
 
 (provide 'init-hashmap)
