@@ -228,6 +228,62 @@ Return (prefix . suffix) pair."
    str (concat "\\`\\(.*\\)" delimiter "\\(.*\\)\\'")))
 
 
+(defun my:range-len (start end step)
+  "Return number of elements in half-open range.
+Range is defined as integers or floats [START, END) with STEP."
+  (if (or (and (> step 0) (< start end))
+          (and (< step 0) (< end start)))
+      (ceiling (abs (- end start)) (abs step))
+    0))
+
+
+(defun my:range-last (start end step)
+  "Return last element of half-open range.
+Range is defined as integers or floats [START, END) with STEP.
+If range is empty nil is returned."
+  (let ((len (my:range-len start end step)))
+    (if (= 0 len)
+        nil
+      (+ start (* (1- len) step)))))
+
+
+(defun my:make-range (start end &optional step)
+  "Construct list of members of half-open range.
+Range is defined as integers or floats [START, END) with STEP."
+  (let* ((step (or step 1))
+         (idx (1- (my:range-len start end step)))
+         items)
+    (when (or (floatp start)
+              (floatp end)
+              (floatp step))
+      (setq start (float start)
+            end (float end)
+            step (float step)))
+    (while (>= idx 0)
+      (setq items (cons (+ (* step idx) start) items)
+            idx (1- idx)))
+    items))
+
+
+(defun my:make-arange (start end &optional step)
+  "Construct array of members of half-open range.
+Range is defined as integers or floats [START, END) with STEP."
+  (let* ((step (or step 1))
+         (count (my:range-len start end step))
+         (items (make-vector count 0))
+         (idx 0))
+    (when (or (floatp start)
+              (floatp end)
+              (floatp step))
+      (setq start (float start)
+            end (float end)
+            step (float step)))
+    (while (< idx count)
+      (aset items idx (+ (* step idx) start))
+      (setq idx (1+ idx)))
+    items))
+
+
 (provide 'init-list)
 
 ;;; init-list.el ends here
