@@ -119,15 +119,17 @@ then replaced by output."
   "Execute COMMAND with ARGS over active region or entire buffer.
 Text between START and END positions will be passed to the process and
 then replaced by output."
-  (interactive (let* ((args (my:sh-tokenize
-                             (read-shell-command "Shell command on region: ")))
-                      (bounds (if (region-active-p)
-                                  (cons (region-beginning) (region-end))
-                                (cons (point-min) (point-max)))))
-          (append
-           (list (car bounds) (cdr bounds) (car args))
-           (cdr args))))
+  (interactive
+   (let* ((args (my:sh-tokenize
+                 (read-shell-command "Shell command on region: ")))
+          (bounds (if (region-active-p)
+                      (cons (region-beginning) (region-end))
+                    (cons (point-min) (point-max)))))
+     (append
+      (list (car bounds) (cdr bounds) (car args))
+      (cdr args))))
   (message
+   "%s"
    (-my:process-exit-status-string
     (if (region-noncontiguous-p)
         (-my:process-region-noncontigous start command args)
