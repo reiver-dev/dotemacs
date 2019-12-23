@@ -146,6 +146,7 @@
 
 
 (my:with-package flycheck
+  :disabled t
   :ensure t
   :init (progn
           (setq-default
