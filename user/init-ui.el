@@ -166,14 +166,6 @@ Set value of `face-remapping-alist' to FACE-REMAP for BUFFER."
   (whitespace-mode 1))
 
 
-(my:with-package vi-tilde-fringe
-  :disabled t
-  :ensure t
-  :init (add-hook 'my:first-frame-hook
-                  #'(lambda ()
-                      (when (fboundp 'define-fringe-bitmap)
-                        (global-vi-tilde-fringe-mode t)))))
-
 (my:with-package minions
   :ensure t
   :init (progn
