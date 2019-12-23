@@ -133,7 +133,7 @@ Optionally use START and END positions to limit search to a region."
   "Apply COLFUN to each cell in table ROWS.
 Apply CELLFUN to each table element. Optional INIT is used
  to assign first result value, nil if not set."
-  (let* ((num-cols (seq-max (mapcar #'length rows)))
+  (let* ((num-cols (apply #'max (mapcar #'length rows)))
          (coldata (make-vector num-cols init)))
     (mapc
      (lambda (row)
