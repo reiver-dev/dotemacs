@@ -12,12 +12,22 @@
 
 
 (my:with-package undo-tree
+  :disabled t
   :ensure t
   :defer 1
   :init (global-undo-tree-mode)
   :config (progn
             (setq-default undo-tree-visualizer-timestamps t
                           undo-tree-visualizer-diff t)))
+
+
+(my:with-package undo-fu
+  :ensure t
+  :init (progn
+          (autoload 'undo-fu-only-undo "undo-fu" nil t nil)
+          (autoload 'undo-fu-only-redo "undo-fu" nil t nil)
+          (my:kmap ([remap undo] [remap undo-only] #'undo-fu-only-undo)
+                   ([remap redo] "C-?" "M-_" #'undo-fu-only-redo))))
 
 
 (my:with-package multiple-cursors
