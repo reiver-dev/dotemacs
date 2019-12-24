@@ -95,7 +95,7 @@
 ;; Project management and project tree
 
 (my:with-package neotree
-  :disable t
+  :disabled t
   :ensure t
   :init (progn
           (setq-default neo-mode-line-type 'none
