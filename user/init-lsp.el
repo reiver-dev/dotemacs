@@ -118,6 +118,37 @@
   "LSP namespace SymbolKind.")
 
 
+(defconst my:lsp-internal-error-kind
+  ;; Defined by JSON RPC
+  '((-32700 . "ParseError")
+    (-32600 . "InvalidRequest")
+    (-32601 . "MethodNotFound")
+    (-32602 . "InvalidParams")
+    (-32603 . "InternalError")
+    (-32099 . "serverErrorStart")
+    (-32000 . "serverErrorEnd")
+    (-32002 . "ServerNotInitialized")
+    (-32001 . "UnknownErrorCode")
+    ;; Defined by the protocol.
+    (-32800 . "RequestCancelled")
+    (-32801 . "ContentModified"))
+  "LSP namespace ErrorCodes.")
+
+
+(defconst my:lsp-diagnostic-severity-kind
+  '((1 . "Error")
+    (2 . "Warning")
+    (3 . "Information")
+    (4 . "Hint"))
+  "LSP namespace DiagnosticSeverity.")
+
+
+(defconst my:lsp-diagnostic-tag-kind
+  '((1 . "Unnecesary")
+    (2 . "Deprecated"))
+  "LSP namespace DiagnosticTag.")
+
+
 (defconst my:lsp-completion-item-kind-abbrev
   (mapcar (lambda (item)
             (cons (car item)
@@ -137,4 +168,3 @@
 (provide 'init-lsp)
 
 ;;; init-lsp.el ends here
-
