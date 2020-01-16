@@ -26,7 +26,7 @@
   (defun -my:comint-filter-long-lines (string)
     "Accumulate input STRING chunks and truncate long lines."
     (push string -my:comint-output-chunks)
-    (if (not (string-match comint-prompt-regexp string))
+    (if (not (string-match (concat comint-prompt-regexp "\\|\\n") string))
         ""
       (let* ((out (mapconcat
                    #'identity (nreverse -my:comint-output-chunks) ""))
