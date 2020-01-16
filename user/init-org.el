@@ -125,12 +125,19 @@ Follows pattern used by `org-link-parameters' export field.
            (mapcar (lambda (l) (cons l t)) languages))))
 
 
+
+(defun -my:org-refresh-inline ()
+  (when org-inline-image-overlays
+    (org-redisplay-inline-images)))
+
+
 (my:after org
   (org-link-set-parameters
    "yt"
    :follow #'-my:org-yt-link-follow
    :export #'-my:org-yt-link-export)
-  (-my:org-add-languages 'python 'plantuml))
+  (-my:org-add-languages 'python 'plantuml)
+  (add-hook 'org-babel-after-execute-hook #'-my:org-refresh-inline))
 
 
 (my:after plantuml-mode
