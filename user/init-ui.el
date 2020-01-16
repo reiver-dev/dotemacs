@@ -182,7 +182,9 @@ Set value of `face-remapping-alist' to FACE-REMAP for BUFFER."
      highlight-indent-guides-method 'character
      highlight-indent-guides-character 9615
      highlight-indent-guides-auto-character-face-perc 20)
-    (add-hook 'prog-mode-hook #'highlight-indent-guides-mode)))
+    (add-hook 'prog-mode-hook #'highlight-indent-guides-mode)
+    (add-hook 'my:after-change-theme-hook
+              #'highlight-indent-guides-auto-set-faces)))
 
 (provide 'init-ui)
 
