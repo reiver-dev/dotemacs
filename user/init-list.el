@@ -129,6 +129,33 @@ Optionally use START and END positions to limit search to a region."
     result))
 
 
+(defun my:amap (func array &optional start end)
+  "Apply FUNC to each element of the ARRAY.
+Optional START and END declare array slice."
+  (let* ((start (or start 0))
+         (end (if end (min end (length array))
+                (length array)))
+         (pos 0)
+         (result (make-vector (- end start) nil)))
+    (while (< start end)
+      (aset result pos (funcall func (aref array start)))
+      (setq pos (1+ pos)
+            start (1+ start)))
+    result))
+
+
+(defun my:array-double-elements (array)
+  "Double each element in input ARRAY."
+  (let* ((len (length array))
+         (result (make-vector (* 2 len) 0))
+         (idx 0))
+    (while (< idx len)
+      (aset result (* idx 2) (aref array idx))
+      (aset result (1+ (* idx 2)) (aref array idx))
+      (setq idx (1+ idx)))
+    result))
+
+
 (defun my:reduce-cols (colfun cellfun rows &optional init)
   "Apply COLFUN to each cell in table ROWS.
 Apply CELLFUN to each table element. Optional INIT is used
