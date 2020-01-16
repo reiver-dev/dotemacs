@@ -7,6 +7,9 @@
 (deftheme my:theme "My face theme settings")
 
 
+(defvar my:after-change-theme-hook nil)
+
+
 (defun my:change-theme (theme)
   "Load Custom theme named THEME from its file.
 Like `load-theme', but disables all themes before loading the new one."
@@ -21,7 +24,9 @@ Like `load-theme', but disables all themes before loading the new one."
   (dolist (theme custom-enabled-themes) (disable-theme theme))
   (load-theme theme :no-confirm :no-enable)
   (enable-theme theme)
-  (enable-theme 'my:theme))
+  (enable-theme 'my:theme)
+  (run-hook-wrapped 'my:after-change-theme-hook
+                    #'init:try-run-hook 'my:after-change-theme-hook))
 
 
 (custom-theme-set-faces
