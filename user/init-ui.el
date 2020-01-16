@@ -174,6 +174,16 @@ Set value of `face-remapping-alist' to FACE-REMAP for BUFFER."
           (minions-mode t)))
 
 
+(my:with-package highlight-indent-guides
+  :ensure t
+  :init
+  (progn
+    (setq-default
+     highlight-indent-guides-method 'character
+     highlight-indent-guides-character 9615
+     highlight-indent-guides-auto-character-face-perc 20)
+    (add-hook 'prog-mode-hook #'highlight-indent-guides-mode)))
+
 (provide 'init-ui)
 
 ;;; init-ui.el ends here
