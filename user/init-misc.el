@@ -45,6 +45,17 @@ If regions is not active, then return buffer bounds."
     (list (point-min) (point-max))))
 
 
+(defun my:kill-current-position (&optional arg)
+  "Add current buffer:line possition to kill ring.
+With optional ARG use buffer base name."
+  (interactive "P")
+  (kill-new
+   (message "%s:%d"
+            (if arg (buffer-file-name)
+              (file-name-base (buffer-file-name)))
+            (point))))
+
+
 (defun my:set-vars (variables)
   "Apply associative list of VARIABLES.
 Return old values as kv cons pairs if values changed. Coparison is
