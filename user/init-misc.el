@@ -32,6 +32,19 @@
 (add-hook 'minibuffer-exit-hook #'-my:gc-enable)
 
 
+(defun my:bounds ()
+  "Return region start and end of region.
+If regions is not active, then return buffer bounds."
+  (interactive)
+  (if (region-active-p)
+      (let ((start (region-beginning))
+            (end (region-end)))
+        (if (<= start end)
+            (list start end)
+          (list end start)))
+    (list (point-min) (point-max))))
+
+
 (defun my:set-vars (variables)
   "Apply associative list of VARIABLES.
 Return old values as kv cons pairs if values changed. Coparison is
@@ -155,6 +168,28 @@ loaded."
   "Use python to format json."
   (interactive)
   (my:process-region-with-command "python -m json.tool"))
+
+
+(defun my:reindent-json-2 (start end)
+  "Use python to format json.
+Honors initial offset. START and END are text bounds in current
+buffer."
+  (interactive (my:bounds))
+  (let ((code
+         (mapconcat
+          #'identity
+          '("from json import loads, dumps"
+            "from sys import stdin, stdout, stderr"
+            "from textwrap import indent"
+            "data = stdin.read()"
+            "prefix = len(data) - len(data.lstrip())"
+            "suffix = len(data) - len(data.rstrip())"
+            "offset = ' ' * prefix"
+            "result = indent(dumps(loads(data), indent=2), offset)"
+            "stdout.write(result)"
+            "stdout.write(data[len(data) - suffix:])")
+          "\n")))
+    (my:process-region start end "python" "-c" code)))
 
 
 (provide 'init-misc)
