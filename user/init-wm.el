@@ -5,6 +5,7 @@
 ;;; Code:
 
 (require 'init-list)
+(require 'init-chars)
 
 
 (setq-default windmove-wrap-around t)
@@ -126,7 +127,7 @@ Interactively keys hjkl set resize direction."
             ((or (eq c ?j) (eq c ?\C-j)) (enlarge-window n))
             ((or (eq c ?k) (eq c ?\C-k)) (shrink-window n))
             ((or (eq c ?l) (eq c ?\C-l)) (enlarge-window-horizontally n))
-            (t (setq exit t)))))
+            ((my:char-exit-p  c) (setq exit t)))))
   (message "Done."))
 
 (defun my:detach-window (&optional window)
