@@ -16,6 +16,11 @@
   "Sequence that indicates utf-8 file or stream.")
 
 
+(defconst my:char-escape-key ?\C-\[)
+
+(defconst my:char-enter-key ?\C-m)
+
+
 (defsubst my:char-unicode-special-p (char)
   "Check if CHAR code is part of unicode specials block."
   (<= #xfff9 char #xffff))
@@ -186,6 +191,18 @@
    #x2029
    ]
   "Whitespace charters according to Java 11.")
+
+
+(defun my:char-exit-p (char)
+  "Check if CHAR corresponds to one of exit keystrokes."
+  (or (eq char ?q)
+      (eq char ?Q)
+      (eq char ?\C-m) ;; Enter
+      (eq char ?\C-\[) ;; Escape
+      (eq char ?\C-q)
+      (eq char ?\C-Q)
+      (eq char ?\C-g)
+      (eq char ?\C-G)))
 
 
 (defsubst my:char-hex-p (char)
