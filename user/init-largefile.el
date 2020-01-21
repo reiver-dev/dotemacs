@@ -4,6 +4,8 @@
 
 ;;; Code:
 
+(require 'init-package)
+
 
 (defun my:large-file-p ()
   "Check if current buffer is considered large.
@@ -17,6 +19,12 @@ See `large-file-warning-threshold'."
 
 (add-to-list 'magic-mode-alist
              (cons #'my:large-file-p #'my:large-file-mode))
+
+(my:after 'hippie-exp
+  (add-to-list 'hippie-expand-ignore-buffers 'my:large-file-mode))
+
+(my:after 'autorevert
+  (add-to-list 'global-auto-revert-ignore-modes 'my:large-file-mode))
 
 
 (provide 'init-largefile)
