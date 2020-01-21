@@ -50,6 +50,29 @@ Result starts with topmost, leftmost live window."
   "Return windows from all visible frames."
   (my:mapcan #'my:window-list (my:visible-frame-list)))
 
+
+(defun my:frame-sort-predicate (frame1 frame2)
+  "Compare FRAME1 and FRAME2 bu their position."
+  (< (frame-parameter frame1 'left)
+     (frame-parameter frame2 'left)))
+
+
+(defun my:window-sort-predicate (window1 window2)
+  "Compare WINDOW1 and WINDOW2 by their position.
+This is determined by their respective window coordinates.
+Windows are numbered top down, left to right."
+  (let* ((f1 (window-frame window1))
+         (f2 (window-frame window2))
+         (e1 (window-edges window1))
+         (e2 (window-edges window2))
+         (p1 (frame-position f1))
+         (p2 (frame-position f2))
+         (nl (or (null (car p1)) (null (car p2)))))
+    (cond ((and (not nl) (< (car p1) (car p2))))
+          ((< (car e1) (car e2)) t)
+          ((> (car e1) (car e2)) nil)
+          ((< (cadr e1) (cadr e2)) t))))
+
 (defun my:apply-to-window (action window &rest args)
   "Call ACTION with argument WINDOW, switch frame focus if required.
 Additional ARGS are passed to ACTION using `apply'."
