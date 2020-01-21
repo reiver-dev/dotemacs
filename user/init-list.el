@@ -311,6 +311,14 @@ Range is defined as integers or floats [START, END) with STEP."
     items))
 
 
+(defmacro my:any-of (value &rest items)
+  "Check if the VALUE is `eq' to any of ITEMS."
+  (let (result)
+    (dolist (item items)
+      (setq result (append (list `(eq ,value ,item)) result)))
+    `(or ,@(nreverse result))))
+
+
 (provide 'init-list)
 
 ;;; init-list.el ends here
