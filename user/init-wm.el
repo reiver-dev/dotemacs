@@ -22,7 +22,7 @@ Like `one-window-p', but correctly works with other frame selected."
   "Delete WINDOW. Delete frame too if sole window on frame.
 Like `delete-window' but closes frame if WINDOW is only window left"
   (let ((frame (window-frame window)))
-    (if (my:one-window-p frame)
+    (if (eq window (next-window window 'no-minibuf frame))
         (delete-frame frame)
       (delete-window window))))
 
