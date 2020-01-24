@@ -139,7 +139,8 @@ Set value of `face-remapping-alist' to FACE-REMAP for BUFFER."
 (fset #'yes-or-no-p #'y-or-n-p)
 
 (show-paren-mode t)
-(set-fringe-mode 0)
+(when (fboundp 'set-fringe-mode)
+  (set-fringe-mode 0))
 (window-divider-mode t)
 
 (line-number-mode t)
