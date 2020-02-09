@@ -99,7 +99,12 @@
   (progn
     (my:kmap* rg-mode-map
               ("p" #'compilation-previous-error)
-              ("n" #'compilation-next-error))))
+              ("n" #'compilation-next-error))
+    (rg-define-search rg-current-file
+      :format literal
+      :files (file-name-nondirectory (buffer-file-name))
+      :dir current)
+    (my:kmap ("M-s s" #'rg-current-file))))
 
 
 ;; Project management and project tree
