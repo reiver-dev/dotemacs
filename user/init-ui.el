@@ -130,7 +130,7 @@ Set value of `face-remapping-alist' to FACE-REMAP for BUFFER."
  truncate-lines t
  word-wrap t
 
- enable-recursive-minibuffers t
+ enable-recursive-minibuffers nil
  minibuffer-prompt-properties '(read-only
                                 t point-entered
                                 minibuffer-avoid-prompt
