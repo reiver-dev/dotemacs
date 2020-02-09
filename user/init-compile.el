@@ -50,6 +50,30 @@ This is to override `window-fringes.'"
       (fset 'window-fringes old))))
 
 
+(defun -my:find-file-noselect-maybe-literally (proc &rest args)
+  "Force file opened literally if already opened and requested otherwise.
+Wraps PROC which is meant to be `find-file-noselect' called with ARGS
+arguments."
+  (condition-case err
+      (apply proc args)
+    (error (progn
+             (let* ((sym (car err))
+                    (msg (car (cdr err)))
+                    (filename (car args))
+                    (nowarn (car (setq args (cdr args))))
+                    (_rawfile (car (setq args (cdr args))))
+                    (wildcards (car (setq args (cdr args)))))
+               (cond
+                ((string-equal msg "File already visited literally")
+                 (funcall proc filename nowarn t wildcards))
+                ((string-equal msg "File already visited normally")
+                 (funcall proc filename nowarn nil wildcards))
+                (t (progn
+                     (signal sym msg)))))))))
+
+(advice-add 'find-file-noselect :around
+            #'-my:find-file-noselect-maybe-literally)
+
 (my:after compile
   (my:kmap* compilation-shell-minor-mode-map
             ("<f8>" "<C-<f8>" #'recompile))
