@@ -12,7 +12,7 @@
 (require 'company)
 
 (eval-when-compile
-  (require 'cl))
+  (require 'cl-lib))
 
 
 (defun -my:ivy-make-company-transformer (candidates)
