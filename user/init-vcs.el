@@ -15,7 +15,11 @@
   :defer 10
   :init (progn
           (diff-hl-margin-mode t)
-          (global-diff-hl-mode t)))
+          (global-diff-hl-mode t))
+  :config (progn
+            (fset 'diff-hl-define-bitmaps 'ignore)
+            (fset 'diff-hl-maybe-define-bitmaps 'ignore)
+            (fset 'diff-hl-maybe-redefine-bitmaps 'ignore)))
 
 
 (my:with-package magit
