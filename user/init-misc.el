@@ -15,6 +15,11 @@
 ;; enable all commands
 (setq-default disabled-command-function nil)
 
+
+(my:after warning
+  (add-to-list 'warning-suppress-types '(undo discard-info)))
+
+
 (my:when-windows
   (setq inhibit-compacting-font-caches t
         w32-pipe-read-delay 0
