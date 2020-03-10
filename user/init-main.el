@@ -8,6 +8,7 @@
 (require 'init-list)
 (require 'init-hashmap)
 (require 'init-package)
+(require 'init-pkgmanager)
 (require 'init-keybind)
 (require 'init-edit)
 (require 'init-export)
