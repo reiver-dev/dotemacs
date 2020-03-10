@@ -49,17 +49,20 @@
 
 
 (my:with-package ivy
+  :disabled t
   :ensure t
   :init (setq completing-read-function 'ivy-completing-read
               completion-in-region-function 'ivy-completion-in-region))
 
 
 (my:with-package ivy-xref
+  :disabled t
   :ensure t
   :init (setq-default xref-show-xrefs-function 'ivy-xref-show-xrefs))
 
 
 (my:with-package counsel
+  :disabled t
   :ensure t
   :init (my:after ivy (counsel-mode t))
   :config (progn
@@ -69,13 +72,50 @@
                       ("C-M-y" #'counsel-yank-pop))))
 
 
+(my:with-package selectrum
+  :init (progn
+          (quelpa '(selectrum :repo "raxod502/selectrum" :fetcher github))
+          (selectrum-mode +1)))
+
+
+(my:with-package selectrum-prescient
+  :init (progn (quelpa '(selectrum-prescient
+                         :repo "raxod502/prescient.el"
+                         :fetcher github))
+               (selectrum-prescient-mode +1)))
+
+
 ;; Completion
 (my:with-package company
   :ensure t
-  :init (my:kmap ("C-<tab>" 'company-complete))
+  :defer 0.5
+  :init (require 'company)
   :config (progn
-            (global-company-mode t)
-            (require 'init-company)))
+            (setq-default
+             company-backends '(company-capf
+                                company-files
+                                (company-dabbrev-code company-keywords)
+                                company-dabbrev)
+             company-frontends '(company-pseudo-tooltip-frontend)
+             company-idle-delay 0.15
+             company-minimum-prefix-length 1
+             company-tooltip-minimum company-tooltip-limit
+             company-require-match #'company-explicit-action-p
+             company-tooltip-align-annotations t
+             company-dabbrev-code-other-buffers nil
+             company-dabbrev-downcase nil
+             company-dabbrev-ignore-case nil)
+            (my:kmap* company-active-map
+                      ("TAB" "<tab>" #'company-complete-selection)
+                      ("C-p" #'company-select-previous)
+                      ("C-n" #'company-select-next))
+            (my:kmap ("C-<tab>" #'company-complete))
+            (global-company-mode +1)))
+
+
+(my:with-package company-prescient
+  :ensure t
+  :init (progn (company-prescient-mode +1)))
 
 
 (my:with-package yasnippet
