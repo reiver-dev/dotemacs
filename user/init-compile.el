@@ -11,7 +11,6 @@
 (setq-default
  compilation-always-kill t             ;; kill process before starting new one
  compilation-ask-about-save nil        ;; save everything
- compilation-scroll-output 'next-error ;; stop on error
  compilation-skip-threshold 2)         ;; skip warnings
 
 
