@@ -29,25 +29,16 @@
 (mapc #'my:global-unset-command
       '(upcase-region downcase-region capitalize-region))
 
-(my:kmap
- ;; To always keep M-x available
- ("M-X" #'execute-extended-command)
+(my:kmap*
+ (current-global-map)
 
- ;; Jumping
+ ;; Mark
  ([remap exchange-point-and-mark] #'my:exchange-point-and-mark) ; "C-x C-x"
  ("C-x m" #'my:push-mark-no-activate)
- ("C-o f" #'ff-find-other-file)
- ("C-o i" #'imenu)
 
  ;; Vim's word jumping
  ("M-a" #'my:backward-same-syntax)
  ("M-e" #'my:forward-same-syntax)
-
- ;; Buffers
- ([remap list-buffers] #'ibuffer) ; "C-x C-b"
- ("C-x k" #'my:kill-buffer)
- ("C-x K" #'my:kill-buffer-and-window)
- ("C-x C-c" #'switch-to-buffer)
 
  ;; Editing
  ("C-w" #'my:kill-region-or-word)
@@ -55,6 +46,10 @@
 
  ("C-h" #'delete-backward-char)
  ("M-h" #'my:backward-delete-word)
+
+ ([remap capitalize-word] #'capitalize-dwim)
+ ([remap upcase-word] #'upcase-dwim)
+ ([remap downcase-word] #'downcase-dwim)
 
  ("M-<backspace>"
   [remap backward-kill-word] #'my:backward-delete-word)
@@ -68,9 +63,12 @@
  ("M-j" #'my:join-line)
  ("M-o" #'my:open-line)
 
- ([remap capitalize-word] #'capitalize-dwim)
- ([remap upcase-word] #'upcase-dwim)
- ([remap downcase-word] #'downcase-dwim)
+ ;; Buffers
+ ("C-x k" #'my:kill-buffer)
+ ("C-x K" #'my:kill-buffer-and-window)
+ ("C-x C-c" #'switch-to-buffer)
+
+ ([remap list-buffers] #'ibuffer)       ; "C-x C-b"
 
  ;; Window management
  ("C-c w h" "C-c w <left>" #'windmove-left)
@@ -79,10 +77,19 @@
  ("C-c w l" "C-c w <right>" #'windmove-right)
 
  ("C-c w r" #'my:resize-window)
- ("C-c w n" #'my:detach-window)
+ ("C-c w n" #'my:detach-window))
 
- ("<f9>" #'my:toggle-window-dedicated)
- ("<f5>" #'revert-buffer))
+(my:kmap
+ ;; To always keep M-x available
+ ("M-X" #'execute-extended-command)
+
+ ;; Jumping
+ ("C-o f" #'ff-find-other-file)
+ ("C-o i" #'imenu)
+
+ ("<f9>" "C-o C-d" #'my:toggle-window-dedicated)
+ ("<f5>" "C-o C-r" #'revert-buffer)
+ ("C-o ?" help-map))
 
 
 (provide 'init-globalbind)

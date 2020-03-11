@@ -52,6 +52,7 @@
 (require 'init-eval)
 (require 'init-process)
 
+(require 'init-terminal)
 (require 'init-misc)
 (require 'init-lang)
 

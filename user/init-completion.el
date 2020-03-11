@@ -43,8 +43,9 @@
     (call-interactively #'hippie-expand)))
 
 
-(my:kmap
- ([remap dabbrev-expand] #'hippie-expand) ; "M-/"
+(my:kmap*
+ (current-global-map)
+ ([remap dabbrev-expand] #'hippie-expand)               ; "M-/"
  ([remap dabbrev-completion] #'my:hippie-expand-files)) ; "C-M-/"
 
 

@@ -72,7 +72,7 @@
   :init (progn
           (setq-default avy-background t
                         avy-all-windows 'all-frames)
-          (my:kmap "C-o C-o" #'avy-goto-word-1)))
+          (my:kmap "C-=" #'avy-goto-word-1)))
 
 
 (my:with-package which-key
