@@ -98,7 +98,7 @@
                                 (company-dabbrev-code company-keywords)
                                 company-dabbrev)
              company-frontends '(company-pseudo-tooltip-frontend)
-             company-idle-delay 0.15
+             company-idle-delay nil
              company-minimum-prefix-length 1
              company-tooltip-minimum company-tooltip-limit
              company-require-match #'company-explicit-action-p
