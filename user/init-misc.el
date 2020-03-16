@@ -167,6 +167,17 @@ loaded."
   :init (recentf-mode t))
 
 
+;; Help buffer
+
+(my:with-package helpful
+  :ensure t
+  :init (my:kmap
+         ([remap describe-function] #'helpful-callable)
+         ([remap describe-variable] #'helpful-variable)
+         ([remap describe-symbol] #'helpful-symbol)
+         ([remap describe-key] #'helpful-key)))
+
+
 ;; External tools
 
 (defun my:reindent-xml ()
