@@ -9,7 +9,9 @@
 
 
 (my:with-package quelpa
-  :ensure t)
+  :ensure t
+  :init (progn
+          (setq-default quelpa-update-melpa-p nil)))
 
 
 (provide 'init-pkgmanager)
