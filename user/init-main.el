@@ -30,7 +30,6 @@
 (require 'init-vcs)
 
 (my:with-package flymake
-  :ensure t
   :config (require 'init-flymake))
 
 (require 'init-pkgs)
