@@ -112,6 +112,7 @@ loaded."
 
 ;; Sync unchanged buffers with filesystem
 (my:with-package autorevert
+  :defer 0.5
   :init (progn
           ;; Disable `Reverting buffer' messages
           (setq-default auto-revert-verbose nil)
