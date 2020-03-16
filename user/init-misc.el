@@ -5,6 +5,7 @@
 ;;; Code:
 
 (require 'init-defs)
+(require 'init-keybind)
 (require 'init-package)
 (require 'init-process)
 
