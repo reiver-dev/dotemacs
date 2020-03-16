@@ -22,7 +22,7 @@
 (my:bindings-mode t)
 
 
-(defmacro my:kmap* (keymap &rest bindings)
+(defmacro -my:kmap (keymap &rest bindings)
   "Binding keys to KEYMAP.
 Should get (kbd1 kbd2 .. function) as BINDINGS args"
   (let ((result
@@ -41,12 +41,27 @@ Should get (kbd1 kbd2 .. function) as BINDINGS args"
       (car result))))
 
 
+(defmacro my:kmap* (keymap &rest bindings)
+  "Binding keys to KEYMAP.
+Should get (kbd1 kbd2 .. function) as BINDINGS args"
+  (macroexp-let2
+      (lambda (form) (or (not (consp form)) (macroexp-const-p form)))
+      keymap keymap
+    `(-my:kmap ,keymap ,@bindings)))
+
+
 (defmacro my:kmap (&rest bindings)
   "Set BINDINGS to `my:bindings-mode-map' keymap.
 See `my:kmap*'."
   (if (stringp (car bindings))
       `(my:kmap* my:bindings-mode-map ,bindings)
     `(my:kmap* my:bindings-mode-map ,@bindings)))
+
+
+(defmacro my:kmap-global (&rest bindings)
+  "Set BINDINGS to `current-global-map' keymap.
+See `my:kmap*'."
+  `(my:kmap* (current-global-map) ,@bindings))
 
 
 (defun my:minibuffer-set-key (key command)
