@@ -21,15 +21,15 @@
 (set-language-environment "UTF-8")
 (prefer-coding-system 'utf-8-unix)
 
-(when (fboundp 'menu-bar-mode)
-  (menu-bar-mode -1))
-(when (fboundp 'tool-bar-mode)
-  (tool-bar-mode -1))
-(when (fboundp 'toolltip-mode)
-  (tooltip-mode -1))
-(when (fboundp 'scroll-bar-mode)
-  (scroll-bar-mode -1))
-
+(when (< emacs-major-version 27)
+  (when (fboundp 'menu-bar-mode)
+    (menu-bar-mode -1))
+ (when (fboundp 'tool-bar-mode)
+   (tool-bar-mode -1))
+ (when (fboundp 'toolltip-mode)
+   (tooltip-mode -1))
+ (when (fboundp 'scroll-bar-mode)
+   (scroll-bar-mode -1)))
 
 (setq-default load-prefer-newer t)
 
